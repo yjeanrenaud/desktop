@@ -57,6 +57,9 @@ ApplicationWindow {
         toolTipText: Style.ncTextColor
     }
 
+    LayoutMirroring.enabled: Qt.application.layoutDirection === Qt.RightToLef
+    LayoutMirroring.childrenInherit: true
+
     readonly property int maxMenuHeight: Style.trayWindowHeight - Style.trayWindowHeaderHeight - 2 * Style.trayWindowBorderWidth
 
     Component.onCompleted: Systray.forceWindowInit(trayWindow)
