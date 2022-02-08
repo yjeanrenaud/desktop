@@ -189,7 +189,7 @@ public:
         AvatarRole,
         IsCurrentUserRole,
         IsConnectedRole,
-        IdRole
+        IdRole,
     };
 
     AccountAppList appList() const;
