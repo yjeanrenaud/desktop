@@ -661,6 +661,11 @@ void User::processCompletedSyncItem(const Folder *folder, const SyncFileItemPtr 
     }
 }
 
+bool User::canLogout() const
+{
+    return !_account->account()->isPublicShareLink();
+}
+
 void User::slotItemCompleted(const QString &folder, const SyncFileItemPtr &item)
 {
     auto folderInstance = FolderMan::instance()->folder(folder);
@@ -1126,6 +1131,9 @@ QVariant UserModel::data(const QModelIndex &index, int role) const
     case IdRole:
         result = index.row();
         break;
+    case CanLogoutRole:
+        result = _users[index.row()]->canLogout();
+        break;
     }
 
     return result;
@@ -1137,6 +1145,7 @@ QHash<int, QByteArray> UserModel::roleNames() const
     roles[NameRole] = "name";
     roles[ServerRole] = "server";
     roles[ServerHasUserStatusRole] = "serverHasUserStatus";
+    roles[CanLogoutRole] = "canLogout";
     roles[StatusIconRole] = "statusIcon";
     roles[StatusEmojiRole] = "statusEmoji";
     roles[StatusMessageRole] = "statusMessage";
