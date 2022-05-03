@@ -259,7 +259,7 @@ index 89ad6bf31..04b687a6d 100644
      topPadding: 8
      bottomPadding: 8
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index c1c56039c..38f170ce4 100644
+index cfb6aaacd..a57ab77ab 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
 @@ -1,6 +1,6 @@
@@ -270,15 +270,15 @@ index c1c56039c..38f170ce4 100644
  import QtQuick.Window 2.3
  import QtQuick.Controls 2.3
  import QtQuick.Layouts 1.2
-@@ -60,6 +60,7 @@ Window {
+@@ -61,6 +61,7 @@ Window {
              accountMenu.close();
              syncStatus.model.load();
          }
 +        onNewUserSelected: onNewUserSelected()
      }
  
-     Connections {
-@@ -76,14 +77,17 @@ Window {
+     Component {
+@@ -90,14 +91,17 @@ Window {
              Systray.setOpened();
              UserModel.fetchCurrentActivityModel();
          }
@@ -293,10 +293,10 @@ index c1c56039c..38f170ce4 100644
              openFileActivityDialog(objectName, objectId)
          }
 +        onShowFileActivityDialog: onShowFileActivityDialog(sharePath, localPath)
-     }
  
-     OpacityMask {
-@@ -726,7 +730,7 @@ Window {
+         function onShowErrorMessageDialog(error) {
+             var newErrorDialog = errorMessageDialog.createObject(trayWindow)
+@@ -746,7 +750,7 @@ Window {
  
                  keyNavigationEnabled: true
  
@@ -305,7 +305,7 @@ index c1c56039c..38f170ce4 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -748,8 +752,6 @@ Window {
+@@ -768,8 +772,6 @@ Window {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
