@@ -138,7 +138,7 @@ void Systray::create()
 
 void Systray::setupContextMenu()
 {
-    _contextMenu = new QMenu();
+    _contextMenu = std::make_unique<QMenu>();
 
     if (AccountManager::instance()->accounts().isEmpty()) {
         _contextMenu->addAction(tr("Add account"), this, &Systray::openAccountWizard);
@@ -151,9 +151,9 @@ void Systray::setupContextMenu()
     _contextMenu->addAction(tr("Settings"), this, &Systray::openSettings);
     _contextMenu->addAction(tr("Help"), this, &Systray::openHelp);
     _contextMenu->addAction(tr("Exit %1").arg(Theme::instance()->appNameGUI()), this, &Systray::shutdown);
-    setContextMenu(_contextMenu);
+    setContextMenu(_contextMenu.get());
 
-    connect(_contextMenu, &QMenu::aboutToShow, [=] {
+    connect(_contextMenu.get(), &QMenu::aboutToShow, [=] {
         const auto folders = FolderMan::instance()->map();
 
         const auto allPaused = std::all_of(std::cbegin(folders), std::cend(folders), [](Folder *f) { return f->syncPaused(); });

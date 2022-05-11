@@ -129,7 +129,7 @@ private:
     bool _isOpen = false;
     bool _syncIsPaused = true;
     QPointer<QQmlApplicationEngine> _trayEngine;
-    QPointer<QMenu> _contextMenu;
+    std::unique_ptr<QMenu> _contextMenu;
 
     AccessManagerFactory _accessManagerFactory;
 
