@@ -10,7 +10,6 @@
 // Xcode needs a wrapping application to allow the extension to be debugged.
 
 #import <Cocoa/Cocoa.h>
-#import <FileProvider/FileProvider.h>
 
 int main(int argc, const char * argv[]) {
     return NSApplicationMain(argc, argv);
