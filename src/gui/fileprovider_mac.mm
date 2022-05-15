@@ -37,8 +37,27 @@ class FileProvider::Private {
 
     void addFileProviderDomain(const AccountState *accountState)
     {
-        const QString accountDisplayName = accountState->account()->displayName();
-        const QString accountId = accountState->account()->id();
+        // NOTE:
+        // Since our application is not an Obj-C/Swift application, we cannot really pull modules to use in the file extension.
+        // Note that one of the only ways we have to pass data to the file provider from the application side is the display name.
+        // In our case, we are creating a domain per configured account and are setting the display name to the account display name.
+        // An account's display name contains the username and the server url (e.g. Claudio@cloud.nextcloud.com).
+
+        // However, this url is a display url and does not necessarily lead to the actual location of the server.
+        // This URL is stored in the Nextcloud config file, which we manually read from the file provider extension's side.
+
+        // Because we can't pass any data to a file provider domain, and therefore can't assign to it any details about the account it
+        // is meant to handle, we don't actually anything know about the account itself from the file provider extension's side.
+
+        // It is therefore essential for the file provider's display name to at least contain the details that will let us know which
+        // bits from the config file we should be looking at for the relevant domain. Luckily for us, our account display name string
+        // contains pretty much everything we need.
+
+        // If you change the accountDisplayName, expect to have to change big parts of the file provider extension code too!
+
+        const auto account = accountState->account();
+        const QString accountDisplayName = QString("%1@%2").arg(account->credentials()->user(), accountState->account()->url().host());
+        const QString accountId = account->id();
 
         qCDebug(lcMacFileProvider) << "Adding new file provider domain for account with id: " << accountId;
 

@@ -213,6 +213,8 @@ Application::Application(int &argc, char **argv)
 #endif
 
     // TODO: Can't set this without breaking current config paths
+    // and without breaking the macOS file provider too
+    //
     //    setOrganizationName(QLatin1String(APPLICATION_VENDOR));
     setOrganizationDomain(QLatin1String(APPLICATION_REV_DOMAIN));
 

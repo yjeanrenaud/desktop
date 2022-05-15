@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NC Client Application Name</key>
+	<string>$(OC_APPLICATION_NAME)</string>
+	<key>NC Client Organization Name</key>
+	<string>$(OC_APPLICATION_VENDOR)</string>
+	<key>NC Client Executable Name</key>
+	<string>$(OC_APPLICATION_EXECUTABLE_NAME)</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionFileProviderDocumentGroup</key>
