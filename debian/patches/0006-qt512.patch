@@ -117,7 +117,7 @@ index 887213f09..8b3f1d1b9 100644
          if (!QFile::remove(desktopFileLocation)) {
              qCWarning(lcUtility) << "Could not remove autostart desktop file";
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index 8b47d33ff..02d0c8376 100644
+index 920996836..4844ed5dd 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
 @@ -60,7 +60,7 @@ set(client_UI_SRCS
@@ -193,7 +193,7 @@ index 50528a252..9df1a76f9 100644
  namespace OCC {
  
 diff --git a/src/gui/sharedialog.cpp b/src/gui/sharedialog.cpp
-index 95fca99e6..4fb9d391a 100644
+index 2220a4616..feff34e3c 100644
 --- a/src/gui/sharedialog.cpp
 +++ b/src/gui/sharedialog.cpp
 @@ -35,6 +35,7 @@
@@ -205,15 +205,24 @@ index 95fca99e6..4fb9d391a 100644
  namespace {
  QString createRandomPassword()
 diff --git a/src/gui/tray/asyncimageresponse.cpp b/src/gui/tray/asyncimageresponse.cpp
-index e484ab0de..4323acd1b 100644
+index f393c837a..5f1acdc20 100644
 --- a/src/gui/tray/asyncimageresponse.cpp
 +++ b/src/gui/tray/asyncimageresponse.cpp
-@@ -26,7 +26,7 @@ AsyncImageResponse::AsyncImageResponse(const QString &id, const QSize &requested
-         return;
+@@ -27,7 +27,7 @@ AsyncImageResponse::AsyncImageResponse(const QString &id, const QSize &requested
      }
  
--    _imagePaths = id.split(QLatin1Char(';'), Qt::SkipEmptyParts);
-+    _imagePaths = id.split(QLatin1Char(';'), QString::SkipEmptyParts);
+     auto actualId = id;
+-    const auto idSplit = id.split(QStringLiteral("/"), Qt::SkipEmptyParts);
++    const auto idSplit = id.split(QStringLiteral("/"), QString::SkipEmptyParts);
+     const auto color = QColor(idSplit.last());
+ 
+     if(color.isValid()) {
+@@ -35,7 +35,7 @@ AsyncImageResponse::AsyncImageResponse(const QString &id, const QSize &requested
+         actualId.remove("/" % idSplit.last());
+     }
+ 
+-    _imagePaths = actualId.split(QLatin1Char(';'), Qt::SkipEmptyParts);
++    _imagePaths = actualId.split(QLatin1Char(';'), QString::SkipEmptyParts);
      _requestedImageSize = requestedSize;
  
      if (_imagePaths.isEmpty()) {
@@ -301,7 +310,7 @@ index 5f58df4f4..4699f64d6 100644
  
  WebViewPageUrlSchemeHandler::WebViewPageUrlSchemeHandler(QObject *parent)
 diff --git a/src/libsync/account.cpp b/src/libsync/account.cpp
-index bdc08c9ba..0ac9e1921 100644
+index eab683dd6..42bb716ca 100644
 --- a/src/libsync/account.cpp
 +++ b/src/libsync/account.cpp
 @@ -51,7 +51,6 @@
@@ -340,7 +349,7 @@ index bdc08c9ba..0ac9e1921 100644
              emit wantsAccountSaved(this);
  
 diff --git a/src/libsync/discoveryphase.h b/src/libsync/discoveryphase.h
-index 3f5240dd1..f8da93fa4 100644
+index f4bb42704..6461b7bfd 100644
 --- a/src/libsync/discoveryphase.h
 +++ b/src/libsync/discoveryphase.h
 @@ -24,6 +24,7 @@
@@ -365,7 +374,7 @@ index 294ad2bb6..8bd85f19e 100644
                  _logstream->flush();
          }
 diff --git a/src/libsync/networkjobs.cpp b/src/libsync/networkjobs.cpp
-index 82b5e5f4b..87e734b3b 100644
+index 335dd1eb5..06289c291 100644
 --- a/src/libsync/networkjobs.cpp
 +++ b/src/libsync/networkjobs.cpp
 @@ -30,6 +30,7 @@
@@ -377,7 +386,7 @@ index 82b5e5f4b..87e734b3b 100644
  #ifndef TOKEN_AUTH_ONLY
  #include <QPainter>
 diff --git a/src/libsync/ocsuserstatusconnector.cpp b/src/libsync/ocsuserstatusconnector.cpp
-index 19cb34b3d..0a81b3fb3 100644
+index cbe65c320..12e1e20c0 100644
 --- a/src/libsync/ocsuserstatusconnector.cpp
 +++ b/src/libsync/ocsuserstatusconnector.cpp
 @@ -110,10 +110,10 @@ quint64 clearAtEndOfToTimestamp(const OCC::ClearAt &clearAt)
@@ -419,7 +428,7 @@ index 57e5572de..c5fe98ecc 100644
  
  #ifdef Q_OS_UNIX
 diff --git a/src/libsync/syncengine.cpp b/src/libsync/syncengine.cpp
-index 0306e0f8c..ba5b309a2 100644
+index ac19cd40c..d8dc8effc 100644
 --- a/src/libsync/syncengine.cpp
 +++ b/src/libsync/syncengine.cpp
 @@ -55,6 +55,7 @@
@@ -430,7 +439,7 @@ index 0306e0f8c..ba5b309a2 100644
  #include <qtextcodec.h>
  
  namespace OCC {
-@@ -701,11 +702,7 @@ void SyncEngine::slotDiscoveryFinished()
+@@ -702,11 +703,7 @@ void SyncEngine::slotDiscoveryFinished()
              const QString script = qEnvironmentVariable("OWNCLOUD_POST_UPDATE_SCRIPT");
  
              qCDebug(lcEngine) << "Post Update Script: " << script;
