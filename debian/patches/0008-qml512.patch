@@ -53,10 +53,10 @@ index 3f86f8cf9..8bd0d0ad3 100644
  import com.nextcloud.desktopclient 1.0 as NC
  
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index 195ae3aca..c4778bdef 100644
+index db04b01a4..dc1f070bb 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
-@@ -184,15 +184,20 @@ void Systray::createCallDialog(const Activity &callNotification)
+@@ -205,15 +205,20 @@ void Systray::createCallDialog(const Activity &callNotification)
              });
          }
  
@@ -84,11 +84,48 @@ index 195ae3aca..c4778bdef 100644
  
          _callsAlreadyNotified.insert(callNotification._id);
      }
+diff --git a/src/gui/tray/ActivityActionButton.qml b/src/gui/tray/ActivityActionButton.qml
+index eca55ebdc..9f37dbbc4 100644
+--- a/src/gui/tray/ActivityActionButton.qml
++++ b/src/gui/tray/ActivityActionButton.qml
+@@ -1,6 +1,6 @@
+-import QtQuick 2.15
++import QtQuick 2.12
+ import QtQuick.Controls 2.3
+-import QtQuick.Layouts 1.15
++import QtQuick.Layouts 1.12
+ import Style 1.0
+ import com.nextcloud.desktopclient 1.0
+ 
+diff --git a/src/gui/tray/ActivityItem.qml b/src/gui/tray/ActivityItem.qml
+index 196ce2086..a0c0f4108 100644
+--- a/src/gui/tray/ActivityItem.qml
++++ b/src/gui/tray/ActivityItem.qml
+@@ -1,7 +1,7 @@
+-import QtQml 2.15
+-import QtQuick 2.15
+-import QtQuick.Controls 2.15
+-import QtQuick.Layouts 1.15
++import QtQml 2.12
++import QtQuick 2.12
++import QtQuick.Controls 2.12
++import QtQuick.Layouts 1.12
+ import Style 1.0
+ import com.nextcloud.desktopclient 1.0
+ 
 diff --git a/src/gui/tray/ActivityItemActions.qml b/src/gui/tray/ActivityItemActions.qml
-index faaedb8c0..3193977b2 100644
+index f86ad70d7..9b7ba3188 100644
 --- a/src/gui/tray/ActivityItemActions.qml
 +++ b/src/gui/tray/ActivityItemActions.qml
-@@ -101,6 +101,7 @@ RowLayout {
+@@ -1,5 +1,5 @@
+-import QtQml 2.15
+-import QtQuick 2.15
++import QtQml 2.12
++import QtQuick 2.12
+ import QtQuick.Controls 2.3
+ import QtQuick.Layouts 1.2
+ import Style 1.0
+@@ -102,6 +102,7 @@ RowLayout {
                  function onMovementStarted() {
                      moreActionsButtonContextMenu.close();
                  }
@@ -96,6 +133,35 @@ index faaedb8c0..3193977b2 100644
              }
  
              ActivityItemContextMenu {
+diff --git a/src/gui/tray/ActivityItemContent.qml b/src/gui/tray/ActivityItemContent.qml
+index c5408c0fc..cada71d23 100644
+--- a/src/gui/tray/ActivityItemContent.qml
++++ b/src/gui/tray/ActivityItemContent.qml
+@@ -1,9 +1,9 @@
+-import QtQml 2.15
+-import QtQuick 2.15
++import QtQml 2.12
++import QtQuick 2.12
+ import QtQuick.Controls 2.3
+ import QtQuick.Layouts 1.2
+ import Style 1.0
+-import QtGraphicalEffects 1.15
++import QtGraphicalEffects 1.12
+ import com.nextcloud.desktopclient 1.0
+ 
+ RowLayout {
+diff --git a/src/gui/tray/ActivityItemContextMenu.qml b/src/gui/tray/ActivityItemContextMenu.qml
+index de35e3584..ad150bc0b 100644
+--- a/src/gui/tray/ActivityItemContextMenu.qml
++++ b/src/gui/tray/ActivityItemContextMenu.qml
+@@ -1,5 +1,5 @@
+-import QtQml 2.15
+-import QtQuick 2.15
++import QtQml 2.12
++import QtQuick 2.12
+ import QtQuick.Controls 2.3
+ import Style 1.0
+ 
 diff --git a/src/gui/tray/ActivityList.qml b/src/gui/tray/ActivityList.qml
 index acfb1bbdc..1d4af0300 100644
 --- a/src/gui/tray/ActivityList.qml
@@ -112,6 +178,47 @@ diff --git a/src/gui/tray/AutoSizingMenu.qml b/src/gui/tray/AutoSizingMenu.qml
 index efc23d1bf..3c750eaa1 100644
 --- a/src/gui/tray/AutoSizingMenu.qml
 +++ b/src/gui/tray/AutoSizingMenu.qml
+@@ -1,4 +1,4 @@
+-import QtQuick 2.15
++import QtQuick 2.12
+ import QtQuick.Controls 2.3
+ import Style 1.0
+ 
+diff --git a/src/gui/tray/CallNotificationDialog.qml b/src/gui/tray/CallNotificationDialog.qml
+index 535cf6745..b56d3b0a1 100644
+--- a/src/gui/tray/CallNotificationDialog.qml
++++ b/src/gui/tray/CallNotificationDialog.qml
+@@ -1,11 +1,11 @@
+-import QtQuick 2.15
+-import QtQuick.Window 2.15
++import QtQuick 2.12
++import QtQuick.Window 2.12
+ import Style 1.0
+ import com.nextcloud.desktopclient 1.0
+ import QtQuick.Layouts 1.2
+-import QtMultimedia 5.15
+-import QtQuick.Controls 2.15
+-import QtGraphicalEffects 1.15
++import QtMultimedia 5.12
++import QtQuick.Controls 2.12
++import QtGraphicalEffects 1.12
+ 
+ Window {
+     id: root
+diff --git a/src/gui/tray/CustomButton.qml b/src/gui/tray/CustomButton.qml
+index 0ddb40d24..3bacf420a 100644
+--- a/src/gui/tray/CustomButton.qml
++++ b/src/gui/tray/CustomButton.qml
+@@ -1,4 +1,4 @@
+-import QtQuick 2.15
++import QtQuick 2.12
+ import QtQuick.Controls 2.3
+ import QtQuick.Layouts 1.2
+ import Style 1.0
+diff --git a/src/gui/tray/CustomTextButton.qml b/src/gui/tray/CustomTextButton.qml
+index 000a54d3c..d8b32eb43 100644
+--- a/src/gui/tray/CustomTextButton.qml
++++ b/src/gui/tray/CustomTextButton.qml
 @@ -1,4 +1,4 @@
 -import QtQuick 2.15
 +import QtQuick 2.12
@@ -146,6 +253,21 @@ index 5964c60db..be357f6d8 100644
  
  import Style 1.0
  
+diff --git a/src/gui/tray/TalkReplyTextField.qml b/src/gui/tray/TalkReplyTextField.qml
+index 550c43a42..53c2f4c74 100644
+--- a/src/gui/tray/TalkReplyTextField.qml
++++ b/src/gui/tray/TalkReplyTextField.qml
+@@ -1,7 +1,7 @@
+-import QtQuick 2.15
++import QtQuick 2.12
+ import Style 1.0
+-import QtQuick.Controls 2.15
+-import QtQuick.Layouts 1.15
++import QtQuick.Controls 2.12
++import QtQuick.Layouts 1.12
+ import com.nextcloud.desktopclient 1.0
+ 
+ Item {
 diff --git a/src/gui/tray/UnifiedSearchInputContainer.qml b/src/gui/tray/UnifiedSearchInputContainer.qml
 index cb5687530..c0b5ec4a0 100644
 --- a/src/gui/tray/UnifiedSearchInputContainer.qml
@@ -314,3 +436,15 @@ index cfb6aaacd..a57ab77ab 100644
                  }
  
                  section.property: "providerName"
+diff --git a/theme/Style/Style.qml b/theme/Style/Style.qml
+index af7627ade..a03d3d964 100644
+--- a/theme/Style/Style.qml
++++ b/theme/Style/Style.qml
+@@ -1,6 +1,6 @@
+ pragma Singleton
+ 
+-import QtQuick 2.15
++import QtQuick 2.12
+ 
+ import com.nextcloud.desktopclient 1.0
+ 
