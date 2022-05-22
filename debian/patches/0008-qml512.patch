@@ -52,8 +52,29 @@ index 3f86f8cf9..8bd0d0ad3 100644
  
  import com.nextcloud.desktopclient 1.0 as NC
  
+diff --git a/src/gui/main.cpp b/src/gui/main.cpp
+index 8b95de138..89154be82 100644
+--- a/src/gui/main.cpp
++++ b/src/gui/main.cpp
+@@ -69,7 +69,6 @@ int main(int argc, char **argv)
+     qmlRegisterType<UserStatusSelectorModel>("com.nextcloud.desktopclient", 1, 0, "UserStatusSelectorModel");
+     qmlRegisterType<OCC::ActivityListModel>("com.nextcloud.desktopclient", 1, 0, "ActivityListModel");
+     qmlRegisterType<OCC::FileActivityListModel>("com.nextcloud.desktopclient", 1, 0, "FileActivityListModel");
+-    qmlRegisterType<Theme>("com.nextcloud.desktopclient", 1, 0, "Theme");
+     qmlRegisterUncreatableType<OCC::UnifiedSearchResultsListModel>(
+         "com.nextcloud.desktopclient", 1, 0, "UnifiedSearchResultsListModel", "UnifiedSearchResultsListModel");
+     qRegisterMetaType<UnifiedSearchResultsListModel *>("UnifiedSearchResultsListModel*");
+@@ -101,6 +100,8 @@ int main(int argc, char **argv)
+ 
+     OCC::Application app(argc, argv);
+ 
++    qmlRegisterType<Theme>("com.nextcloud.desktopclient", 1, 0, "Theme");
++
+ #ifdef Q_OS_WIN
+     // The Windows style still has pixelated elements with Qt 5.6,
+     // it's recommended to use the Fusion style in this case, even
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index db04b01a4..dc1f070bb 100644
+index 4f312f5df..09efd3526 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
 @@ -205,15 +205,20 @@ void Systray::createCallDialog(const Activity &callNotification)
