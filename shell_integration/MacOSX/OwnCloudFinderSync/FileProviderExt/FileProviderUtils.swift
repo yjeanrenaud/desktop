@@ -11,6 +11,11 @@ struct NCAccountDetails {
     let account_id: String
     let username: String
     let server_url: URL
+    let dav_url: URL
+    
+    var isNull: Bool {
+        return account_id.isEmpty || username.isEmpty
+    }
 }
 
 class FileProviderUtils: NSObject {
@@ -19,7 +24,9 @@ class FileProviderUtils: NSObject {
         return instance
     }()
         
-    func clientConfigPath() -> String? {
+    let webDavUrlSuffix: String = "/remote.php/dav"
+    
+    let clientConfigPath: String? = {
         // Upon compiling this extension through CMake we set OC_APPLICATION_EXECUTABLE_NAME in the Info.plist
         // Qt's standard location for writableLocations( QStandardPaths::AppConfigLocation ) internally runs:
         //
@@ -46,10 +53,10 @@ class FileProviderUtils: NSObject {
         }
 
         return nil
-    }
+    }()
     
-    func accountDetails(domainDisplayname: String) -> NCAccountDetails? {
-        guard let configPath = clientConfigPath() else { return nil }
+    func getAccountDetails(domainDisplayname: String) -> NCAccountDetails? {
+        guard let configPath = self.clientConfigPath else { return nil }
         
         let separatedDisplayString = domainDisplayname.split(separator: "@", maxSplits: 1)
         guard let displayUrl = separatedDisplayString.last,
@@ -103,7 +110,8 @@ class FileProviderUtils: NSObject {
                             
                             return NCAccountDetails(account_id: userIdString,
                                                     username: displayUserString,
-                                                    server_url: serverUrlUrl)
+                                                    server_url: serverUrlUrl,
+                                                    dav_url: serverUrlUrl.appendingPathComponent(self.webDavUrlSuffix))
                         }
                     }
                 }
