@@ -10,6 +10,7 @@ import Foundation
 struct NCAccountDetails {
     let account_id: String
     let username: String
+    let password: String
     let server_url: URL
     let dav_url: URL
     
@@ -55,6 +56,25 @@ class FileProviderUtils: NSObject {
         return nil
     }()
     
+    func getUserPasswordFromKeychain(accountString: String) -> Data? {
+        let query = [
+            kSecClass as String       : kSecClassGenericPassword,
+            kSecAttrAccount as String : accountString,
+            kSecReturnData as String  : kCFBooleanTrue!,
+            kSecMatchLimit as String  : kSecMatchLimitOne
+        ] as [String : Any]
+
+        var dataTypeRef: AnyObject? = nil
+
+        let status: OSStatus = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+
+        if status == noErr {
+            return dataTypeRef as! Data?
+        } else {
+            return nil
+        }
+    }
+    
     func getAccountDetails(domainDisplayname: String) -> NCAccountDetails? {
         guard let configPath = self.clientConfigPath else { return nil }
         
@@ -97,19 +117,29 @@ class FileProviderUtils: NSObject {
             // TODO: Even better, just find the matches in the configFileLines for W/user=XYZ and W/url=XYZ and check those
             for line in configFileLines {
                 if line.contains(displayUserString) {
+                    
                     let splitUserLine = line.split(separator: "\\", maxSplits: 1) // Have to escape the escape character
                     guard let userId = splitUserLine.first else { continue }
                     let userIdString = String(userId)
                     
                     for innerLine in configFileLines {
                         if innerLine.contains(userIdString) && innerLine.contains(displayUrlString) {
+                            
                             let splitServerUrlLine = line.components(separatedBy: "url=")
                             guard let serverUrl = splitServerUrlLine.last,
                                   let serverUrlUrl = URL(string: String(serverUrl))
                             else { continue }
                             
+                            // The client sets the account field in the kaychain entry as a colon-separated string consisting of
+                            // an account's username, its homeserver url, and the id of the account
+                            let keychainAccountString = displayUserString + ":" + serverUrlUrl.absoluteString + ":" + userIdString
+                            guard let userPassword = self.getUserPasswordFromKeychain(accountString: keychainAccountString),
+                                  let userPasswordString = String(data: userPassword, encoding: .utf8)
+                            else { continue }
+                            
                             return NCAccountDetails(account_id: userIdString,
                                                     username: displayUserString,
+                                                    password: userPasswordString,
                                                     server_url: serverUrlUrl,
                                                     dav_url: serverUrlUrl.appendingPathComponent(self.webDavUrlSuffix))
                         }
