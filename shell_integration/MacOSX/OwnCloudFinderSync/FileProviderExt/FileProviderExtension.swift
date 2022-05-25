@@ -6,17 +6,20 @@
 //
 
 import FileProvider
+import NCCommunication
 
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     let domain: NSFileProviderDomain
-    let accountDetails: NCAccountDetails
     
     required init(domain: NSFileProviderDomain) {
         self.domain = domain
         
-        self.accountDetails = FileProviderUtils.shared.getAccountDetails(domainDisplayname: domain.displayName) ??
-        NCAccountDetails(account_id: "", username: "", server_url: URL(string: "https://nextcloud.com/")!)
-        
+        FileProviderUtils.shared.accountDetails = FileProviderUtils.shared.getAccountDetails(domainDisplayname: domain.displayName)
+        if let accountDetails = FileProviderUtils.shared.accountDetails {
+            // TODO: This will need changing with more accurate values for identifiers
+            NCCommunicationCommon.shared.setup(account: accountDetails.username, user: accountDetails.username, userId: accountDetails.accountId, password: accountDetails.password, urlBase: accountDetails.serverUrl, userAgent: FileProviderUtils.shared.userAgent, webDav: FileProviderUtils.shared.webDavUrlSuffix, nextcloudVersion: 1, delegate: NCNetworking.shared)
+        }
+            
         // The containing application must create a domain using `NSFileProviderManager.add(_:, completionHandler:)`. The system will then launch the application extension process, call `FileProviderExtension.init(domain:)` to instantiate the extension for that domain, and call methods on the instance.
         super.init()
     }

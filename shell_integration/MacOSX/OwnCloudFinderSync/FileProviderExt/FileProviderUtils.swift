@@ -8,14 +8,14 @@
 import Foundation
 
 struct NCAccountDetails {
-    let account_id: String
+    let accountId: String
     let username: String
     let password: String
-    let server_url: URL
-    let dav_url: URL
+    let serverUrl: String
+    let davUrl: String
     
     var isNull: Bool {
-        return account_id.isEmpty || username.isEmpty
+        return accountId.isEmpty || username.isEmpty
     }
 }
 
@@ -24,10 +24,20 @@ class FileProviderUtils: NSObject {
         let instance = FileProviderUtils()
         return instance
     }()
+    
+    var accountDetails: NCAccountDetails? = nil
         
     let webDavUrlSuffix: String = "/remote.php/dav"
     
-    let clientConfigPath: String? = {
+    let appName: String = Bundle.main.infoDictionary!["NC Client Application Name"] as! String
+    let orgName: String = Bundle.main.infoDictionary!["NC Client Organization Name"] as! String
+    let appExecutableName: String = Bundle.main.infoDictionary!["NC Client Executable Name"] as! String
+    
+    var userAgent: String {
+        return "Mozilla 5.0 (macOS) " + appName + "FileProviderExt/1.0"
+    }
+    
+    var clientConfigPath: String? {
         // Upon compiling this extension through CMake we set OC_APPLICATION_EXECUTABLE_NAME in the Info.plist
         // Qt's standard location for writableLocations( QStandardPaths::AppConfigLocation ) internally runs:
         //
@@ -42,19 +52,36 @@ class FileProviderUtils: NSObject {
         
         if let libraryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).last {
             let preferencesPath = libraryPath + "/Preferences/"
-            let infoPlistDictionary = Bundle.main.infoDictionary
-            
-            guard let appName = infoPlistDictionary?["NC Client Application Name"] as? String else { return nil }
-            //let orgName = infoPlistDictionary?["NC Client Organization Name"] as? String
-            guard let appExecName = infoPlistDictionary?["NC Client Executable Name"] as? String else { return nil }
             
             // NOTE: If application organization name is set in the future on the client side, make sure to update this
-            let configPath = preferencesPath + appName + "/" + appExecName + ".cfg"
+            let configPath = preferencesPath + appName + "/" + appExecutableName + ".cfg"
             return configPath
         }
 
         return nil
-    }()
+    }
+    
+    var certificatesPath: String? {
+        if let libraryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).last {
+            let preferencesPath = libraryPath + "/Preferences/"
+            
+            // NOTE: If application organization name is set in the future on the client side, make sure to update this
+            let certificatesPath = preferencesPath + appName + "/FileProviderCertificates"
+
+            if !FileManager.default.fileExists(atPath: certificatesPath) {
+                do {
+                    try FileManager.default.createDirectory(atPath: certificatesPath, withIntermediateDirectories: true)
+                } catch let error {
+                    print("Error creating certificates directory: \(error)")
+                    return nil
+                }
+            }
+        
+            return certificatesPath;
+        }
+        
+        return nil
+    }
     
     func getUserPasswordFromKeychain(accountString: String) -> Data? {
         let query = [
@@ -126,22 +153,21 @@ class FileProviderUtils: NSObject {
                         if innerLine.contains(userIdString) && innerLine.contains(displayUrlString) {
                             
                             let splitServerUrlLine = line.components(separatedBy: "url=")
-                            guard let serverUrl = splitServerUrlLine.last,
-                                  let serverUrlUrl = URL(string: String(serverUrl))
-                            else { continue }
+                            guard let serverUrl = splitServerUrlLine.last else { continue }
+                            let serverUrlString = String(serverUrl)
                             
                             // The client sets the account field in the kaychain entry as a colon-separated string consisting of
                             // an account's username, its homeserver url, and the id of the account
-                            let keychainAccountString = displayUserString + ":" + serverUrlUrl.absoluteString + ":" + userIdString
+                            let keychainAccountString = displayUserString + ":" + serverUrlString + ":" + userIdString
                             guard let userPassword = self.getUserPasswordFromKeychain(accountString: keychainAccountString),
                                   let userPasswordString = String(data: userPassword, encoding: .utf8)
                             else { continue }
                             
-                            return NCAccountDetails(account_id: userIdString,
+                            return NCAccountDetails(accountId: userIdString,
                                                     username: displayUserString,
                                                     password: userPasswordString,
-                                                    server_url: serverUrlUrl,
-                                                    dav_url: serverUrlUrl.appendingPathComponent(self.webDavUrlSuffix))
+                                                    serverUrl: serverUrlString,
+                                                    davUrl: serverUrlString + self.webDavUrlSuffix)
                         }
                     }
                 }
