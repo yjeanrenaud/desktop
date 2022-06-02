@@ -159,8 +159,8 @@ class NCUtilityFileSystem: NSObject {
     @objc func getHomeServer(account: String) -> String {
         var home = self.getWebDAV(account: account)
         // if let tableAccount = NCManageDatabase.shared.getAccount(predicate: NSPredicate(format: "account == %@", account)) {
-        if(FileProviderAccount.shared.accountSet) {
-            home = FileProviderAccount.shared.urlBase + "/" + self.getWebDAV(account: account) + "/files/" + FileProviderAccount.shared.userId
+        if(ActiveAccount.shared.accountSet) {
+            home = ActiveAccount.shared.urlBase + "/" + self.getWebDAV(account: account) + "/files/" + ActiveAccount.shared.userId
         }
         return home
     }
@@ -258,14 +258,14 @@ class NCUtilityFileSystem: NSObject {
         if let directories = NCManageDatabase.shared.getTablesDirectory(predicate: NSPredicate(format: "offline == true"), sorted: "serverUrl", ascending: true) {
             for directory: tableDirectory in directories {
                 // offlineDir.append(CCUtility.getDirectoryProviderStorageOcId(directory.ocId))
-                offlineDir.append(FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: directory.ocId)!.absoluteString)
+                offlineDir.append(NCUtils.getFileProviderDirectoryStorageOcId(ocId: directory.ocId)!.absoluteString)
             }
         }
 
         let files = NCManageDatabase.shared.getTableLocalFiles(predicate: NSPredicate(format: "offline == true"), sorted: "fileName", ascending: true)
         for file: tableLocalFile in files {
             // offlineFiles.append(CCUtility.getDirectoryProviderStorageOcId(file.ocId, fileNameView: file.fileName))
-            offlineDir.append(FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: file.ocId, fileNameView: file.fileName)!.absoluteString)
+            offlineDir.append(NCUtils.getFileProviderDirectoryStorageOcId(ocId: file.ocId, fileNameView: file.fileName)!.absoluteString)
         }
 
         func meetsRequirement(date: Date) -> Bool {
@@ -277,7 +277,7 @@ class NCUtilityFileSystem: NSObject {
             for case let fileURL as URL in enumerator {
                 if let attributes = try? manager.attributesOfItem(atPath: fileURL.path) {
                     // if let date = CCUtility.getATime(fileURL.path) {
-                    if let date = FileProviderUtils.getATime(path: fileURL.path) {
+                    if let date = NCUtils.getATime(path: fileURL.path) {
                         if attributes[.size] as? Double == 0 { continue }
                         if attributes[.type] as? FileAttributeType == FileAttributeType.typeDirectory { continue }
                         if fileURL.pathExtension == NCGlobal.shared.extensionPreview { continue }

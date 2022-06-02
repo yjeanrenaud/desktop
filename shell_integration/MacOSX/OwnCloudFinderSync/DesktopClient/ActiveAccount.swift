@@ -8,9 +8,9 @@
 import Foundation
 import NCCommunication
 
-class FileProviderAccount: tableAccount {
-    static let shared: FileProviderAccount = {
-        let instance = FileProviderAccount()
+class ActiveAccount: tableAccount {
+    static let shared: ActiveAccount = {
+        let instance = ActiveAccount()
         return instance
     }()
     

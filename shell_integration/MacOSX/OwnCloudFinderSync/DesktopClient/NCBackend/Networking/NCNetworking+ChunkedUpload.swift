@@ -30,11 +30,11 @@ extension NCNetworking {
     internal func uploadChunkedFile(metadata: tableMetadata, start: @escaping () -> Void, completion: @escaping (_ errorCode: Int, _ errorDescription: String) -> Void) {
 
         // let directoryProviderStorageOcId = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId)!
-        let directoryProviderStorageOcId = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString
+        let directoryProviderStorageOcId = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString
         let chunkFolder = NCManageDatabase.shared.getChunkFolder(account: metadata.account, ocId: metadata.ocId)
         let chunkFolderPath = metadata.urlBase + "/" + NCUtilityFileSystem.shared.getWebDAV(account: metadata.account) + "/uploads/" + metadata.userId + "/" + chunkFolder
         // let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView)!
-        let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
+        let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
         // let chunkSize = CCUtility.getChunkSize()
         let chunkSize = 0
 
@@ -72,7 +72,7 @@ extension NCNetworking {
 
                     let serverUrlFileName = chunkFolderPath + "/" + fileName
                     // let fileNameChunkLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: fileName)!
-                    let fileNameChunkLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
+                    let fileNameChunkLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
 
                     var size: Int64?
                     if let tableChunk = NCManageDatabase.shared.getChunk(account: metadata.account, fileName: fileName) {
@@ -139,7 +139,7 @@ extension NCNetworking {
                     // Assembling the chunks
                     let serverUrlFileNameSource = chunkFolderPath + "/.file"
                     // let pathServerUrl = CCUtility.returnPathfromServerUrl(metadata.serverUrl, urlBase: metadata.urlBase, account: metadata.account)!
-                    let pathServerUrl = FileProviderUtils.getPathRelativeToServerFilesRoot(serverUrl: metadata.serverUrl, urlBase: metadata.urlBase, account: metadata.account)
+                    let pathServerUrl = NCUtils.getPathRelativeToServerFilesRoot(serverUrl: metadata.serverUrl, urlBase: metadata.urlBase, account: metadata.account)
                     let serverUrlFileNameDestination = metadata.urlBase + "/" + NCUtilityFileSystem.shared.getWebDAV(account: metadata.account) + "/files/" + metadata.userId + pathServerUrl + "/" + metadata.fileName
 
                     var addCustomHeaders: [String: String] = [:]

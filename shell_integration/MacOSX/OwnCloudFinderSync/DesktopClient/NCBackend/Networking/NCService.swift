@@ -39,7 +39,7 @@ class NCService: NSObject {
         NCManageDatabase.shared.clearAllAvatarLoaded()
 
         //if appDelegate.account == "" { return }
-        if !FileProviderAccount.shared.accountSet { return }
+        if !ActiveAccount.shared.accountSet { return }
 
         self.addInternalTypeIdentifier()
         self.requestUserProfile()
@@ -82,11 +82,11 @@ class NCService: NSObject {
     private func requestUserProfile() {
 
         // if appDelegate.account == "" { return }
-        if !FileProviderAccount.shared.accountSet { return }
+        if !ActiveAccount.shared.accountSet { return }
 
         NCCommunication.shared.getUserProfile(queue: NCCommunicationCommon.shared.backgroundQueue) { account, userProfile, errorCode, errorDescription in
 
-            if errorCode == 0 && account == FileProviderAccount.shared.account {
+            if errorCode == 0 && account == ActiveAccount.shared.account {
 
                 // Update User (+ userProfile.id) & active account & account network
                 /*
@@ -103,17 +103,17 @@ class NCService: NSObject {
 
                 // Synchronize Offline
                 // self.synchronizeOffline(account: tableAccount.account)
-                self.synchronizeOffline(account: FileProviderAccount.shared.account)
+                self.synchronizeOffline(account: ActiveAccount.shared.account)
 
                 // Get Avatar
                 // let fileName = tableAccount.userBaseUrl + "-" + self.appDelegate.user + ".png"
-                let fileName = FileProviderAccount.shared.userBaseUrl + "-" + FileProviderAccount.shared.user + ".png"
+                let fileName = ActiveAccount.shared.userBaseUrl + "-" + ActiveAccount.shared.user + ".png"
                 // let fileNameLocalPath = String(CCUtility.getDirectoryUserData()) + "/" + fileName
-                let fileNameLocalPath = String(FileProviderUtils.fileProviderUserDataPath!.absoluteString) + "/" + fileName
+                let fileNameLocalPath = String(NCUtils.fileProviderUserDataPath!.absoluteString) + "/" + fileName
                 let etag = NCManageDatabase.shared.getTableAvatar(fileName: fileName)?.etag
 
                 // NCCommunication.shared.downloadAvatar(user: tableAccount.userId, fileNameLocalPath: fileNameLocalPath, sizeImage: NCGlobal.shared.avatarSize, avatarSizeRounded: NCGlobal.shared.avatarSizeRounded, etag: etag, queue: NCCommunicationCommon.shared.backgroundQueue) { _, _, _, etag, errorCode, _ in
-                NCCommunication.shared.downloadAvatar(user: FileProviderAccount.shared.userId, fileNameLocalPath: fileNameLocalPath, sizeImage: NCGlobal.shared.avatarSize, avatarSizeRounded: NCGlobal.shared.avatarSizeRounded, etag: etag, queue: NCCommunicationCommon.shared.backgroundQueue) { _, _, _, etag, errorCode, _ in
+                NCCommunication.shared.downloadAvatar(user: ActiveAccount.shared.userId, fileNameLocalPath: fileNameLocalPath, sizeImage: NCGlobal.shared.avatarSize, avatarSizeRounded: NCGlobal.shared.avatarSizeRounded, etag: etag, queue: NCCommunicationCommon.shared.backgroundQueue) { _, _, _, etag, errorCode, _ in
 
                     if let etag = etag, errorCode == 0 {
                         NCManageDatabase.shared.addAvatar(fileName: fileName, etag: etag)
@@ -139,7 +139,7 @@ class NCService: NSObject {
     private func requestServerStatus() {
 
         // NCCommunication.shared.getServerStatus(serverUrl: appDelegate.urlBase, queue: NCCommunicationCommon.shared.backgroundQueue) { serverProductName, _, versionMajor, _, _, extendedSupport, errorCode, _ in
-        NCCommunication.shared.getServerStatus(serverUrl: FileProviderAccount.shared.urlBase, queue: NCCommunicationCommon.shared.backgroundQueue) { serverProductName, _, versionMajor, _, _, extendedSupport, errorCode, _ in
+        NCCommunication.shared.getServerStatus(serverUrl: ActiveAccount.shared.urlBase, queue: NCCommunicationCommon.shared.backgroundQueue) { serverProductName, _, versionMajor, _, _, extendedSupport, errorCode, _ in
 
             if errorCode == 0 && extendedSupport == false {
 
@@ -157,7 +157,7 @@ class NCService: NSObject {
     private func requestServerCapabilities() {
 
         // if appDelegate.account == "" { return }
-        if !FileProviderAccount.shared.accountSet { return }
+        if !ActiveAccount.shared.accountSet { return }
 
         NCCommunication.shared.getCapabilities(queue: NCCommunicationCommon.shared.backgroundQueue) { account, data, errorCode, errorDescription in
 
@@ -184,7 +184,7 @@ class NCService: NSObject {
                             NCManageDatabase.shared.deleteTableShare(account: account)
                             if shares != nil {
                                 // NCManageDatabase.shared.addShare(urlBase: self.appDelegate.urlBase, account: account, shares: shares!)
-                                NCManageDatabase.shared.addShare(urlBase: FileProviderAccount.shared.urlBase, account: account, shares: shares!)
+                                NCManageDatabase.shared.addShare(urlBase: ActiveAccount.shared.urlBase, account: account, shares: shares!)
                             }
                             // self.appDelegate.shares = NCManageDatabase.shared.getTableShares(account: account)
                             
@@ -208,7 +208,7 @@ class NCService: NSObject {
                 if serverVersionMajor >= NCGlobal.shared.nextcloudVersion18 {
                     NCCommunication.shared.NCTextObtainEditorDetails(queue: NCCommunicationCommon.shared.backgroundQueue) { account, editors, creators, errorCode, _ in
                         // if errorCode == 0 && account == self.appDelegate.account {
-                        if errorCode == 0 && account == FileProviderAccount.shared.account {
+                        if errorCode == 0 && account == ActiveAccount.shared.account {
                             NCManageDatabase.shared.addDirectEditing(account: account, editors: editors, creators: creators)
                         }
                     }
@@ -219,7 +219,7 @@ class NCService: NSObject {
                 if isExternalSitesServerEnabled {
                     NCCommunication.shared.getExternalSite(queue: NCCommunicationCommon.shared.backgroundQueue) { account, externalSites, errorCode, _ in
                         // if errorCode == 0 && account == self.appDelegate.account {
-                        if errorCode == 0 && account == FileProviderAccount.shared.account {
+                        if errorCode == 0 && account == ActiveAccount.shared.account {
                             NCManageDatabase.shared.deleteExternalSites(account: account)
                             for externalSite in externalSites {
                                 NCManageDatabase.shared.addExternalSites(externalSite, account: account)
@@ -236,7 +236,7 @@ class NCService: NSObject {
                 if userStatus {
                     NCCommunication.shared.getUserStatus(queue: NCCommunicationCommon.shared.backgroundQueue) { account, clearAt, icon, message, messageId, messageIsPredefined, status, statusIsUserDefined, userId, errorCode, _ in
                         // if errorCode == 0 && account == self.appDelegate.account && userId == self.appDelegate.userId {
-                        if errorCode == 0 && account == FileProviderAccount.shared.account && userId == FileProviderAccount.shared.userId {
+                        if errorCode == 0 && account == ActiveAccount.shared.account && userId == ActiveAccount.shared.userId {
                             // NCManageDatabase.shared.setAccountUserStatus(userStatusClearAt: clearAt, userStatusIcon: icon, userStatusMessage: message, userStatusMessageId: messageId, userStatusMessageIsPredefined: messageIsPredefined, userStatusStatus: status, userStatusStatusIsUserDefined: statusIsUserDefined, account: account)
                         }
                     }

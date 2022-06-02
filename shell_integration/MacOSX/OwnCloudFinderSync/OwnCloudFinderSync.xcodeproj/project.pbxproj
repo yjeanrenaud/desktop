@@ -3,22 +3,63 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		5317D03E282EBA0A00414EEA /* FileProviderUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5317D03D282EBA0A00414EEA /* FileProviderUtils.swift */; };
+		537B6D2F2848FE49002A8063 /* NCNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D1F2848FE49002A8063 /* NCNetworking.swift */; };
+		537B6D302848FE49002A8063 /* NCOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D202848FE49002A8063 /* NCOperationQueue.swift */; };
+		537B6D312848FE49002A8063 /* NCNetworking+ChunkedUpload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D212848FE49002A8063 /* NCNetworking+ChunkedUpload.swift */; };
+		537B6D322848FE49002A8063 /* NCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D222848FE49002A8063 /* NCService.swift */; };
+		537B6D332848FE49002A8063 /* NCManageDatabase+Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D242848FE49002A8063 /* NCManageDatabase+Metadata.swift */; };
+		537B6D342848FE49002A8063 /* NCDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D252848FE49002A8063 /* NCDatabase.swift */; };
+		537B6D352848FE49002A8063 /* NCManageDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D262848FE49002A8063 /* NCManageDatabase.swift */; };
+		537B6D362848FE49002A8063 /* NCElementsJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D272848FE49002A8063 /* NCElementsJSON.swift */; };
+		537B6D372848FE49002A8063 /* NCGlobal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D282848FE49002A8063 /* NCGlobal.swift */; };
+		537B6D382848FE49002A8063 /* NCUtilityFileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2A2848FE49002A8063 /* NCUtilityFileSystem.swift */; };
+		537B6D392848FE49002A8063 /* NCUserBaseUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2B2848FE49002A8063 /* NCUserBaseUrl.swift */; };
+		537B6D3A2848FE49002A8063 /* FileProviderData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2C2848FE49002A8063 /* FileProviderData.swift */; };
+		537B6D44284900A8002A8063 /* DesktopClientApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D43284900A8002A8063 /* DesktopClientApp.swift */; };
+		537B6D46284900A8002A8063 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D45284900A8002A8063 /* ContentView.swift */; };
+		537B6D48284900A9002A8063 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 537B6D47284900A9002A8063 /* Assets.xcassets */; };
+		537B6D4B284900A9002A8063 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 537B6D4A284900A9002A8063 /* Preview Assets.xcassets */; };
+		537B6D5028490101002A8063 /* FileProviderExt.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 538E396727F4765000FA63D5 /* FileProviderExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		537B6D5428490106002A8063 /* FinderSyncExt.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C2B573D71B1CD9CE00303B36 /* FinderSyncExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		537B6D5A284902C1002A8063 /* NCCommunication in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D59284902C1002A8063 /* NCCommunication */; };
+		537B6D60284902E0002A8063 /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D5F284902E0002A8063 /* Realm */; };
+		537B6D62284902E0002A8063 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D61284902E0002A8063 /* RealmSwift */; };
+		537B6D65284902FD002A8063 /* Queuer in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D64284902FD002A8063 /* Queuer */; };
+		537B6D6728490319002A8063 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D6628490319002A8063 /* OpenSSL */; };
+		537B6D68284903AE002A8063 /* DesktopClientUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2D2848FE49002A8063 /* DesktopClientUtils.swift */; };
+		537B6D69284903C6002A8063 /* DesktopClientUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2D2848FE49002A8063 /* DesktopClientUtils.swift */; };
+		537B6D6A284903CE002A8063 /* NCGlobal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D282848FE49002A8063 /* NCGlobal.swift */; };
+		537B6D6B284903D5002A8063 /* NCManageDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D262848FE49002A8063 /* NCManageDatabase.swift */; };
+		537B6D6C284903D5002A8063 /* NCManageDatabase+Metadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D242848FE49002A8063 /* NCManageDatabase+Metadata.swift */; };
+		537B6D6D284903D5002A8063 /* NCDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D252848FE49002A8063 /* NCDatabase.swift */; };
+		537B6D6E284903D5002A8063 /* NCElementsJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D272848FE49002A8063 /* NCElementsJSON.swift */; };
+		537B6D6F284903DB002A8063 /* NCUserBaseUrl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2B2848FE49002A8063 /* NCUserBaseUrl.swift */; };
+		537B6D70284903DB002A8063 /* NCUtilityFileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2A2848FE49002A8063 /* NCUtilityFileSystem.swift */; };
+		537B6D71284903E0002A8063 /* NCService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D222848FE49002A8063 /* NCService.swift */; };
+		537B6D72284903E0002A8063 /* NCNetworking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D1F2848FE49002A8063 /* NCNetworking.swift */; };
+		537B6D73284903E0002A8063 /* NCNetworking+ChunkedUpload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D212848FE49002A8063 /* NCNetworking+ChunkedUpload.swift */; };
+		537B6D74284903E0002A8063 /* NCOperationQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D202848FE49002A8063 /* NCOperationQueue.swift */; };
+		537B6D7628490404002A8063 /* NCCommunication in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D7528490404002A8063 /* NCCommunication */; };
+		537B6D7828490404002A8063 /* OpenSSL in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D7728490404002A8063 /* OpenSSL */; };
+		537B6D7A28490404002A8063 /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D7928490404002A8063 /* Realm */; };
+		537B6D7C28490404002A8063 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D7B28490404002A8063 /* RealmSwift */; };
+		537B6D7E28490404002A8063 /* Queuer in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D7D28490404002A8063 /* Queuer */; };
+		5381DF1B284907F400B8D5E2 /* NCUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5381DF1A284907F400B8D5E2 /* NCUtils.swift */; };
+		5381DF1C284907F400B8D5E2 /* NCUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5381DF1A284907F400B8D5E2 /* NCUtils.swift */; };
+		5381DF1D28491C7F00B8D5E2 /* ActiveAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2E2848FE49002A8063 /* ActiveAccount.swift */; };
+		5381DF1E28491D1D00B8D5E2 /* ActiveAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2E2848FE49002A8063 /* ActiveAccount.swift */; };
 		538E396A27F4765000FA63D5 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 538E396927F4765000FA63D5 /* UniformTypeIdentifiers.framework */; };
 		538E396D27F4765000FA63D5 /* FileProviderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538E396C27F4765000FA63D5 /* FileProviderExtension.swift */; };
 		538E396F27F4765000FA63D5 /* FileProviderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538E396E27F4765000FA63D5 /* FileProviderItem.swift */; };
 		538E397127F4765000FA63D5 /* FileProviderEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538E397027F4765000FA63D5 /* FileProviderEnumerator.swift */; };
-		538E397627F4765000FA63D5 /* FileProviderExt.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 538E396727F4765000FA63D5 /* FileProviderExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		539158AC27BE71A900816F56 /* LineProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 539158AB27BE71A900816F56 /* LineProcessor.m */; };
 		539158B327BEC98A00816F56 /* LocalSocketClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 539158B227BEC98A00816F56 /* LocalSocketClient.m */; };
-		C2B573BA1B1CD91E00303B36 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C2B573B91B1CD91E00303B36 /* main.m */; };
-		C2B573D21B1CD94B00303B36 /* main.m in Resources */ = {isa = PBXBuildFile; fileRef = C2B573B91B1CD91E00303B36 /* main.m */; };
 		C2B573DE1B1CD9CE00303B36 /* FinderSync.m in Sources */ = {isa = PBXBuildFile; fileRef = C2B573DD1B1CD9CE00303B36 /* FinderSync.m */; };
-		C2B573E21B1CD9CE00303B36 /* FinderSyncExt.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C2B573D71B1CD9CE00303B36 /* FinderSyncExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C2B573F31B1DAD6400303B36 /* error.iconset in Resources */ = {isa = PBXBuildFile; fileRef = C2B573EB1B1DAD6400303B36 /* error.iconset */; };
 		C2B573F41B1DAD6400303B36 /* ok_swm.iconset in Resources */ = {isa = PBXBuildFile; fileRef = C2B573EC1B1DAD6400303B36 /* ok_swm.iconset */; };
 		C2B573F51B1DAD6400303B36 /* ok.iconset in Resources */ = {isa = PBXBuildFile; fileRef = C2B573ED1B1DAD6400303B36 /* ok.iconset */; };
@@ -27,14 +68,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		538E397427F4765000FA63D5 /* PBXContainerItemProxy */ = {
+		537B6D5128490101002A8063 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C2B573951B1CD88000303B36 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 538E396627F4765000FA63D5;
 			remoteInfo = FileProviderExt;
 		};
-		C2B573DF1B1CD9CE00303B36 /* PBXContainerItemProxy */ = {
+		537B6D5528490106002A8063 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C2B573951B1CD88000303B36 /* Project object */;
 			proxyType = 1;
@@ -44,14 +85,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		C2B573E11B1CD9CE00303B36 /* Embed App Extensions */ = {
+		537B6D5328490101002A8063 /* Embed App Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				C2B573E21B1CD9CE00303B36 /* FinderSyncExt.appex in Embed App Extensions */,
-				538E397627F4765000FA63D5 /* FileProviderExt.appex in Embed App Extensions */,
+				537B6D5028490101002A8063 /* FileProviderExt.appex in Embed App Extensions */,
+				537B6D5428490106002A8063 /* FinderSyncExt.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -60,6 +101,28 @@
 
 /* Begin PBXFileReference section */
 		5317D03D282EBA0A00414EEA /* FileProviderUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderUtils.swift; sourceTree = "<group>"; };
+		537B6D1F2848FE49002A8063 /* NCNetworking.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCNetworking.swift; sourceTree = "<group>"; };
+		537B6D202848FE49002A8063 /* NCOperationQueue.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCOperationQueue.swift; sourceTree = "<group>"; };
+		537B6D212848FE49002A8063 /* NCNetworking+ChunkedUpload.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NCNetworking+ChunkedUpload.swift"; sourceTree = "<group>"; };
+		537B6D222848FE49002A8063 /* NCService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCService.swift; sourceTree = "<group>"; };
+		537B6D242848FE49002A8063 /* NCManageDatabase+Metadata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NCManageDatabase+Metadata.swift"; sourceTree = "<group>"; };
+		537B6D252848FE49002A8063 /* NCDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCDatabase.swift; sourceTree = "<group>"; };
+		537B6D262848FE49002A8063 /* NCManageDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCManageDatabase.swift; sourceTree = "<group>"; };
+		537B6D272848FE49002A8063 /* NCElementsJSON.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCElementsJSON.swift; sourceTree = "<group>"; };
+		537B6D282848FE49002A8063 /* NCGlobal.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCGlobal.swift; sourceTree = "<group>"; };
+		537B6D2A2848FE49002A8063 /* NCUtilityFileSystem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCUtilityFileSystem.swift; sourceTree = "<group>"; };
+		537B6D2B2848FE49002A8063 /* NCUserBaseUrl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCUserBaseUrl.swift; sourceTree = "<group>"; };
+		537B6D2C2848FE49002A8063 /* FileProviderData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileProviderData.swift; sourceTree = "<group>"; };
+		537B6D2D2848FE49002A8063 /* DesktopClientUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesktopClientUtils.swift; sourceTree = "<group>"; };
+		537B6D2E2848FE49002A8063 /* ActiveAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveAccount.swift; sourceTree = "<group>"; };
+		537B6D41284900A8002A8063 /* DesktopClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DesktopClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		537B6D43284900A8002A8063 /* DesktopClientApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopClientApp.swift; sourceTree = "<group>"; };
+		537B6D45284900A8002A8063 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		537B6D47284900A9002A8063 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		537B6D4A284900A9002A8063 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		537B6D4C284900A9002A8063 /* DesktopClient.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DesktopClient.entitlements; sourceTree = "<group>"; };
+		537B6D5728490165002A8063 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5381DF1A284907F400B8D5E2 /* NCUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = NCUtils.swift; path = desktopclient/Utils/NCUtils.swift; sourceTree = SOURCE_ROOT; };
 		538E396727F4765000FA63D5 /* FileProviderExt.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FileProviderExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		538E396927F4765000FA63D5 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
 		538E396C27F4765000FA63D5 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
@@ -72,9 +135,6 @@
 		539158AB27BE71A900816F56 /* LineProcessor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LineProcessor.m; sourceTree = "<group>"; };
 		539158B127BE891500816F56 /* LocalSocketClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalSocketClient.h; sourceTree = "<group>"; };
 		539158B227BEC98A00816F56 /* LocalSocketClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalSocketClient.m; sourceTree = "<group>"; };
-		C2B573B11B1CD91E00303B36 /* desktopclient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = desktopclient.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C2B573B51B1CD91E00303B36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C2B573B91B1CD91E00303B36 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		C2B573D71B1CD9CE00303B36 /* FinderSyncExt.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FinderSyncExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2B573DA1B1CD9CE00303B36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C2B573DB1B1CD9CE00303B36 /* FinderSyncExt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = FinderSyncExt.entitlements; sourceTree = "<group>"; };
@@ -88,18 +148,28 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		537B6D3E284900A8002A8063 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				537B6D7E28490404002A8063 /* Queuer in Frameworks */,
+				537B6D7C28490404002A8063 /* RealmSwift in Frameworks */,
+				537B6D7A28490404002A8063 /* Realm in Frameworks */,
+				537B6D7628490404002A8063 /* NCCommunication in Frameworks */,
+				537B6D7828490404002A8063 /* OpenSSL in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		538E396427F4765000FA63D5 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				537B6D65284902FD002A8063 /* Queuer in Frameworks */,
+				537B6D62284902E0002A8063 /* RealmSwift in Frameworks */,
+				537B6D60284902E0002A8063 /* Realm in Frameworks */,
+				537B6D6728490319002A8063 /* OpenSSL in Frameworks */,
+				537B6D5A284902C1002A8063 /* NCCommunication in Frameworks */,
 				538E396A27F4765000FA63D5 /* UniformTypeIdentifiers.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C2B573AE1B1CD91E00303B36 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,6 +183,81 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		537B6D1D2848FE49002A8063 /* NCBackend */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D1E2848FE49002A8063 /* Networking */,
+				537B6D232848FE49002A8063 /* Data */,
+				537B6D282848FE49002A8063 /* NCGlobal.swift */,
+				537B6D292848FE49002A8063 /* Utility */,
+			);
+			path = NCBackend;
+			sourceTree = "<group>";
+		};
+		537B6D1E2848FE49002A8063 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D1F2848FE49002A8063 /* NCNetworking.swift */,
+				537B6D202848FE49002A8063 /* NCOperationQueue.swift */,
+				537B6D212848FE49002A8063 /* NCNetworking+ChunkedUpload.swift */,
+				537B6D222848FE49002A8063 /* NCService.swift */,
+			);
+			path = Networking;
+			sourceTree = "<group>";
+		};
+		537B6D232848FE49002A8063 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D242848FE49002A8063 /* NCManageDatabase+Metadata.swift */,
+				537B6D252848FE49002A8063 /* NCDatabase.swift */,
+				537B6D262848FE49002A8063 /* NCManageDatabase.swift */,
+				537B6D272848FE49002A8063 /* NCElementsJSON.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		537B6D292848FE49002A8063 /* Utility */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D2A2848FE49002A8063 /* NCUtilityFileSystem.swift */,
+				537B6D2B2848FE49002A8063 /* NCUserBaseUrl.swift */,
+			);
+			path = Utility;
+			sourceTree = "<group>";
+		};
+		537B6D42284900A8002A8063 /* DesktopClient */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D7F284904BB002A8063 /* Utils */,
+				537B6D1D2848FE49002A8063 /* NCBackend */,
+				537B6D5728490165002A8063 /* Info.plist */,
+				537B6D2E2848FE49002A8063 /* ActiveAccount.swift */,
+				537B6D43284900A8002A8063 /* DesktopClientApp.swift */,
+				537B6D45284900A8002A8063 /* ContentView.swift */,
+				537B6D47284900A9002A8063 /* Assets.xcassets */,
+				537B6D4C284900A9002A8063 /* DesktopClient.entitlements */,
+				537B6D49284900A9002A8063 /* Preview Content */,
+			);
+			path = DesktopClient;
+			sourceTree = "<group>";
+		};
+		537B6D49284900A9002A8063 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D4A284900A9002A8063 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		537B6D7F284904BB002A8063 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				537B6D2D2848FE49002A8063 /* DesktopClientUtils.swift */,
+				5381DF1A284907F400B8D5E2 /* NCUtils.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
 		538E396827F4765000FA63D5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -124,6 +269,7 @@
 		538E396B27F4765000FA63D5 /* FileProviderExt */ = {
 			isa = PBXGroup;
 			children = (
+				537B6D2C2848FE49002A8063 /* FileProviderData.swift */,
 				538E396C27F4765000FA63D5 /* FileProviderExtension.swift */,
 				538E396E27F4765000FA63D5 /* FileProviderItem.swift */,
 				538E397027F4765000FA63D5 /* FileProviderEnumerator.swift */,
@@ -137,7 +283,7 @@
 		C2B573941B1CD88000303B36 = {
 			isa = PBXGroup;
 			children = (
-				C2B573B31B1CD91E00303B36 /* desktopclient */,
+				537B6D42284900A8002A8063 /* DesktopClient */,
 				C2B573D81B1CD9CE00303B36 /* FinderSyncExt */,
 				538E396B27F4765000FA63D5 /* FileProviderExt */,
 				538E396827F4765000FA63D5 /* Frameworks */,
@@ -148,28 +294,11 @@
 		C2B573B21B1CD91E00303B36 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C2B573B11B1CD91E00303B36 /* desktopclient.app */,
 				C2B573D71B1CD9CE00303B36 /* FinderSyncExt.appex */,
 				538E396727F4765000FA63D5 /* FileProviderExt.appex */,
+				537B6D41284900A8002A8063 /* DesktopClient.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		C2B573B31B1CD91E00303B36 /* desktopclient */ = {
-			isa = PBXGroup;
-			children = (
-				C2B573B41B1CD91E00303B36 /* Supporting Files */,
-			);
-			path = desktopclient;
-			sourceTree = "<group>";
-		};
-		C2B573B41B1CD91E00303B36 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				C2B573B51B1CD91E00303B36 /* Info.plist */,
-				C2B573B91B1CD91E00303B36 /* main.m */,
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		C2B573D81B1CD9CE00303B36 /* FinderSyncExt */ = {
@@ -204,6 +333,33 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		537B6D40284900A8002A8063 /* DesktopClient */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 537B6D4D284900A9002A8063 /* Build configuration list for PBXNativeTarget "DesktopClient" */;
+			buildPhases = (
+				537B6D3D284900A8002A8063 /* Sources */,
+				537B6D3E284900A8002A8063 /* Frameworks */,
+				537B6D3F284900A8002A8063 /* Resources */,
+				537B6D5328490101002A8063 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				537B6D5228490101002A8063 /* PBXTargetDependency */,
+				537B6D5628490106002A8063 /* PBXTargetDependency */,
+			);
+			name = DesktopClient;
+			packageProductDependencies = (
+				537B6D7528490404002A8063 /* NCCommunication */,
+				537B6D7728490404002A8063 /* OpenSSL */,
+				537B6D7928490404002A8063 /* Realm */,
+				537B6D7B28490404002A8063 /* RealmSwift */,
+				537B6D7D28490404002A8063 /* Queuer */,
+			);
+			productName = DesktopClient;
+			productReference = 537B6D41284900A8002A8063 /* DesktopClient.app */;
+			productType = "com.apple.product-type.application";
+		};
 		538E396627F4765000FA63D5 /* FileProviderExt */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 538E397927F4765000FA63D5 /* Build configuration list for PBXNativeTarget "FileProviderExt" */;
@@ -218,30 +374,15 @@
 			);
 			name = FileProviderExt;
 			packageProductDependencies = (
+				537B6D59284902C1002A8063 /* NCCommunication */,
+				537B6D5F284902E0002A8063 /* Realm */,
+				537B6D61284902E0002A8063 /* RealmSwift */,
+				537B6D64284902FD002A8063 /* Queuer */,
+				537B6D6628490319002A8063 /* OpenSSL */,
 			);
 			productName = FileProviderExt;
 			productReference = 538E396727F4765000FA63D5 /* FileProviderExt.appex */;
 			productType = "com.apple.product-type.app-extension";
-		};
-		C2B573B01B1CD91E00303B36 /* desktopclient */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C2B573CC1B1CD91E00303B36 /* Build configuration list for PBXNativeTarget "desktopclient" */;
-			buildPhases = (
-				C2B573AD1B1CD91E00303B36 /* Sources */,
-				C2B573AE1B1CD91E00303B36 /* Frameworks */,
-				C2B573AF1B1CD91E00303B36 /* Resources */,
-				C2B573E11B1CD9CE00303B36 /* Embed App Extensions */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				C2B573E01B1CD9CE00303B36 /* PBXTargetDependency */,
-				538E397527F4765000FA63D5 /* PBXTargetDependency */,
-			);
-			name = desktopclient;
-			productName = desktopclient;
-			productReference = C2B573B11B1CD91E00303B36 /* desktopclient.app */;
-			productType = "com.apple.product-type.application";
 		};
 		C2B573D61B1CD9CE00303B36 /* FinderSyncExt */ = {
 			isa = PBXNativeTarget;
@@ -267,21 +408,17 @@
 		C2B573951B1CD88000303B36 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1330;
+				LastSwiftUpdateCheck = 1340;
 				LastUpgradeCheck = 1240;
 				TargetAttributes = {
+					537B6D40284900A8002A8063 = {
+						CreatedOnToolsVersion = 13.4;
+					};
 					538E396627F4765000FA63D5 = {
 						CreatedOnToolsVersion = 13.3;
-						ProvisioningStyle = Manual;
-					};
-					C2B573B01B1CD91E00303B36 = {
-						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = 9B5WD74GWJ;
-						LastSwiftMigration = 1330;
 					};
 					C2B573D61B1CD9CE00303B36 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = 9B5WD74GWJ;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 1;
@@ -301,12 +438,16 @@
 			);
 			mainGroup = C2B573941B1CD88000303B36;
 			packageReferences = (
+				537B6D58284902C1002A8063 /* XCRemoteSwiftPackageReference "ios-communication-library" */,
+				537B6D5B284902D0002A8063 /* XCRemoteSwiftPackageReference "OpenSSL" */,
+				537B6D5E284902E0002A8063 /* XCRemoteSwiftPackageReference "realm-swift" */,
+				537B6D63284902FD002A8063 /* XCRemoteSwiftPackageReference "Queuer" */,
 			);
 			productRefGroup = C2B573B21B1CD91E00303B36 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				C2B573B01B1CD91E00303B36 /* desktopclient */,
+				537B6D40284900A8002A8063 /* DesktopClient */,
 				C2B573D61B1CD9CE00303B36 /* FinderSyncExt */,
 				538E396627F4765000FA63D5 /* FileProviderExt */,
 			);
@@ -314,18 +455,19 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		537B6D3F284900A8002A8063 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				537B6D4B284900A9002A8063 /* Preview Assets.xcassets in Resources */,
+				537B6D48284900A9002A8063 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		538E396527F4765000FA63D5 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C2B573AF1B1CD91E00303B36 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C2B573D21B1CD94B00303B36 /* main.m in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -361,22 +503,52 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		537B6D3D284900A8002A8063 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				537B6D6F284903DB002A8063 /* NCUserBaseUrl.swift in Sources */,
+				537B6D6B284903D5002A8063 /* NCManageDatabase.swift in Sources */,
+				537B6D72284903E0002A8063 /* NCNetworking.swift in Sources */,
+				537B6D46284900A8002A8063 /* ContentView.swift in Sources */,
+				5381DF1B284907F400B8D5E2 /* NCUtils.swift in Sources */,
+				537B6D44284900A8002A8063 /* DesktopClientApp.swift in Sources */,
+				537B6D70284903DB002A8063 /* NCUtilityFileSystem.swift in Sources */,
+				537B6D6D284903D5002A8063 /* NCDatabase.swift in Sources */,
+				537B6D73284903E0002A8063 /* NCNetworking+ChunkedUpload.swift in Sources */,
+				537B6D6C284903D5002A8063 /* NCManageDatabase+Metadata.swift in Sources */,
+				537B6D68284903AE002A8063 /* DesktopClientUtils.swift in Sources */,
+				537B6D74284903E0002A8063 /* NCOperationQueue.swift in Sources */,
+				5381DF1D28491C7F00B8D5E2 /* ActiveAccount.swift in Sources */,
+				537B6D6A284903CE002A8063 /* NCGlobal.swift in Sources */,
+				537B6D71284903E0002A8063 /* NCService.swift in Sources */,
+				537B6D6E284903D5002A8063 /* NCElementsJSON.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		538E396327F4765000FA63D5 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				537B6D392848FE49002A8063 /* NCUserBaseUrl.swift in Sources */,
+				5381DF1C284907F400B8D5E2 /* NCUtils.swift in Sources */,
 				538E396D27F4765000FA63D5 /* FileProviderExtension.swift in Sources */,
+				537B6D342848FE49002A8063 /* NCDatabase.swift in Sources */,
 				538E396F27F4765000FA63D5 /* FileProviderItem.swift in Sources */,
+				537B6D312848FE49002A8063 /* NCNetworking+ChunkedUpload.swift in Sources */,
+				537B6D302848FE49002A8063 /* NCOperationQueue.swift in Sources */,
+				537B6D3A2848FE49002A8063 /* FileProviderData.swift in Sources */,
+				537B6D322848FE49002A8063 /* NCService.swift in Sources */,
 				5317D03E282EBA0A00414EEA /* FileProviderUtils.swift in Sources */,
+				537B6D332848FE49002A8063 /* NCManageDatabase+Metadata.swift in Sources */,
+				537B6D69284903C6002A8063 /* DesktopClientUtils.swift in Sources */,
+				537B6D2F2848FE49002A8063 /* NCNetworking.swift in Sources */,
 				538E397127F4765000FA63D5 /* FileProviderEnumerator.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		C2B573AD1B1CD91E00303B36 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C2B573BA1B1CD91E00303B36 /* main.m in Sources */,
+				537B6D372848FE49002A8063 /* NCGlobal.swift in Sources */,
+				537B6D352848FE49002A8063 /* NCManageDatabase.swift in Sources */,
+				5381DF1E28491D1D00B8D5E2 /* ActiveAccount.swift in Sources */,
+				537B6D382848FE49002A8063 /* NCUtilityFileSystem.swift in Sources */,
+				537B6D362848FE49002A8063 /* NCElementsJSON.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -393,19 +565,129 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		538E397527F4765000FA63D5 /* PBXTargetDependency */ = {
+		537B6D5228490101002A8063 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 538E396627F4765000FA63D5 /* FileProviderExt */;
-			targetProxy = 538E397427F4765000FA63D5 /* PBXContainerItemProxy */;
+			targetProxy = 537B6D5128490101002A8063 /* PBXContainerItemProxy */;
 		};
-		C2B573E01B1CD9CE00303B36 /* PBXTargetDependency */ = {
+		537B6D5628490106002A8063 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C2B573D61B1CD9CE00303B36 /* FinderSyncExt */;
-			targetProxy = C2B573DF1B1CD9CE00303B36 /* PBXContainerItemProxy */;
+			targetProxy = 537B6D5528490106002A8063 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		537B6D4E284900A9002A8063 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = DesktopClient/DesktopClient.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_ASSET_PATHS = "\"DesktopClient/Preview Content\"";
+				DEVELOPMENT_TEAM = R337PH2DQX;
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DesktopClient/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.owncloud.desktopclient;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		537B6D4F284900A9002A8063 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = DesktopClient/DesktopClient.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_ASSET_PATHS = "\"DesktopClient/Preview Content\"";
+				DEVELOPMENT_TEAM = R337PH2DQX;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_PREVIEWS = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = DesktopClient/Info.plist;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.owncloud.desktopclient;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		538E397727F4765000FA63D5 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -421,12 +703,12 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = FileProviderExt/FileProviderExt.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = R337PH2DQX;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -440,7 +722,11 @@
 				INFOPLIST_FILE = FileProviderExt/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FileProviderExt;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -473,12 +759,12 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = FileProviderExt/FileProviderExt.entitlements;
-				CODE_SIGN_IDENTITY = "-";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = R337PH2DQX;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -487,7 +773,11 @@
 				INFOPLIST_FILE = FileProviderExt/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = FileProviderExt;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 12.3;
 				MARKETING_VERSION = 1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -497,8 +787,9 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -568,104 +859,6 @@
 			};
 			name = Release;
 		};
-		C2B573CD1B1CD91E00303B36 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = desktopclient/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				MTL_ENABLE_DEBUG_INFO = YES;
-				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
-				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "desktopclient/desktopclient-Bridging-Header.h";
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Debug;
-		};
-		C2B573CE1B1CD91E00303B36 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "-";
-				COMBINE_HIDPI_IMAGES = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				INFOPLIST_FILE = desktopclient/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.10;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
-				SDKROOT = macosx;
-				SWIFT_OBJC_BRIDGING_HEADER = "desktopclient/desktopclient-Bridging-Header.h";
-				SWIFT_VERSION = 5.0;
-			};
-			name = Release;
-		};
 		C2B573E41B1CD9CE00303B36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -684,10 +877,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = FinderSyncExt/FinderSyncExt.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = R337PH2DQX;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -705,7 +900,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = FinderSyncExt/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OC_APPLICATION_NAME = ownCloud;
@@ -715,6 +914,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 			};
@@ -738,11 +938,13 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = FinderSyncExt/FinderSyncExt.entitlements;
-				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = R337PH2DQX;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -754,7 +956,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				INFOPLIST_FILE = FinderSyncExt/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OC_APPLICATION_NAME = ownCloud;
@@ -763,6 +969,7 @@
 				OC_SOCKETAPI_TEAM_IDENTIFIER_PREFIX = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
 			};
@@ -771,6 +978,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		537B6D4D284900A9002A8063 /* Build configuration list for PBXNativeTarget "DesktopClient" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				537B6D4E284900A9002A8063 /* Debug */,
+				537B6D4F284900A9002A8063 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		538E397927F4765000FA63D5 /* Build configuration list for PBXNativeTarget "FileProviderExt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -789,15 +1005,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C2B573CC1B1CD91E00303B36 /* Build configuration list for PBXNativeTarget "desktopclient" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C2B573CD1B1CD91E00303B36 /* Debug */,
-				C2B573CE1B1CD91E00303B36 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		C2B573E31B1CD9CE00303B36 /* Build configuration list for PBXNativeTarget "FinderSyncExt" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -808,6 +1015,94 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		537B6D58284902C1002A8063 /* XCRemoteSwiftPackageReference "ios-communication-library" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/nextcloud/ios-communication-library.git";
+			requirement = {
+				branch = feature/macos;
+				kind = branch;
+			};
+		};
+		537B6D5B284902D0002A8063 /* XCRemoteSwiftPackageReference "OpenSSL" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/krzyzanowskim/OpenSSL.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
+		537B6D5E284902E0002A8063 /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		537B6D63284902FD002A8063 /* XCRemoteSwiftPackageReference "Queuer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/FabrizioBrancati/Queuer";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		537B6D59284902C1002A8063 /* NCCommunication */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D58284902C1002A8063 /* XCRemoteSwiftPackageReference "ios-communication-library" */;
+			productName = NCCommunication;
+		};
+		537B6D5F284902E0002A8063 /* Realm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D5E284902E0002A8063 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = Realm;
+		};
+		537B6D61284902E0002A8063 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D5E284902E0002A8063 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
+		};
+		537B6D64284902FD002A8063 /* Queuer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D63284902FD002A8063 /* XCRemoteSwiftPackageReference "Queuer" */;
+			productName = Queuer;
+		};
+		537B6D6628490319002A8063 /* OpenSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D5B284902D0002A8063 /* XCRemoteSwiftPackageReference "OpenSSL" */;
+			productName = OpenSSL;
+		};
+		537B6D7528490404002A8063 /* NCCommunication */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D58284902C1002A8063 /* XCRemoteSwiftPackageReference "ios-communication-library" */;
+			productName = NCCommunication;
+		};
+		537B6D7728490404002A8063 /* OpenSSL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D5B284902D0002A8063 /* XCRemoteSwiftPackageReference "OpenSSL" */;
+			productName = OpenSSL;
+		};
+		537B6D7928490404002A8063 /* Realm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D5E284902E0002A8063 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = Realm;
+		};
+		537B6D7B28490404002A8063 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D5E284902E0002A8063 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
+		};
+		537B6D7D28490404002A8063 /* Queuer */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 537B6D63284902FD002A8063 /* XCRemoteSwiftPackageReference "Queuer" */;
+			productName = Queuer;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C2B573951B1CD88000303B36 /* Project object */;
 }

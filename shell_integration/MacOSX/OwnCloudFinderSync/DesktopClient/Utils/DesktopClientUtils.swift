@@ -26,6 +26,7 @@ class DesktopClientUtils {
     static let appExecutableName: String = Bundle.main.infoDictionary!["NC Client Executable Name"] as! String
     
     static let clientPreferencesPath: URL? = {
+        // Sandboxing a target will break this, as this will return the library folder inside the application container
         if let libraryPath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).last {
             let preferencesPath = libraryPath.appendingPathComponent("Preferences")
             

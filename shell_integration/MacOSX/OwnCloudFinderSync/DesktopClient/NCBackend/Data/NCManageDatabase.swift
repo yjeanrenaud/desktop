@@ -37,16 +37,16 @@ class NCManageDatabase: NSObject {
     override init() {
 
         //let dirGroup = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: <#T##String#>)
-        let databaseFilePath = FileProviderUtils.fileProviderDatabasePath?.appendingPathComponent("/" + NCGlobal.shared.databaseDefault) //dirGroup?.appendingPathComponent(NCGlobal.shared.appDatabaseNextcloud + "/" + NCGlobal.shared.databaseDefault)
+        let databaseFilePath = NCUtils.fileProviderDatabasePath?.appendingPathComponent("/" + NCGlobal.shared.databaseDefault) //dirGroup?.appendingPathComponent(NCGlobal.shared.appDatabaseNextcloud + "/" + NCGlobal.shared.databaseDefault)
 
         let bundleUrl: URL = Bundle.main.bundleURL
         let bundlePathExtension: String = bundleUrl.pathExtension
-        // let isAppex: Bool = bundlePathExtension == "appex"
+        let isAppex: Bool = bundlePathExtension == "appex"
 
         // Disable file protection for directory DB
         // https://docs.mongodb.com/realm/sdk/ios/examples/configure-and-open-a-realm/#std-label-ios-open-a-local-realm
         // if let folderPathURL = dirGroup?.appendingPathComponent(NCGlobal.shared.appDatabaseNextcloud) {
-        if let folderPathURL = FileProviderUtils.fileProviderDatabasePath {
+        if let folderPathURL = NCUtils.fileProviderDatabasePath {
             let folderPath = folderPathURL.path
             do {
                 try FileManager.default.setAttributes([FileAttributeKey.protectionKey: FileProtectionType.completeUntilFirstUserAuthentication], ofItemAtPath: folderPath)
@@ -54,10 +54,8 @@ class NCManageDatabase: NSObject {
                 print("Dangerous error")
             }
         }
-
-        // In our case it is always the appex
         
-        // if isAppex {
+        if isAppex {
 
             // App Extension config
 
@@ -69,7 +67,7 @@ class NCManageDatabase: NSObject {
 
             Realm.Configuration.defaultConfiguration = config
 
-        //}
+        }
         
         /*
         else {
@@ -364,7 +362,7 @@ class NCManageDatabase: NSObject {
     func setAvatarLoaded(fileName: String) -> UIImage? {
 
         let realm = try! Realm()
-        guard let userDataDirPath = FileProviderUtils.fileProviderUserDataPath?.absoluteString else { return nil }
+        guard let userDataDirPath = NCUtils.fileProviderUserDataPath?.absoluteString else { return nil }
         let fileNameLocalPath = userDataDirPath + "/" + fileName //String(CCUtility.getDirectoryUserData()) + "/" + fileName
         var image: UIImage?
 
@@ -389,7 +387,7 @@ class NCManageDatabase: NSObject {
     func getImageAvatarLoaded(fileName: String) -> UIImage? {
 
         let realm = try! Realm()
-        guard let userDataDirPath = FileProviderUtils.fileProviderUserDataPath?.absoluteString else { return nil }
+        guard let userDataDirPath = NCUtils.fileProviderUserDataPath?.absoluteString else { return nil }
         let fileNameLocalPath = userDataDirPath + "/" + fileName //String(CCUtility.getDirectoryUserData()) + "/" + fileName
 
         let result = realm.objects(tableAvatar.self).filter("fileName == %@", fileName).first
@@ -550,7 +548,7 @@ class NCManageDatabase: NSObject {
 
                     let object = tableChunk()
                     //size += NCUtilityFileSystem.shared.getFileSize(filePath: CCUtility.getDirectoryProviderStorageOcId(ocId, fileNameView: fileName)!)
-                    size += NCUtilityFileSystem.shared.getFileSize(filePath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: ocId, fileNameView: fileName)!.absoluteString)
+                    size += NCUtilityFileSystem.shared.getFileSize(filePath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: ocId, fileNameView: fileName)!.absoluteString)
 
                     object.account = account
                     object.chunkFolder = chunkFolder
@@ -942,7 +940,7 @@ class NCManageDatabase: NSObject {
     @objc func getE2eEncryptions(predicate: NSPredicate) -> [tableE2eEncryption]? {
 
         //guard let activeAccount = self.getActiveAccount() else {
-        if !FileProviderAccount.shared.accountSet {
+        if !ActiveAccount.shared.accountSet {
             return nil
         }
 
@@ -962,7 +960,7 @@ class NCManageDatabase: NSObject {
     @objc func renameFileE2eEncryption(serverUrl: String, fileNameIdentifier: String, newFileName: String, newFileNamePath: String) {
 
         //guard let activeAccount = self.getActiveAccount() else {
-        if !FileProviderAccount.shared.accountSet {
+        if !ActiveAccount.shared.accountSet {
             return
         }
 
@@ -970,7 +968,7 @@ class NCManageDatabase: NSObject {
 
         realm.beginWrite()
 
-        guard let result = realm.objects(tableE2eEncryption.self).filter("account == %@ AND serverUrl == %@ AND fileNameIdentifier == %@", FileProviderAccount.shared.account, serverUrl, fileNameIdentifier).first else {
+        guard let result = realm.objects(tableE2eEncryption.self).filter("account == %@ AND serverUrl == %@ AND fileNameIdentifier == %@", ActiveAccount.shared.account, serverUrl, fileNameIdentifier).first else {
             realm.cancelWrite()
             return
         }

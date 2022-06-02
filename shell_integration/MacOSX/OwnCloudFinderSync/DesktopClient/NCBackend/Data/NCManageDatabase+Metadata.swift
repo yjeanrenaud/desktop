@@ -142,7 +142,7 @@ extension NCManageDatabase {
             if let key = listServerUrl[file.serverUrl] {
                 isEncrypted = key
             } else {
-                isEncrypted = FileProviderUtils.isFolderEncrypted(serverUrl: file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase) //CCUtility.isFolderEncrypted(file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase)
+                isEncrypted = NCUtils.isFolderEncrypted(serverUrl: file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase) //CCUtility.isFolderEncrypted(file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase)
                 listServerUrl[file.serverUrl] = isEncrypted
             }
 
@@ -801,7 +801,7 @@ extension NCManageDatabase {
     func isDownloadMetadata(_ metadata: tableMetadata, download: Bool) -> Bool {
 
         let localFile = getTableLocalFile(predicate: NSPredicate(format: "ocId == %@", metadata.ocId))
-        let fileSize = FileProviderUtils.getFileInStorageSize(ocId: metadata.ocId, fileNameView: metadata.fileNameView) // CCUtility.fileProviderStorageSize(metadata.ocId, fileNameView: metadata.fileNameView)
+        let fileSize = NCUtils.getFileInStorageSize(ocId: metadata.ocId, fileNameView: metadata.fileNameView) // CCUtility.fileProviderStorageSize(metadata.ocId, fileNameView: metadata.fileNameView)
         if (localFile != nil || download) && (localFile?.etag != metadata.etag || fileSize == 0) {
             return true
         }
@@ -830,7 +830,7 @@ extension NCManageDatabase {
         let results = realm.objects(tableMetadata.self).filter("account == %@ AND serverUrl == %@ AND fileName BEGINSWITH[c] %@ AND fileName ENDSWITH[c] '.srt'", account, serverUrl, nameOnly)
         for result in results {
             // if CCUtility.fileProviderStorageExists(result) {
-            if FileProviderUtils.fileExistsInFileProviderStorage(metadata: result) {
+            if NCUtils.fileExistsInFileProviderStorage(metadata: result) {
                 metadatas.append(result)
             }
         }

@@ -160,7 +160,7 @@ import Queuer
     private func checkTrustedChallenge(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge) -> Bool {
 
         let protectionSpace: URLProtectionSpace = challenge.protectionSpace
-        let directoryCertificate = FileProviderUtils.certificatesPath!.absoluteString //CCUtility.getDirectoryCerificates()!
+        let directoryCertificate = NCUtils.certificatesPath!.absoluteString //CCUtility.getDirectoryCerificates()!
         let host = challenge.protectionSpace.host
         let certificateSavedPath = directoryCertificate + "/" + host + ".der"
         var isTrusted: Bool
@@ -211,7 +211,7 @@ import Queuer
 
     func writeCertificate(host: String) {
 
-        let directoryCertificate = FileProviderUtils.certificatesPath!.absoluteString //CCUtility.getDirectoryCerificates()!
+        let directoryCertificate = NCUtils.certificatesPath!.absoluteString //CCUtility.getDirectoryCerificates()!
         let certificateAtPath = directoryCertificate + "/" + host + ".tmp"
         let certificateToPath = directoryCertificate + "/" + host + ".der"
 
@@ -323,7 +323,7 @@ import Queuer
         */
 
         // guard let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(ocId, fileNameView: fileNameView) else { return }
-        guard let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: ocId, fileNameView: fileNameView) else { return }
+        guard let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: ocId, fileNameView: fileNameView) else { return }
 
         //if let request = downloadRequest[fileNameLocalPath] {
         if let request = downloadRequest[fileNameLocalPath.absoluteString] {
@@ -341,7 +341,7 @@ import Queuer
         
         let serverUrlFileName = metadata.serverUrl + "/" + metadata.fileName
         // let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileName)!
-        let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
+        let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
 
         if NCManageDatabase.shared.getMetadataFromOcId(metadata.ocId) == nil {
             NCManageDatabase.shared.addMetadata(tableMetadata.init(value: metadata))
@@ -445,7 +445,7 @@ import Queuer
             */
 
             // DETECT IF E2EE
-            if FileProviderUtils.isFolderEncrypted(serverUrl: metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase) {
+            if NCUtils.isFolderEncrypted(serverUrl: metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase) {
                 metadata.e2eEncrypted = true
             }
 
@@ -490,7 +490,7 @@ import Queuer
         if metadata.assetLocalIdentifier.isEmpty {
 
             // let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView)!
-            let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
+            let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
             let results = NCCommunicationCommon.shared.getInternalType(fileName: metadata.fileNameView, mimeType: metadata.contentType, directory: false)
             metadata.contentType = results.mimeType
             metadata.iconName = results.iconName
@@ -527,7 +527,7 @@ import Queuer
 
         let serverUrlFileName = metadata.serverUrl + "/" + metadata.fileName
         // let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView)!
-        let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
+        let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
         var uploadTask: URLSessionTask?
         let description = metadata.ocId
 
@@ -584,7 +584,7 @@ import Queuer
         let metadata = tableMetadata.init(value: metadata)
         let serverUrlFileName = metadata.serverUrl + "/" + metadata.fileName
         // let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView)!
-        let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
+        let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!.absoluteString
 
         if metadata.session == sessionIdentifierBackground || metadata.session == sessionIdentifierBackgroundExtension {
             session = sessionManagerBackground
@@ -635,14 +635,14 @@ import Queuer
             let metadata = tableMetadata.init(value: metadata)
 
             // NCUtilityFileSystem.shared.moveFileInBackground(atPath: CCUtility.getDirectoryProviderStorageOcId(metadata.ocId), toPath: CCUtility.getDirectoryProviderStorageOcId(ocId))
-            NCUtilityFileSystem.shared.moveFileInBackground(atPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString, toPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: ocId)!.absoluteString)
+            NCUtilityFileSystem.shared.moveFileInBackground(atPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString, toPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: ocId)!.absoluteString)
 
             metadata.uploadDate = date ?? NSDate()
             metadata.etag = etag ?? ""
             metadata.ocId = ocId
 
             // if let fileId = NCUtility.shared.ocIdToFileId(ocId: ocId) {
-            if let fileId = FileProviderUtils.ocIdToFileId(ocId: ocId) {
+            if let fileId = NCUtils.ocIdToFileId(ocId: ocId) {
                 metadata.fileId = fileId
             }
 
@@ -662,7 +662,7 @@ import Queuer
             if CCUtility.getDisableLocalCacheAfterUpload() {
                 //CCUtility.removeFile(atPath: CCUtility.getDirectoryProviderStorageOcId(metadata.ocId))
                 do {
-                    try FileManager.default.removeItem(atPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
+                    try FileManager.default.removeItem(atPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
                 } catch let error {
                     print("Error occurred deleting local cache item: ", error.localizedDescription)
                 }
@@ -694,7 +694,7 @@ import Queuer
 
                 // CCUtility.removeFile(atPath: CCUtility.getDirectoryProviderStorageOcId(metadata.ocId))
                 do {
-                    try FileManager.default.removeItem(atPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
+                    try FileManager.default.removeItem(atPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
                 } catch let error {
                     print("Error occurred deleting cancelled item: ", error.localizedDescription)
                 }
@@ -817,14 +817,14 @@ import Queuer
         if metadata.session == NCCommunicationCommon.shared.sessionIdentifierUpload {
 
             // guard let fileNameLocalPath = CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView) else { return }
-            guard let fileNameLocalPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView) else { return }
+            guard let fileNameLocalPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView) else { return }
 
             if let request = uploadRequest[fileNameLocalPath.absoluteString] {
                 request.cancel()
             } else {
                 // CCUtility.removeFile(atPath: CCUtility.getDirectoryProviderStorageOcId(metadata.ocId))
                 do {
-                    try FileManager.default.removeItem(atPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
+                    try FileManager.default.removeItem(atPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
                 } catch { }
                 NCManageDatabase.shared.deleteMetadata(predicate: NSPredicate(format: "ocId == %@", metadata.ocId))
                 // NotificationCenter.default.postOnMainThread(name: NCGlobal.shared.notificationCenterUploadCancelFile, userInfo: ["ocId": metadata.ocId, "serverUrl": metadata.serverUrl, "account": metadata.account])
@@ -858,7 +858,7 @@ import Queuer
                 }
                 if cancel == false {
                     do {
-                        try FileManager.default.removeItem(atPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
+                        try FileManager.default.removeItem(atPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
                     } catch { }
                     NCManageDatabase.shared.deleteMetadata(predicate: NSPredicate(format: "ocId == %@", metadata.ocId))
                     // NotificationCenter.default.postOnMainThread(name: NCGlobal.shared.notificationCenterUploadCancelFile, userInfo: ["ocId": metadata.ocId, "serverUrl": metadata.serverUrl, "account": metadata.account])
@@ -971,7 +971,7 @@ import Queuer
 
                 let file = files[0]
                 // let isEncrypted = CCUtility.isFolderEncrypted(file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase)
-                let isEncrypted = FileProviderUtils.isFolderEncrypted(serverUrl: file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase)
+                let isEncrypted = NCUtils.isFolderEncrypted(serverUrl: file.serverUrl, e2eEncrypted: file.e2eEncrypted, account: account, urlBase: file.urlBase)
                 let metadata = NCManageDatabase.shared.convertNCFileToMetadata(file, isEncrypted: isEncrypted, account: account)
 
                 completion(account, metadata, errorCode, errorDescription)
@@ -1019,7 +1019,7 @@ import Queuer
     @objc func createFolder(fileName: String, serverUrl: String, account: String, urlBase: String, overwrite: Bool = false, completion: @escaping (_ errorCode: Int, _ errorDescription: String) -> Void) {
 
         // let isDirectoryEncrypted = CCUtility.isFolderEncrypted(serverUrl, e2eEncrypted: false, account: account, urlBase: urlBase)
-        let isDirectoryEncrypted = FileProviderUtils.isFolderEncrypted(serverUrl: serverUrl, e2eEncrypted: false, account: account, urlBase: urlBase)
+        let isDirectoryEncrypted = NCUtils.isFolderEncrypted(serverUrl: serverUrl, e2eEncrypted: false, account: account, urlBase: urlBase)
         
         let fileName = fileName.trimmingCharacters(in: .whitespacesAndNewlines)
         
@@ -1037,7 +1037,7 @@ import Queuer
     private func createFolderPlain(fileName: String, serverUrl: String, account: String, urlBase: String, overwrite: Bool, completion: @escaping (_ errorCode: Int, _ errorDescription: String) -> Void) {
 
         //var fileNameFolder = CCUtility.removeForbiddenCharactersServer(fileName)!
-        var fileNameFolder = FileProviderUtils.removeForbiddenCharactersServer(fileName: fileName)
+        var fileNameFolder = NCUtils.removeForbiddenCharactersServer(fileName: fileName)
 
         if !overwrite {
             fileNameFolder = NCUtilityFileSystem.shared.createFileName(fileNameFolder, serverUrl: serverUrl, account: account)
@@ -1134,12 +1134,12 @@ import Queuer
                 // NCManageDatabase.shared.deleteVideo(metadata: metadata)
                 NCManageDatabase.shared.deleteLocalFile(predicate: NSPredicate(format: "ocId == %@", metadata.ocId))
                 // NCUtilityFileSystem.shared.deleteFile(filePath: CCUtility.getDirectoryProviderStorageOcId(metadata.ocId))
-                NCUtilityFileSystem.shared.deleteFile(filePath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
+                NCUtilityFileSystem.shared.deleteFile(filePath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
 
                 if let metadataLivePhoto = NCManageDatabase.shared.getMetadataLivePhoto(metadata: metadata) {
                     NCManageDatabase.shared.deleteLocalFile(predicate: NSPredicate(format: "ocId == %@", metadataLivePhoto.ocId))
                     // NCUtilityFileSystem.shared.deleteFile(filePath: CCUtility.getDirectoryProviderStorageOcId(metadataLivePhoto.ocId))
-                    NCUtilityFileSystem.shared.deleteFile(filePath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadataLivePhoto.ocId)!.absoluteString)
+                    NCUtilityFileSystem.shared.deleteFile(filePath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadataLivePhoto.ocId)!.absoluteString)
                 }
 
                 // NotificationCenter.default.postOnMainThread(name: NCGlobal.shared.notificationCenterDeleteFile, userInfo: ["ocId": metadata.ocId, "fileNameView": metadata.fileNameView, "classFile": metadata.classFile, "onlyLocalCache": true])
@@ -1148,7 +1148,7 @@ import Queuer
         }
 
         // let isDirectoryEncrypted = CCUtility.isFolderEncrypted(metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase)
-        let isDirectoryEncrypted = FileProviderUtils.isFolderEncrypted(serverUrl: metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase)
+        let isDirectoryEncrypted = NCUtils.isFolderEncrypted(serverUrl: metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase)
         let metadataLive = NCManageDatabase.shared.getMetadataLivePhoto(metadata: metadata)
 
         if isDirectoryEncrypted {
@@ -1186,7 +1186,7 @@ import Queuer
 
         // verify permission
         // let permission = NCUtility.shared.permissionsContainsString(metadata.permissions, permissions: NCGlobal.shared.permissionCanDelete)
-        let permission = FileProviderUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanDelete)
+        let permission = NCUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanDelete)
         if metadata.permissions != "" && permission == false {
             return completion(NCGlobal.shared.errorInternalError, "_no_permission_delete_file_")
         }
@@ -1197,7 +1197,7 @@ import Queuer
             if errorCode == 0 || errorCode == NCGlobal.shared.errorResourceNotFound {
 
                 do {
-                    try FileManager.default.removeItem(atPath: FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
+                    try FileManager.default.removeItem(atPath: NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId)!.absoluteString)
                 } catch { }
 
                 // NCManageDatabase.shared.deleteVideo(metadata: metadata)
@@ -1206,7 +1206,7 @@ import Queuer
 
                 if metadata.directory {
                     // NCManageDatabase.shared.deleteDirectoryAndSubDirectory(serverUrl: CCUtility.stringAppendServerUrl(metadata.serverUrl, addFileName: metadata.fileName), account: metadata.account)
-                    NCManageDatabase.shared.deleteDirectoryAndSubDirectory(serverUrl: FileProviderUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: metadata.fileName), account: metadata.account)
+                    NCManageDatabase.shared.deleteDirectoryAndSubDirectory(serverUrl: NCUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: metadata.fileName), account: metadata.account)
                 }
 
                 // NotificationCenter.default.postOnMainThread(name: NCGlobal.shared.notificationCenterDeleteFile, userInfo: ["ocId": metadata.ocId, "fileNameView": metadata.fileNameView, "classFile": metadata.classFile, "onlyLocalCache": true])
@@ -1236,7 +1236,7 @@ import Queuer
     private func favoriteMetadataPlain(_ metadata: tableMetadata, completion: @escaping (_ errorCode: Int, _ errorDescription: String) -> Void) {
 
         // let fileName = CCUtility.returnFileNamePath(fromFileName: metadata.fileName, serverUrl: metadata.serverUrl, urlBase: metadata.urlBase, account: metadata.account)!
-        let fileName = FileProviderUtils.fileNamePath(metadataFileName: metadata.fileName, serverUrl: metadata.serverUrl, urlBase: metadata.urlBase, account: metadata.account)
+        let fileName = NCUtils.fileNamePath(metadataFileName: metadata.fileName, serverUrl: metadata.serverUrl, urlBase: metadata.urlBase, account: metadata.account)
         
         let favorite = !metadata.favorite
         let ocId = metadata.ocId
@@ -1313,7 +1313,7 @@ import Queuer
 
     @objc func renameMetadata(_ metadata: tableMetadata, fileNameNew: String, completion: @escaping (_ errorCode: Int, _ errorDescription: String?) -> Void) {
         // let isDirectoryEncrypted = CCUtility.isFolderEncrypted(metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase)
-        let isDirectoryEncrypted = FileProviderUtils.isFolderEncrypted(serverUrl: metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase)
+        let isDirectoryEncrypted = NCUtils.isFolderEncrypted(serverUrl: metadata.serverUrl, e2eEncrypted: metadata.e2eEncrypted, account: metadata.account, urlBase: metadata.urlBase)
         let metadataLive = NCManageDatabase.shared.getMetadataLivePhoto(metadata: metadata)
         let fileNameNew = fileNameNew.trimmingCharacters(in: .whitespacesAndNewlines)
         let fileNameNewLive = (fileNameNew as NSString).deletingPathExtension + ".mov"
@@ -1352,7 +1352,7 @@ import Queuer
     private func renameMetadataPlain(_ metadata: tableMetadata, fileNameNew: String, completion: @escaping (_ errorCode: Int, _ errorDescription: String?) -> Void) {
 
         // let permission = NCUtility.shared.permissionsContainsString(metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
-        let permission = FileProviderUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
+        let permission = NCUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
         
         if !(metadata.permissions == "") && !permission {
             return completion(NCGlobal.shared.errorInternalError, "_no_permission_modify_file_")
@@ -1362,7 +1362,7 @@ import Queuer
             return completion(0, "")
         }
         */
-        let fileNameNew = FileProviderUtils.removeForbiddenCharactersServer(fileName: fileNameNew)
+        let fileNameNew = NCUtils.removeForbiddenCharactersServer(fileName: fileNameNew)
         if fileNameNew.count == 0 || fileNameNew == metadata.fileNameView {
             return completion(0, "")
         }
@@ -1381,8 +1381,8 @@ import Queuer
 
                     // let serverUrl = CCUtility.stringAppendServerUrl(metadata.serverUrl, addFileName: metadata.fileName)!
                     // let serverUrlTo = CCUtility.stringAppendServerUrl(metadata.serverUrl, addFileName: fileNameNew)!
-                    let serverUrl = FileProviderUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: metadata.fileName)
-                    let serverUrlTo = FileProviderUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: fileNameNew)
+                    let serverUrl = NCUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: metadata.fileName)
+                    let serverUrlTo = NCUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: fileNameNew)
                     
                     if let directory = NCManageDatabase.shared.getTableDirectory(predicate: NSPredicate(format: "account == %@ AND serverUrl == %@", metadata.account, metadata.serverUrl)) {
 
@@ -1397,7 +1397,7 @@ import Queuer
                     if ext != extNew {
 
                         // if let path = CCUtility.getDirectoryProviderStorageOcId(ocId) {
-                        if let path = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: ocId) {
+                        if let path = NCUtils.getFileProviderDirectoryStorageOcId(ocId: ocId) {
                             NCUtilityFileSystem.shared.deleteFile(filePath: path.absoluteString)
                         }
                         // NotificationCenter.default.postOnMainThread(name: NCGlobal.shared.notificationCenterReloadDataSourceNetworkForced, userInfo: ["serverUrl": metadata.serverUrl])
@@ -1408,8 +1408,8 @@ import Queuer
                         // Move file system
                         // let atPath = CCUtility.getDirectoryProviderStorageOcId(ocId) + "/" + metadata.fileName
                         // let toPath = CCUtility.getDirectoryProviderStorageOcId(ocId) + "/" + fileNameNew
-                        let atPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: ocId)!.absoluteString + "/" + metadata.fileName
-                        let toPath = FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: ocId)!.absoluteString + "/" + fileNameNew
+                        let atPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: ocId)!.absoluteString + "/" + metadata.fileName
+                        let toPath = NCUtils.getFileProviderDirectoryStorageOcId(ocId: ocId)!.absoluteString + "/" + fileNameNew
                         
                         do {
                             try FileManager.default.moveItem(atPath: atPath, toPath: toPath)
@@ -1447,7 +1447,7 @@ import Queuer
     private func moveMetadataPlain(_ metadata: tableMetadata, serverUrlTo: String, overwrite: Bool, completion: @escaping (_ errorCode: Int, _ errorDescription: String?) -> Void) {
 
         // let permission = NCUtility.shared.permissionsContainsString(metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
-        let permission = FileProviderUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
+        let permission = NCUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
         if !(metadata.permissions == "") && !permission {
             return completion(NCGlobal.shared.errorInternalError, "_no_permission_modify_file_")
         }
@@ -1462,7 +1462,7 @@ import Queuer
 
                 if metadata.directory {
                     // NCManageDatabase.shared.deleteDirectoryAndSubDirectory(serverUrl: CCUtility.stringAppendServerUrl(metadata.serverUrl, addFileName: metadata.fileName), account: account)
-                    NCManageDatabase.shared.deleteDirectoryAndSubDirectory(serverUrl: FileProviderUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: metadata.fileName), account: account)
+                    NCManageDatabase.shared.deleteDirectoryAndSubDirectory(serverUrl: NCUtils.stringAppendServerUrl(serverUrl: metadata.serverUrl, addFileName: metadata.fileName), account: account)
                 }
 
                 NCManageDatabase.shared.moveMetadata(ocId: metadata.ocId, serverUrlTo: serverUrlTo)
@@ -1494,7 +1494,7 @@ import Queuer
     private func copyMetadataPlain(_ metadata: tableMetadata, serverUrlTo: String, overwrite: Bool, completion: @escaping (_ errorCode: Int, _ errorDescription: String?) -> Void) {
 
         // let permission = NCUtility.shared.permissionsContainsString(metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
-        let permission = FileProviderUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
+        let permission = NCUtils.permissionsContainsString(metadataPermissions: metadata.permissions, permissions: NCGlobal.shared.permissionCanRename)
         if !(metadata.permissions == "") && !permission {
             return completion(NCGlobal.shared.errorInternalError, "_no_permission_modify_file_")
         }
@@ -1518,10 +1518,10 @@ import Queuer
     func getVideoUrl(metadata: tableMetadata, completion: @escaping (_ url: URL?) -> Void) {
 
         // if CCUtility.fileProviderStorageExists(metadata) {
-        if FileProviderUtils.fileExistsInFileProviderStorage(metadata: metadata) {
+        if NCUtils.fileExistsInFileProviderStorage(metadata: metadata) {
 
             // completion(URL(fileURLWithPath: CCUtility.getDirectoryProviderStorageOcId(metadata.ocId, fileNameView: metadata.fileNameView)))
-            completion(FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!)
+            completion(NCUtils.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView)!)
 
         } else {
 
