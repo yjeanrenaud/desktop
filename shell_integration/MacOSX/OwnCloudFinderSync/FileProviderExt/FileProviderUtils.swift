@@ -6,178 +6,220 @@
 //
 
 import Foundation
+import FileProvider
 
-struct NCAccountDetails {
-    let accountId: String
-    let username: String
-    let password: String
-    let serverUrl: String
-    let davUrl: String
+class FileProviderUtils {
     
-    var isNull: Bool {
-        return accountId.isEmpty || username.isEmpty
-    }
-}
-
-class FileProviderUtils: NSObject {
-    static let shared: FileProviderUtils = {
-        let instance = FileProviderUtils()
-        return instance
+    static let userAgent: String = "Mozilla 5.0 (macOS) " + DesktopClientUtils.appName + "FileProviderExt/1.0"
+    
+    static let certificatesPath: URL? = {
+        let certificatesPath = DesktopClientUtils.clientPreferencesPath?.appendingPathComponent("FileProviderCertificates")
+        return createPathIfNotExists(path: certificatesPath);
     }()
     
-    var accountDetails: NCAccountDetails? = nil
+    static let fileProviderStoragePath: URL? = {
+        let appGroupIdentifier = Bundle.main.infoDictionary!["NC Client App Group"] as! String
+        guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else { return nil }
         
-    let webDavUrlSuffix: String = "/remote.php/dav"
+        return createPathIfNotExists(path: containerUrl.appendingPathComponent("FileProviderStorage"))
+    }()
     
-    let appName: String = Bundle.main.infoDictionary!["NC Client Application Name"] as! String
-    let orgName: String = Bundle.main.infoDictionary!["NC Client Organization Name"] as! String
-    let appExecutableName: String = Bundle.main.infoDictionary!["NC Client Executable Name"] as! String
+    static let fileProviderDatabasePath: URL? = {
+        let fileProviderDbPath = DesktopClientUtils.clientPreferencesPath?.appendingPathComponent("FileProviderDatabase")
+        return createPathIfNotExists(path: fileProviderDbPath);
+    }()
     
-    var userAgent: String {
-        return "Mozilla 5.0 (macOS) " + appName + "FileProviderExt/1.0"
-    }
+    static let fileProviderUserDataPath: URL? = {
+        let fileProviderDbPath = DesktopClientUtils.clientPreferencesPath?.appendingPathComponent("FileProviderUserData")
+        return createPathIfNotExists(path: fileProviderDbPath);
+    }()
     
-    var clientConfigPath: String? {
-        // Upon compiling this extension through CMake we set OC_APPLICATION_EXECUTABLE_NAME in the Info.plist
-        // Qt's standard location for writableLocations( QStandardPaths::AppConfigLocation ) internally runs:
-        //
-        // [NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES) lastObject] + "/Preferences" +
-        // "/" + applicationOrganizationName + "/" + applicationName
-        //
-        // In the client we then append the name of the app executable and ".cfg" as the name of the config. Most of these
-        // values can be found in the ConfigFile and the Theme classes for the client.
-        //
-        // We are just replicating that here so we can get the client's config file.
-        // NOTE: with the notable exception of the applicationOrganizationName, which isn't being set in the client yet
-        
-        if let libraryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).last {
-            let preferencesPath = libraryPath + "/Preferences/"
-            
-            // NOTE: If application organization name is set in the future on the client side, make sure to update this
-            let configPath = preferencesPath + appName + "/" + appExecutableName + ".cfg"
-            return configPath
+    // Returns nil if path was not created, returns created path if everything went well
+    static func createPathIfNotExists(path: URL?) -> URL? {
+        if path != nil && !FileManager.default.fileExists(atPath: path!.absoluteString) {
+            do {
+                try FileManager.default.createDirectory(atPath: path!.absoluteString, withIntermediateDirectories: true)
+                return path
+            } catch let error {
+                print("Error creating certificates directory: \(error)")
+                return nil
+            }
         }
-
-        return nil
+        
+        return path
     }
     
-    var certificatesPath: String? {
-        if let libraryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).last {
-            let preferencesPath = libraryPath + "/Preferences/"
-            
-            // NOTE: If application organization name is set in the future on the client side, make sure to update this
-            let certificatesPath = preferencesPath + appName + "/FileProviderCertificates"
-
-            if !FileManager.default.fileExists(atPath: certificatesPath) {
-                do {
-                    try FileManager.default.createDirectory(atPath: certificatesPath, withIntermediateDirectories: true)
-                } catch let error {
-                    print("Error creating certificates directory: \(error)")
-                    return nil
+    static func getFileProviderDirectoryStorageOcId(ocId: String) -> URL? {
+        guard let path = fileProviderStoragePath?.appendingPathComponent(ocId) else { return nil }
+        return createPathIfNotExists(path: path)
+    }
+    
+    static func getFileProviderDirectoryStorageOcId(ocId: String, fileNameView: String) -> URL? {
+        let filePath = getFileProviderDirectoryStorageOcId(ocId: ocId)?.appendingPathComponent(fileNameView)
+        guard let filePathString = filePath?.absoluteString else { return nil }
+        
+        if !FileManager.default.fileExists(atPath: filePathString) {
+            FileManager.default.createFile(atPath: filePathString, contents: nil)
+        }
+        return filePath
+    }
+    
+    static func fileExistsInFileProviderStorage(metadata: tableMetadata) -> Bool {
+        guard let fileNamePath = self.getFileProviderDirectoryStorageOcId(ocId: metadata.ocId, fileNameView: metadata.fileNameView) else { return false }
+        
+        if !FileManager.default.fileExists(atPath: fileNamePath.absoluteString) {
+            return false
+        }
+        
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileNamePath.absoluteString)
+            return fileAttributes[.size] as! UInt64 > 0
+        } catch {
+            return false
+        }
+    }
+    
+    static func getFileInStorageSize(ocId: String, fileNameView: String) -> UInt64 {
+        guard let fileNamePath = getFileProviderDirectoryStorageOcId(ocId: ocId, fileNameView: fileNameView) else { return 0 }
+        
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: fileNamePath.absoluteString)
+            return fileAttributes[.size] as! UInt64
+        } catch {
+            return 0
+        }
+    }
+    
+    static func getItemIdentifier(metadata: tableMetadata) -> NSFileProviderItemIdentifier {
+        return NSFileProviderItemIdentifier(metadata.ocId)
+    }
+    
+    static func getParentItemIdentifier(metadata: tableMetadata) -> NSFileProviderItemIdentifier? {
+        
+        let homeServerUrl = NCUtilityFileSystem.shared.getHomeServer(account: metadata.account)
+        if let directory = NCManageDatabase.shared.getTableDirectory(predicate: NSPredicate(format: "account == %@ AND serverUrl == %@", metadata.account, metadata.serverUrl)) {
+            if directory.serverUrl == homeServerUrl {
+                return NSFileProviderItemIdentifier(NSFileProviderItemIdentifier.rootContainer.rawValue)
+            } else {
+                // get the metadata.ocId of parent Directory
+                if let metadata = NCManageDatabase.shared.getMetadataFromOcId(directory.ocId) {
+                    let identifier = getItemIdentifier(metadata: metadata)
+                    return identifier
                 }
             }
-        
-            return certificatesPath;
         }
-        
+
         return nil
     }
     
-    func getUserPasswordFromKeychain(accountString: String) -> Data? {
-        let query = [
-            kSecClass as String       : kSecClassGenericPassword,
-            kSecAttrAccount as String : accountString,
-            kSecReturnData as String  : kCFBooleanTrue!,
-            kSecMatchLimit as String  : kSecMatchLimitOne
-        ] as [String : Any]
-
-        var dataTypeRef: AnyObject? = nil
-
-        let status: OSStatus = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
-
-        if status == noErr {
-            return dataTypeRef as! Data?
+    static func getTableMetadataFromItemIdentifier(_ itemIdentifier: NSFileProviderItemIdentifier) -> tableMetadata? {
+        let ocId = itemIdentifier.rawValue
+        return NCManageDatabase.shared.getMetadataFromOcId(ocId)
+    }
+    
+    static func isFolderEncrypted(serverUrl: String, e2eEncrypted: Bool, account: String, urlBase: String) -> Bool {
+        let home = NCUtilityFileSystem.shared.getHomeServer(account: account)
+        var serverUrl = serverUrl
+        
+        if e2eEncrypted {
+            return true
+        } else if serverUrl == home || serverUrl == ".." {
+            return false
         } else {
+            var directory = NCManageDatabase.shared.getTableDirectory(predicate: NSPredicate(format: "account == \(account) AND serverUrl == \(serverUrl)"))
+            
+            while directory != nil && directory!.serverUrl != home {
+                if directory!.e2eEncrypted {
+                    return true
+                }
+                
+                serverUrl = NCUtilityFileSystem.shared.deletingLastPathComponent(account: account, serverUrl: serverUrl)
+                directory = NCManageDatabase.shared.getTableDirectory(predicate: NSPredicate(format: "account == \(account) AND serverUrl == \(serverUrl)"))
+            }
+            
+            return false
+        }
+    }
+    
+    static func ocIdToFileId(ocId: String?) -> String? {
+        
+        guard let ocId = ocId else { return nil }
+
+        let items = ocId.components(separatedBy: "oc")
+        if items.count < 2 { return nil }
+        guard let intFileId = Int(items[0]) else { return nil }
+        return String(intFileId)
+    }
+    
+    static func getPathRelativeToServerFilesRoot(serverUrl: String, urlBase: String, account: String) -> String {
+        let homeServer = NCUtilityFileSystem.shared.getHomeServer(account: account)
+        let path = serverUrl.replacingOccurrences(of: homeServer, with: "")
+        
+        return path
+    }
+    
+    static func permissionsContainsString(metadataPermissions: String, permissions: String) -> Bool {
+        for char in permissions {
+            if metadataPermissions.contains(char) == false {
+                return false
+            }
+        }
+        return true
+    }
+    
+    static func removeForbiddenCharactersServer(fileName: String) -> String {
+        return fileName.replacingOccurrences(of: "/", with: "")
+    }
+    
+    static func removeForbiddenCharacrersFileSystem(fileName: String) -> String {
+        let forbiddenCharacters = ["\\", "<", ">", ":", "\"", "|", "?", "*", "/"]
+        var sanitisedFileName = fileName
+        
+        for char in forbiddenCharacters {
+            sanitisedFileName = sanitisedFileName.replacingOccurrences(of: char, with: "")
+        }
+        
+        return sanitisedFileName
+    }
+    
+    static func stringAppendServerUrl(serverUrl: String, addFileName: String) -> String {
+        if addFileName == "" {
+            return serverUrl
+        } else if serverUrl == "/" {
+            return serverUrl.appending(addFileName)
+        } else {
+            return serverUrl + "/" + addFileName
+        }
+    }
+    
+    static func fileNamePath(metadataFileName: String, serverUrl: String, urlBase: String, account: String) -> String {
+        let homeServer = NCUtilityFileSystem.shared.getHomeServer(account: account)
+        var fileName = serverUrl.replacingOccurrences(of: homeServer, with: "") + "/" + metadataFileName
+        
+        if fileName.hasPrefix("/") {
+            fileName.remove(at: fileName.index(before: fileName.endIndex))
+        }
+        
+        return fileName
+    }
+    
+    static func createOcIdentifierOnFileSystem(metadata: tableMetadata) {
+        
+        let itemIdentifier = getItemIdentifier(metadata: metadata)
+
+        if metadata.directory {
+            FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: itemIdentifier.rawValue)
+        } else {
+            FileProviderUtils.getFileProviderDirectoryStorageOcId(ocId: itemIdentifier.rawValue, fileNameView: metadata.fileNameView)
+        }
+    }
+    
+    static func getATime(path: String) -> Date? {
+        do {
+            let fileAttributes = try FileManager.default.attributesOfItem(atPath: path)
+            return fileAttributes[.modificationDate] as! Date
+        } catch {
             return nil
         }
     }
-    
-    func getAccountDetails(domainDisplayname: String) -> NCAccountDetails? {
-        guard let configPath = self.clientConfigPath else { return nil }
-        
-        let separatedDisplayString = domainDisplayname.split(separator: "@", maxSplits: 1)
-        guard let displayUrl = separatedDisplayString.last,
-              let displayUser = separatedDisplayString.first
-        else { return nil }
-        
-        let displayUrlString = String(displayUrl)
-        let displayUserString = String(displayUser)
-        
-        do {
-            let configFileString = try String(contentsOfFile: configPath, encoding: .utf8)
-            let configFileLines = configFileString.components(separatedBy: .newlines)
-            
-            // We have the name of the account and the "display" string of the URL, but we want more information.
-            // We have what we need to find it in the displaystring.
-            //
-            // The config stores account data in the following format:
-            //
-            //      1\authType=webflow
-            //      1\dav_user=claudio
-            //      1\serverVersion=24.0.0.11
-            //      1\url=https://mycloud.mynextcloud.com
-            //      1\user=@Invalid()
-            //      1\version=1
-            //      1\webflow_user=claudio
-            //      2\authType=webflow
-            //      2\dav_user=claudio
-            //      etc.
-            //
-            // First, we iterate over the config line by line to find the account ID of the account name we have in the
-            // display string. However, since multiple servers might have an account with the same name, we need to make
-            // sure that the ID we acquire from checking the line is the ID of the account at the server we actually want.
-            // So in the ID-finding loop, we start another loop where we find the server URL. We check for the ID (i.e. "0")
-            // and also make sure that this line contains the displaystring version of the server URL. If we match, great!
-            // If not, we go back to the account ID loop and redo it all over again.
-            
-            // TODO: Avoid iterating over the entire config and limit to the relevant [Accounts] section
-            // TODO: Even better, just find the matches in the configFileLines for W/user=XYZ and W/url=XYZ and check those
-            for line in configFileLines {
-                if line.contains(displayUserString) {
-                    
-                    let splitUserLine = line.split(separator: "\\", maxSplits: 1) // Have to escape the escape character
-                    guard let userId = splitUserLine.first else { continue }
-                    let userIdString = String(userId)
-                    
-                    for innerLine in configFileLines {
-                        if innerLine.contains(userIdString) && innerLine.contains(displayUrlString) {
-                            
-                            let splitServerUrlLine = line.components(separatedBy: "url=")
-                            guard let serverUrl = splitServerUrlLine.last else { continue }
-                            let serverUrlString = String(serverUrl)
-                            
-                            // The client sets the account field in the kaychain entry as a colon-separated string consisting of
-                            // an account's username, its homeserver url, and the id of the account
-                            let keychainAccountString = displayUserString + ":" + serverUrlString + ":" + userIdString
-                            guard let userPassword = self.getUserPasswordFromKeychain(accountString: keychainAccountString),
-                                  let userPasswordString = String(data: userPassword, encoding: .utf8)
-                            else { continue }
-                            
-                            return NCAccountDetails(accountId: userIdString,
-                                                    username: displayUserString,
-                                                    password: userPasswordString,
-                                                    serverUrl: serverUrlString,
-                                                    davUrl: serverUrlString + self.webDavUrlSuffix)
-                        }
-                    }
-                }
-            }
-        } catch let error {
-            print("Error reading client config file: \(error)")
-            return nil;
-        }
-        
-        return nil
-    }
-    
 }

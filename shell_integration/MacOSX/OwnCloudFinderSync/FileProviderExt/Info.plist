@@ -6,6 +6,8 @@
 	<string>$(OC_APPLICATION_REV_DOMAIN).$(PRODUCT_NAME:rfc1034identifier)</string>
 	<key>NC Client Application Name</key>
 	<string>$(OC_APPLICATION_NAME)</string>
+	<key>NC Client App Group</key>
+	<string>$(OC_SOCKETAPI_TEAM_IDENTIFIER_PREFIX)$(OC_APPLICATION_REV_DOMAIN)</string>
 	<key>NC Client Organization Name</key>
 	<string>$(OC_APPLICATION_VENDOR)</string>
 	<key>NC Client Executable Name</key>

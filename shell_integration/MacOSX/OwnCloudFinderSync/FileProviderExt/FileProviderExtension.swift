@@ -14,13 +14,20 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     required init(domain: NSFileProviderDomain) {
         self.domain = domain
         
-        FileProviderUtils.shared.accountDetails = FileProviderUtils.shared.getAccountDetails(domainDisplayname: domain.displayName)
-        if let accountDetails = FileProviderUtils.shared.accountDetails {
-            // TODO: This will need changing with more accurate values for identifiers
-            NCCommunicationCommon.shared.setup(account: accountDetails.username, user: accountDetails.username, userId: accountDetails.accountId, password: accountDetails.password, urlBase: accountDetails.serverUrl, userAgent: FileProviderUtils.shared.userAgent, webDav: FileProviderUtils.shared.webDavUrlSuffix, nextcloudVersion: 1, delegate: NCNetworking.shared)
-        }
+        /*
+        FileProviderAccount.shared.setAccountFromDomainName(domainDisplayName: domain.displayName)
+        FileProviderData.shared.fileProviderManager = NSFileProviderManager.init(for: domain)
+        
+        // Configure URLSession
+        _ = NCNetworking.shared.sessionManagerBackgroundExtension
             
         // The containing application must create a domain using `NSFileProviderManager.add(_:, completionHandler:)`. The system will then launch the application extension process, call `FileProviderExtension.init(domain:)` to instantiate the extension for that domain, and call methods on the instance.
+        super.init()
+        NCNetworking.shared.delegate = self as NCNetworkingDelegate
+        */
+            
+        // The containing application must create a domain using `NSFileProviderManager.add(_:, completionHandler:)`. The system will then launch the application extension process, call `FileProviderExtension.init(domain:)` to instantiate the extension for that domain, and call methods on the instance.
+        NSLog("WEEEEEEEE")
         super.init()
     }
     
