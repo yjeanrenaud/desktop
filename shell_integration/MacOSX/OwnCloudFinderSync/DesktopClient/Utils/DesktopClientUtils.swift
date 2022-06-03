@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Security
 
 struct NCDesktopClientAccountData {
     let accountId: String
@@ -21,9 +22,9 @@ struct NCDesktopClientAccountData {
 
 class DesktopClientUtils {
     
-    static let appName: String = Bundle.main.infoDictionary!["NC Client Application Name"] as! String
+    static let appName: String = "Nextcloud"// Bundle.main.infoDictionary!["NC Client Application Name"] as! String
     static let orgName: String = Bundle.main.infoDictionary!["NC Client Organization Name"] as! String
-    static let appExecutableName: String = Bundle.main.infoDictionary!["NC Client Executable Name"] as! String
+    static let appExecutableName: String = "nextcloud"//Bundle.main.infoDictionary!["NC Client Executable Name"] as! String
     
     static let clientPreferencesPath: URL? = {
         // Sandboxing a target will break this, as this will return the library folder inside the application container
@@ -45,10 +46,10 @@ class DesktopClientUtils {
     
     static func getUserPasswordFromKeychain(accountString: String) -> Data? {
         let query = [
-            kSecClass as String       : kSecClassGenericPassword,
-            kSecAttrAccount as String : accountString,
-            kSecReturnData as String  : kCFBooleanTrue!,
-            kSecMatchLimit as String  : kSecMatchLimitOne
+            kSecClass as String                 : kSecClassGenericPassword,
+            kSecAttrAccount as String           : accountString,
+            kSecReturnData as String            : kCFBooleanTrue!,
+            kSecMatchLimit as String            : kSecMatchLimitOne
         ] as [String : Any]
 
         var dataTypeRef: AnyObject? = nil
@@ -57,13 +58,17 @@ class DesktopClientUtils {
 
         if status == noErr {
             return dataTypeRef as! Data?
+        } else if status == errSecItemNotFound {
+            print("Account not found in keychain...")
         } else {
-            return nil
+            print("Some other error getting keychain item...")
         }
+        
+        return nil
     }
     
     static func getAccountDetails(domainDisplayname: String) -> NCDesktopClientAccountData? {
-        guard let configPath = clientConfigFilePath?.absoluteString else { return nil }
+        guard let configPath = clientConfigFilePath else { return nil }
         
         let separatedDisplayString = domainDisplayname.split(separator: "@", maxSplits: 1)
         guard let displayUrl = separatedDisplayString.last,
@@ -74,9 +79,9 @@ class DesktopClientUtils {
         let displayUserString = String(displayUser)
         
         do {
-            let configFileString = try String(contentsOfFile: configPath, encoding: .utf8)
+            let configFileString = try String(contentsOf: configPath)
             let configFileLines = configFileString.components(separatedBy: .newlines)
-            
+                        
             // We have the name of the account and the "display" string of the URL, but we want more information.
             // We have what we need to find it in the displaystring.
             //
@@ -108,17 +113,17 @@ class DesktopClientUtils {
                     let splitUserLine = line.split(separator: "\\", maxSplits: 1) // Have to escape the escape character
                     guard let accountId = splitUserLine.first else { continue }
                     let accountIdString = String(accountId)
-                    
+                                        
                     for innerLine in configFileLines {
                         if innerLine.contains(accountIdString) && innerLine.contains(displayUrlString) {
-                            
-                            let splitServerUrlLine = line.components(separatedBy: "url=")
+                            let splitServerUrlLine = innerLine.components(separatedBy: "url=")
                             guard let serverUrl = splitServerUrlLine.last else { continue }
                             let serverUrlString = String(serverUrl)
                             
                             // The client sets the account field in the keychain entry as a colon-separated string consisting of
                             // an account's username, its homeserver url, and the id of the account
-                            let keychainAccountString = displayUserString + ":" + serverUrlString + ":" + accountIdString
+                            // Also make sure to add the trailing slash to the URL
+                            let keychainAccountString = displayUserString + ":" + serverUrlString + "/:" + accountIdString
                             guard let userPassword = self.getUserPasswordFromKeychain(accountString: keychainAccountString),
                                   let userPasswordString = String(data: userPassword, encoding: .utf8)
                             else { continue }

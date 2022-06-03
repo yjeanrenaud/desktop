@@ -32,5 +32,7 @@ class ActiveAccount: tableAccount {
         NCCommunicationCommon.shared.setup(webDav: NCUtilityFileSystem.shared.getWebDAV(account: account))
         
         accountSet = true
+        
+        print("Account set for domain: \(domainDisplayName)")
     }
 }

@@ -10,7 +10,8 @@ import SwiftUI
 struct ContentView: View {
     let account: String = {
         ActiveAccount.shared.setAccountFromDomainName(domainDisplayName: "claudio@cloud.nextcloud.com")
-        print(NCUtils.fileProviderStoragePath)
+        print(ActiveAccount.shared.davFilesRootUrl)
+        // print(NCUtils.fileProviderStoragePath)
         return ActiveAccount.shared.user
     }()
     
