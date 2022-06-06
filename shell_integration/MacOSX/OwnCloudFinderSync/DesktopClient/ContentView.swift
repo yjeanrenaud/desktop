@@ -11,7 +11,7 @@ struct ContentView: View {
     let account: String = {
         ActiveAccount.shared.setAccountFromDomainName(domainDisplayName: "claudio@cloud.nextcloud.com")
         print(ActiveAccount.shared.davFilesRootUrl)
-        // print(NCUtils.fileProviderStoragePath)
+        print(NCUtils.fileProviderStoragePath)
         return ActiveAccount.shared.user
     }()
     

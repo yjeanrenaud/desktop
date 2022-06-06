@@ -22,9 +22,37 @@ struct NCDesktopClientAccountData {
 
 class DesktopClientUtils {
     
-    static let appName: String = "Nextcloud"// Bundle.main.infoDictionary!["NC Client Application Name"] as! String
-    static let orgName: String = Bundle.main.infoDictionary!["NC Client Organization Name"] as! String
-    static let appExecutableName: String = "nextcloud"//Bundle.main.infoDictionary!["NC Client Executable Name"] as! String
+    static let appName: String = {
+        if let appNameString = Bundle.main.infoDictionary?["NC Client Application Name"] as? String, !appNameString.isEmpty {
+            return appNameString
+        }
+        
+        return "Nextcloud"
+    }()
+    
+    static let orgName: String = {
+        if let orgNameString = Bundle.main.infoDictionary?["NC Client Organization Name"] as? String, !orgNameString.isEmpty {
+            return orgNameString
+        }
+        
+        return "Nextcloud GmbH"
+    }()
+    
+    static let appExecutableName: String = {
+        if let appExecutableNameString = Bundle.main.infoDictionary?["NC Client Executable Name"] as? String, !appExecutableNameString.isEmpty {
+            return appExecutableNameString
+        }
+        
+        return "nextcloud"
+    }()
+    
+    static let appGroupIdentifier: String = {
+        if let appGroupIdentifierString = Bundle.main.infoDictionary?["NC Client App Group"] as? String, appGroupIdentifierString.isEmpty {
+            return appGroupIdentifierString
+        }
+        
+        return "com.owncloud.desktopclient"
+    }()
     
     static let clientPreferencesPath: URL? = {
         // Sandboxing a target will break this, as this will return the library folder inside the application container

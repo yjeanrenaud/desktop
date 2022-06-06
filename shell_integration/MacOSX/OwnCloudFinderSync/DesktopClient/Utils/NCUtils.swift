@@ -17,10 +17,10 @@ class NCUtils {
     }()
     
     static let fileProviderStoragePath: URL? = {
-        let appGroupIdentifier = Bundle.main.infoDictionary!["NC Client App Group"] as! String
-        guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupIdentifier) else { return nil }
+        print(FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask))
+        guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: DesktopClientUtils.appGroupIdentifier) else { return nil }
         
-        return createPathIfNotExists(path: containerUrl.appendingPathComponent("FileProviderStorage"))
+        return createPathIfNotExists(path: containerUrl.appendingPathComponent("Library/Application Support/File Provider Storage"))
     }()
     
     static let fileProviderDatabasePath: URL? = {
@@ -33,15 +33,12 @@ class NCUtils {
         return createPathIfNotExists(path: fileProviderDbPath);
     }()
     
-    // Returns nil if path was not created, returns created path if everything went well
     static func createPathIfNotExists(path: URL?) -> URL? {
         if path != nil && !FileManager.default.fileExists(atPath: path!.absoluteString) {
             do {
                 try FileManager.default.createDirectory(atPath: path!.absoluteString, withIntermediateDirectories: true)
-                return path
             } catch let error {
-                print("Error creating certificates directory: \(error)")
-                return nil
+                print("Error creating path: \(error)")
             }
         }
         

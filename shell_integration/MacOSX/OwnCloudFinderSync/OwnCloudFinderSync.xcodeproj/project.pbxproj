@@ -51,14 +51,14 @@
 		537B6D7E28490404002A8063 /* Queuer in Frameworks */ = {isa = PBXBuildFile; productRef = 537B6D7D28490404002A8063 /* Queuer */; };
 		5381DF1B284907F400B8D5E2 /* NCUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5381DF1A284907F400B8D5E2 /* NCUtils.swift */; };
 		5381DF1C284907F400B8D5E2 /* NCUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5381DF1A284907F400B8D5E2 /* NCUtils.swift */; };
-		5381DF1D28491C7F00B8D5E2 /* ActiveAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2E2848FE49002A8063 /* ActiveAccount.swift */; };
-		5381DF1E28491D1D00B8D5E2 /* ActiveAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 537B6D2E2848FE49002A8063 /* ActiveAccount.swift */; };
 		538E396A27F4765000FA63D5 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 538E396927F4765000FA63D5 /* UniformTypeIdentifiers.framework */; };
 		538E396D27F4765000FA63D5 /* FileProviderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538E396C27F4765000FA63D5 /* FileProviderExtension.swift */; };
 		538E396F27F4765000FA63D5 /* FileProviderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538E396E27F4765000FA63D5 /* FileProviderItem.swift */; };
 		538E397127F4765000FA63D5 /* FileProviderEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 538E397027F4765000FA63D5 /* FileProviderEnumerator.swift */; };
 		539158AC27BE71A900816F56 /* LineProcessor.m in Sources */ = {isa = PBXBuildFile; fileRef = 539158AB27BE71A900816F56 /* LineProcessor.m */; };
 		539158B327BEC98A00816F56 /* LocalSocketClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 539158B227BEC98A00816F56 /* LocalSocketClient.m */; };
+		53DD6DDF284E2535007EF421 /* ActiveAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DD6DDE284E2535007EF421 /* ActiveAccount.swift */; };
+		53DD6DE0284E2574007EF421 /* ActiveAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53DD6DDE284E2535007EF421 /* ActiveAccount.swift */; };
 		C2B573DE1B1CD9CE00303B36 /* FinderSync.m in Sources */ = {isa = PBXBuildFile; fileRef = C2B573DD1B1CD9CE00303B36 /* FinderSync.m */; };
 		C2B573F31B1DAD6400303B36 /* error.iconset in Resources */ = {isa = PBXBuildFile; fileRef = C2B573EB1B1DAD6400303B36 /* error.iconset */; };
 		C2B573F41B1DAD6400303B36 /* ok_swm.iconset in Resources */ = {isa = PBXBuildFile; fileRef = C2B573EC1B1DAD6400303B36 /* ok_swm.iconset */; };
@@ -114,7 +114,6 @@
 		537B6D2B2848FE49002A8063 /* NCUserBaseUrl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NCUserBaseUrl.swift; sourceTree = "<group>"; };
 		537B6D2C2848FE49002A8063 /* FileProviderData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FileProviderData.swift; sourceTree = "<group>"; };
 		537B6D2D2848FE49002A8063 /* DesktopClientUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DesktopClientUtils.swift; sourceTree = "<group>"; };
-		537B6D2E2848FE49002A8063 /* ActiveAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActiveAccount.swift; sourceTree = "<group>"; };
 		537B6D41284900A8002A8063 /* DesktopClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DesktopClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		537B6D43284900A8002A8063 /* DesktopClientApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesktopClientApp.swift; sourceTree = "<group>"; };
 		537B6D45284900A8002A8063 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -135,6 +134,7 @@
 		539158AB27BE71A900816F56 /* LineProcessor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LineProcessor.m; sourceTree = "<group>"; };
 		539158B127BE891500816F56 /* LocalSocketClient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalSocketClient.h; sourceTree = "<group>"; };
 		539158B227BEC98A00816F56 /* LocalSocketClient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalSocketClient.m; sourceTree = "<group>"; };
+		53DD6DDE284E2535007EF421 /* ActiveAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ActiveAccount.swift; path = desktopclient/Utils/ActiveAccount.swift; sourceTree = SOURCE_ROOT; };
 		C2B573D71B1CD9CE00303B36 /* FinderSyncExt.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FinderSyncExt.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C2B573DA1B1CD9CE00303B36 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C2B573DB1B1CD9CE00303B36 /* FinderSyncExt.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = FinderSyncExt.entitlements; sourceTree = "<group>"; };
@@ -231,7 +231,6 @@
 				537B6D7F284904BB002A8063 /* Utils */,
 				537B6D1D2848FE49002A8063 /* NCBackend */,
 				537B6D5728490165002A8063 /* Info.plist */,
-				537B6D2E2848FE49002A8063 /* ActiveAccount.swift */,
 				537B6D43284900A8002A8063 /* DesktopClientApp.swift */,
 				537B6D45284900A8002A8063 /* ContentView.swift */,
 				537B6D47284900A9002A8063 /* Assets.xcassets */,
@@ -252,6 +251,7 @@
 		537B6D7F284904BB002A8063 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				53DD6DDE284E2535007EF421 /* ActiveAccount.swift */,
 				537B6D2D2848FE49002A8063 /* DesktopClientUtils.swift */,
 				5381DF1A284907F400B8D5E2 /* NCUtils.swift */,
 			);
@@ -514,12 +514,12 @@
 				5381DF1B284907F400B8D5E2 /* NCUtils.swift in Sources */,
 				537B6D44284900A8002A8063 /* DesktopClientApp.swift in Sources */,
 				537B6D70284903DB002A8063 /* NCUtilityFileSystem.swift in Sources */,
+				53DD6DDF284E2535007EF421 /* ActiveAccount.swift in Sources */,
 				537B6D6D284903D5002A8063 /* NCDatabase.swift in Sources */,
 				537B6D73284903E0002A8063 /* NCNetworking+ChunkedUpload.swift in Sources */,
 				537B6D6C284903D5002A8063 /* NCManageDatabase+Metadata.swift in Sources */,
 				537B6D68284903AE002A8063 /* DesktopClientUtils.swift in Sources */,
 				537B6D74284903E0002A8063 /* NCOperationQueue.swift in Sources */,
-				5381DF1D28491C7F00B8D5E2 /* ActiveAccount.swift in Sources */,
 				537B6D6A284903CE002A8063 /* NCGlobal.swift in Sources */,
 				537B6D71284903E0002A8063 /* NCService.swift in Sources */,
 				537B6D6E284903D5002A8063 /* NCElementsJSON.swift in Sources */,
@@ -546,7 +546,7 @@
 				538E397127F4765000FA63D5 /* FileProviderEnumerator.swift in Sources */,
 				537B6D372848FE49002A8063 /* NCGlobal.swift in Sources */,
 				537B6D352848FE49002A8063 /* NCManageDatabase.swift in Sources */,
-				5381DF1E28491D1D00B8D5E2 /* ActiveAccount.swift in Sources */,
+				53DD6DE0284E2574007EF421 /* ActiveAccount.swift in Sources */,
 				537B6D382848FE49002A8063 /* NCUtilityFileSystem.swift in Sources */,
 				537B6D362848FE49002A8063 /* NCElementsJSON.swift in Sources */,
 			);
