@@ -1,9 +1,9 @@
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index 67a2c7323..732773385 100644
+index 0f0d4c9e5..ea018790a 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
-@@ -255,7 +255,7 @@ function(generate_sized_png_from_svg icon_path size)
-   set(icon_output_name "${size}-${icon_name_wle}.png")
+@@ -405,7 +405,7 @@ function(generate_sized_png_from_svg icon_path size)
+   set(icon_output_name "${output_icon_full_name_wle}.png")
    message(STATUS "Generate ${icon_output_name}")
    execute_process(COMMAND
 -    "${SVG_CONVERTER}" -w ${size} -h ${size} "${icon_path}" -o "${icon_output_name}"
