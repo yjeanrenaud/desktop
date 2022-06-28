@@ -47,7 +47,7 @@ class DesktopClientUtils {
     }()
     
     static let appGroupIdentifier: String = {
-        if let appGroupIdentifierString = Bundle.main.infoDictionary?["NC Client App Group"] as? String, appGroupIdentifierString.isEmpty {
+        if let appGroupIdentifierString = Bundle.main.infoDictionary?["NC Client App Group"] as? String, !appGroupIdentifierString.isEmpty {
             return appGroupIdentifierString
         }
         

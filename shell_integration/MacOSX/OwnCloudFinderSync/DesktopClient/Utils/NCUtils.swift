@@ -17,9 +17,7 @@ class NCUtils {
     }()
     
     static let fileProviderStoragePath: URL? = {
-        print(FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask))
         guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: DesktopClientUtils.appGroupIdentifier) else { return nil }
-        
         return createPathIfNotExists(path: containerUrl.appendingPathComponent("Library/Application Support/File Provider Storage"))
     }()
     
@@ -36,7 +34,8 @@ class NCUtils {
     static func createPathIfNotExists(path: URL?) -> URL? {
         if path != nil && !FileManager.default.fileExists(atPath: path!.absoluteString) {
             do {
-                try FileManager.default.createDirectory(atPath: path!.absoluteString, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(atPath: path!.path, withIntermediateDirectories: true)
+                print("Created folder \(path!.path)")
             } catch let error {
                 print("Error creating path: \(error)")
             }
