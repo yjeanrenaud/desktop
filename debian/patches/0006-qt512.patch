@@ -55,7 +55,7 @@ index 0c051c9a4..3db5ebd59 100644
  if(Qt5WebEngine_FOUND AND Qt5WebEngineWidgets_FOUND)
    add_compile_definitions(WITH_WEBENGINE=1)
 diff --git a/src/cmd/cmd.cpp b/src/cmd/cmd.cpp
-index 0e2699051..bf81102b0 100644
+index 098f5f412..267071c63 100644
 --- a/src/cmd/cmd.cpp
 +++ b/src/cmd/cmd.cpp
 @@ -24,6 +24,7 @@
@@ -117,7 +117,7 @@ index 887213f09..8b3f1d1b9 100644
          if (!QFile::remove(desktopFileLocation)) {
              qCWarning(lcUtility) << "Could not remove autostart desktop file";
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index 920996836..4844ed5dd 100644
+index 0f0d4c9e5..146da1726 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
 @@ -60,7 +60,7 @@ set(client_UI_SRCS
@@ -130,7 +130,7 @@ index 920996836..4844ed5dd 100644
  
  set(client_SRCS
 diff --git a/src/gui/creds/oauth.cpp b/src/gui/creds/oauth.cpp
-index aa528aa49..22ce217a0 100644
+index 39534fa48..e1474bab1 100644
 --- a/src/gui/creds/oauth.cpp
 +++ b/src/gui/creds/oauth.cpp
 @@ -20,6 +20,7 @@
@@ -193,7 +193,7 @@ index 50528a252..9df1a76f9 100644
  namespace OCC {
  
 diff --git a/src/gui/sharedialog.cpp b/src/gui/sharedialog.cpp
-index 2220a4616..feff34e3c 100644
+index 99a0b8356..1d97f289c 100644
 --- a/src/gui/sharedialog.cpp
 +++ b/src/gui/sharedialog.cpp
 @@ -35,6 +35,7 @@
@@ -201,9 +201,9 @@ index 2220a4616..feff34e3c 100644
  #include <QPushButton>
  #include <QFrame>
 +#include <QRegularExpression>
+ #include <QScrollBar>
  
  namespace {
- QString createRandomPassword()
 diff --git a/src/gui/tray/asyncimageresponse.cpp b/src/gui/tray/asyncimageresponse.cpp
 index f393c837a..5f1acdc20 100644
 --- a/src/gui/tray/asyncimageresponse.cpp
@@ -284,7 +284,7 @@ index 7d5cd95db..50eee4a2e 100644
      QUrlQuery params;
      params.addQueryItem(QStringLiteral("term"), _searchTerm);
 diff --git a/src/gui/wizard/webview.cpp b/src/gui/wizard/webview.cpp
-index 5f58df4f4..4699f64d6 100644
+index 0ecaca08c..d137a80d6 100644
 --- a/src/gui/wizard/webview.cpp
 +++ b/src/gui/wizard/webview.cpp
 @@ -30,6 +30,8 @@ class WebViewPageUrlRequestInterceptor : public QWebEngineUrlRequestInterceptor
