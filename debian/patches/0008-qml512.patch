@@ -74,20 +74,22 @@ index 8b95de138..89154be82 100644
      // The Windows style still has pixelated elements with Qt 5.6,
      // it's recommended to use the Fusion style in this case, even
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index 4f312f5df..09efd3526 100644
+index 52508aa8c..3a5e9fee2 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
-@@ -205,15 +205,20 @@ void Systray::createCallDialog(const Activity &callNotification)
+@@ -207,16 +207,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
              });
          }
  
 -        const QVariantMap initialProperties{
+-            {"accountState", QVariant::fromValue(accountState.data())},
 -            {"talkNotificationData", talkNotificationData},
 -            {"links", links},
 -            {"subject", callNotification._subject},
 -            {"link", callNotification._link},
 -        };
 +        // const QVariantMap initialProperties{
++        //     {"accountState", QVariant::fromValue(accountState.data())},
 +        //     {"talkNotificationData", talkNotificationData},
 +        //     {"links", links},
 +        //     {"subject", callNotification._subject},
@@ -97,6 +99,7 @@ index 4f312f5df..09efd3526 100644
          const auto callDialog = new QQmlComponent(_trayEngine, QStringLiteral("qrc:/qml/src/gui/tray/CallNotificationDialog.qml"));
 -        callDialog->createWithInitialProperties(initialProperties);
 +        auto component = callDialog->beginCreate(_trayEngine->rootContext());
++        callDialog->setProperty("accountState", QVariant::fromValue(accountState.data()));
 +        callDialog->setProperty("talkNotificationData", talkNotificationData);
 +        callDialog->setProperty("links", links);
 +        callDialog->setProperty("subject", callNotification._subject);
@@ -119,7 +122,7 @@ index eca55ebdc..9f37dbbc4 100644
  import com.nextcloud.desktopclient 1.0
  
 diff --git a/src/gui/tray/ActivityItem.qml b/src/gui/tray/ActivityItem.qml
-index 196ce2086..a0c0f4108 100644
+index 7848bb80c..785779bc2 100644
 --- a/src/gui/tray/ActivityItem.qml
 +++ b/src/gui/tray/ActivityItem.qml
 @@ -1,7 +1,7 @@
@@ -135,7 +138,7 @@ index 196ce2086..a0c0f4108 100644
  import com.nextcloud.desktopclient 1.0
  
 diff --git a/src/gui/tray/ActivityItemActions.qml b/src/gui/tray/ActivityItemActions.qml
-index f86ad70d7..9b7ba3188 100644
+index 1b1b70e5c..efce73804 100644
 --- a/src/gui/tray/ActivityItemActions.qml
 +++ b/src/gui/tray/ActivityItemActions.qml
 @@ -1,5 +1,5 @@
@@ -155,7 +158,7 @@ index f86ad70d7..9b7ba3188 100644
  
              ActivityItemContextMenu {
 diff --git a/src/gui/tray/ActivityItemContent.qml b/src/gui/tray/ActivityItemContent.qml
-index c5408c0fc..cada71d23 100644
+index 785dccbdb..8e22a23b6 100644
 --- a/src/gui/tray/ActivityItemContent.qml
 +++ b/src/gui/tray/ActivityItemContent.qml
 @@ -1,9 +1,9 @@
@@ -206,10 +209,13 @@ index efc23d1bf..3c750eaa1 100644
  import Style 1.0
  
 diff --git a/src/gui/tray/CallNotificationDialog.qml b/src/gui/tray/CallNotificationDialog.qml
-index 535cf6745..b56d3b0a1 100644
+index c3eb3e441..63374169c 100644
 --- a/src/gui/tray/CallNotificationDialog.qml
 +++ b/src/gui/tray/CallNotificationDialog.qml
-@@ -1,11 +1,11 @@
+@@ -13,14 +13,14 @@
+  * for more details.
+  */
+ 
 -import QtQuick 2.15
 -import QtQuick.Window 2.15
 +import QtQuick 2.12
@@ -227,7 +233,7 @@ index 535cf6745..b56d3b0a1 100644
  Window {
      id: root
 diff --git a/src/gui/tray/CustomButton.qml b/src/gui/tray/CustomButton.qml
-index 0ddb40d24..3bacf420a 100644
+index 32d6ff575..fb7c21790 100644
 --- a/src/gui/tray/CustomButton.qml
 +++ b/src/gui/tray/CustomButton.qml
 @@ -1,4 +1,4 @@
@@ -275,7 +281,7 @@ index 5964c60db..be357f6d8 100644
  import Style 1.0
  
 diff --git a/src/gui/tray/TalkReplyTextField.qml b/src/gui/tray/TalkReplyTextField.qml
-index 550c43a42..53c2f4c74 100644
+index 996e6e250..ff0d09fba 100644
 --- a/src/gui/tray/TalkReplyTextField.qml
 +++ b/src/gui/tray/TalkReplyTextField.qml
 @@ -1,7 +1,7 @@
@@ -458,7 +464,7 @@ index cfb6aaacd..a57ab77ab 100644
  
                  section.property: "providerName"
 diff --git a/theme/Style/Style.qml b/theme/Style/Style.qml
-index af7627ade..a03d3d964 100644
+index ae5410896..b98d128cd 100644
 --- a/theme/Style/Style.qml
 +++ b/theme/Style/Style.qml
 @@ -1,6 +1,6 @@
