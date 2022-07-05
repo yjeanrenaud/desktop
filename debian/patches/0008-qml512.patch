@@ -28,7 +28,7 @@ index 750a4cb00..204713d89 100644
  import Style 1.0
  
 diff --git a/src/gui/UserStatusSelector.qml b/src/gui/UserStatusSelector.qml
-index 0b998de66..742ccb42f 100644
+index 05f092151..5dfc58d49 100644
 --- a/src/gui/UserStatusSelector.qml
 +++ b/src/gui/UserStatusSelector.qml
 @@ -14,9 +14,9 @@
@@ -55,20 +55,22 @@ index 938eae547..f6aa4d287 100644
  
  import com.nextcloud.desktopclient 1.0 as NC
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index 128937cde..bb846bb78 100644
+index 04400ee21..d5f35711d 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
-@@ -207,15 +207,20 @@ void Systray::createCallDialog(const Activity &callNotification)
+@@ -219,16 +219,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
              });
          }
  
 -        const QVariantMap initialProperties{
+-            {"accountState", QVariant::fromValue(accountState.data())},
 -            {"talkNotificationData", talkNotificationData},
 -            {"links", links},
 -            {"subject", callNotification._subject},
 -            {"link", callNotification._link},
 -        };
 +        // const QVariantMap initialProperties{
++        //     {"accountState", QVariant::fromValue(accountState.data())},
 +        //     {"talkNotificationData", talkNotificationData},
 +        //     {"links", links},
 +        //     {"subject", callNotification._subject},
@@ -78,6 +80,7 @@ index 128937cde..bb846bb78 100644
          const auto callDialog = new QQmlComponent(_trayEngine, QStringLiteral("qrc:/qml/src/gui/tray/CallNotificationDialog.qml"));
 -        callDialog->createWithInitialProperties(initialProperties);
 +        auto component = callDialog->beginCreate(_trayEngine->rootContext());
++        callDialog->setProperty("accountState", QVariant::fromValue(accountState.data()));
 +        callDialog->setProperty("talkNotificationData", talkNotificationData);
 +        callDialog->setProperty("links", links);
 +        callDialog->setProperty("subject", callNotification._subject);
@@ -261,7 +264,7 @@ index 89ad6bf31..04b687a6d 100644
      topPadding: 8
      bottomPadding: 8
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index 3b5d80ff3..85d80c47d 100644
+index 81629711f..445b39047 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
 @@ -1,6 +1,6 @@
@@ -280,10 +283,11 @@ index 3b5d80ff3..85d80c47d 100644
      }
  
      Component {
-@@ -90,14 +91,17 @@ Window {
+@@ -100,15 +101,17 @@ Window {
              Systray.setOpened();
              UserModel.fetchCurrentActivityModel();
          }
+-
 +        onShowWindow: onShowWindow()
          function onHideWindow() {
              trayWindow.hide();
@@ -298,7 +302,7 @@ index 3b5d80ff3..85d80c47d 100644
  
          function onShowErrorMessageDialog(error) {
              var newErrorDialog = errorMessageDialog.createObject(trayWindow)
-@@ -763,7 +767,7 @@ Window {
+@@ -774,7 +777,7 @@ Window {
  
                  keyNavigationEnabled: true
  
@@ -307,7 +311,7 @@ index 3b5d80ff3..85d80c47d 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -785,8 +789,6 @@ Window {
+@@ -796,8 +799,6 @@ Window {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
