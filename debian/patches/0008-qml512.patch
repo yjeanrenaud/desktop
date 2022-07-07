@@ -55,7 +55,7 @@ index 938eae547..f6aa4d287 100644
  
  import com.nextcloud.desktopclient 1.0 as NC
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index 04400ee21..d5f35711d 100644
+index 9db7ef835..2534c20b2 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
 @@ -219,16 +219,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
@@ -264,7 +264,7 @@ index 89ad6bf31..04b687a6d 100644
      topPadding: 8
      bottomPadding: 8
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index 81629711f..445b39047 100644
+index 6419e651e..efc4eda8f 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
 @@ -1,6 +1,6 @@
@@ -275,7 +275,7 @@ index 81629711f..445b39047 100644
  import QtQuick.Window 2.3
  import QtQuick.Controls 2.3
  import QtQuick.Layouts 1.2
-@@ -61,6 +61,7 @@ Window {
+@@ -59,6 +59,7 @@ Window {
              accountMenu.close();
              syncStatus.model.load();
          }
@@ -283,26 +283,27 @@ index 81629711f..445b39047 100644
      }
  
      Component {
-@@ -100,15 +101,17 @@ Window {
-             Systray.setOpened();
+@@ -98,16 +99,18 @@ Window {
+             Systray.isOpen = true;
              UserModel.fetchCurrentActivityModel();
          }
--
 +        onShowWindow: onShowWindow()
+ 
          function onHideWindow() {
              trayWindow.hide();
-             Systray.setClosed();
+             Systray.isOpen = false;
          }
 +        onHideWindow: onHideWindow()
  
          function onShowFileActivityDialog(objectName, objectId) {
              openFileActivityDialog(objectName, objectId)
          }
+-
 +        onShowFileActivityDialog: onShowFileActivityDialog(sharePath, localPath)
- 
          function onShowErrorMessageDialog(error) {
              var newErrorDialog = errorMessageDialog.createObject(trayWindow)
-@@ -774,7 +777,7 @@ Window {
+             newErrorDialog.text = error
+@@ -772,7 +775,7 @@ Window {
  
                  keyNavigationEnabled: true
  
@@ -311,7 +312,7 @@ index 81629711f..445b39047 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -796,8 +799,6 @@ Window {
+@@ -794,8 +797,6 @@ Window {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
