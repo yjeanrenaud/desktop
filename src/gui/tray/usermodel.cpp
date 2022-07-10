@@ -741,6 +741,10 @@ void User::logout() const
 
 QString User::name() const
 {
+    if (isPublicShareLink()) {
+        return tr("Public Link");
+    }
+
     // If davDisplayName is empty (can be several reasons, simplest is missing login at startup), fall back to username
     QString name = _account->account()->davDisplayName();
     if (name == "") {
@@ -751,12 +755,18 @@ QString User::name() const
 
 QString User::server(bool shortened) const
 {
-    QString serverUrl = _account->account()->url().toString();
-    if (shortened) {
-        serverUrl.replace(QLatin1String("https://"), QLatin1String(""));
-        serverUrl.replace(QLatin1String("http://"), QLatin1String(""));
+    auto serverUrl = _account->account()->url();
+
+    if (isPublicShareLink()) {
+        serverUrl.setUserName({});
     }
-    return serverUrl;
+    QString stringServerUrl = serverUrl.toString();
+    if (shortened) {
+        stringServerUrl.replace(QLatin1String("https://"), QLatin1String(""));
+        stringServerUrl.replace(QLatin1String("http://"), QLatin1String(""));
+
+    }
+    return stringServerUrl;
 }
 
 UserStatus::OnlineStatus User::status() const
