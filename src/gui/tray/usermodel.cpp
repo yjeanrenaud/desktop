@@ -663,7 +663,7 @@ void User::processCompletedSyncItem(const Folder *folder, const SyncFileItemPtr 
 
 bool User::canLogout() const
 {
-    return !_account->account()->isPublicShareLink();
+    return !isPublicShareLink();
 }
 
 bool User::isPublicShareLink() const
