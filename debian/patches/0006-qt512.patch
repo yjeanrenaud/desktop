@@ -40,7 +40,7 @@ index ce21e51ac..cc08643c3 100644
      m_pixelDelta = event->pixelDelta();
      m_buttons = event->buttons();
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 0c051c9a4..3db5ebd59 100644
+index cd3805799..cc03c8585 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
 @@ -4,8 +4,8 @@ endif()
@@ -117,7 +117,7 @@ index 887213f09..8b3f1d1b9 100644
          if (!QFile::remove(desktopFileLocation)) {
              qCWarning(lcUtility) << "Could not remove autostart desktop file";
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index 0f0d4c9e5..146da1726 100644
+index e2a817aa5..8dfe3b2ed 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
 @@ -60,7 +60,7 @@ set(client_UI_SRCS
@@ -283,6 +283,18 @@ index 7d5cd95db..50eee4a2e 100644
  
      QUrlQuery params;
      params.addQueryItem(QStringLiteral("term"), _searchTerm);
+diff --git a/src/gui/userstatusselectormodel.h b/src/gui/userstatusselectormodel.h
+index 9d7e39364..a29392437 100644
+--- a/src/gui/userstatusselectormodel.h
++++ b/src/gui/userstatusselectormodel.h
+@@ -23,6 +23,7 @@
+ #include <QObject>
+ #include <QMetaType>
+ #include <QtNumeric>
++#include <QVector>
+ 
+ #include <cstddef>
+ #include <memory>
 diff --git a/src/gui/wizard/webview.cpp b/src/gui/wizard/webview.cpp
 index 0ecaca08c..d137a80d6 100644
 --- a/src/gui/wizard/webview.cpp
@@ -310,7 +322,7 @@ index 0ecaca08c..d137a80d6 100644
  
  WebViewPageUrlSchemeHandler::WebViewPageUrlSchemeHandler(QObject *parent)
 diff --git a/src/libsync/account.cpp b/src/libsync/account.cpp
-index eab683dd6..42bb716ca 100644
+index fa874386b..839a28d7e 100644
 --- a/src/libsync/account.cpp
 +++ b/src/libsync/account.cpp
 @@ -51,7 +51,6 @@
@@ -386,7 +398,7 @@ index 335dd1eb5..06289c291 100644
  #ifndef TOKEN_AUTH_ONLY
  #include <QPainter>
 diff --git a/src/libsync/ocsuserstatusconnector.cpp b/src/libsync/ocsuserstatusconnector.cpp
-index cbe65c320..12e1e20c0 100644
+index a8364d6cd..e54845661 100644
 --- a/src/libsync/ocsuserstatusconnector.cpp
 +++ b/src/libsync/ocsuserstatusconnector.cpp
 @@ -110,10 +110,10 @@ quint64 clearAtEndOfToTimestamp(const OCC::ClearAt &clearAt)
