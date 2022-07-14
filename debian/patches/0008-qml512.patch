@@ -1,5 +1,5 @@
 diff --git a/src/gui/EmojiPicker.qml b/src/gui/EmojiPicker.qml
-index 0e5c6ec70..2e6c20e33 100644
+index 8a9cc920e..fbfc566ec 100644
 --- a/src/gui/EmojiPicker.qml
 +++ b/src/gui/EmojiPicker.qml
 @@ -12,9 +12,9 @@
@@ -28,7 +28,7 @@ index 750a4cb00..204713d89 100644
  import Style 1.0
  
 diff --git a/src/gui/UserStatusSelector.qml b/src/gui/UserStatusSelector.qml
-index 05f092151..5dfc58d49 100644
+index f480597cb..8a9df804c 100644
 --- a/src/gui/UserStatusSelector.qml
 +++ b/src/gui/UserStatusSelector.qml
 @@ -14,9 +14,9 @@
@@ -55,10 +55,10 @@ index 938eae547..f6aa4d287 100644
  
  import com.nextcloud.desktopclient 1.0 as NC
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index 9db7ef835..2534c20b2 100644
+index 8ec5f3374..145a0470d 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
-@@ -219,16 +219,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
+@@ -251,16 +251,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
              });
          }
  
@@ -264,7 +264,7 @@ index 89ad6bf31..04b687a6d 100644
      topPadding: 8
      bottomPadding: 8
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index 6419e651e..efc4eda8f 100644
+index 1e84e1847..a4ffac544 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
 @@ -1,6 +1,6 @@
@@ -283,27 +283,27 @@ index 6419e651e..efc4eda8f 100644
      }
  
      Component {
-@@ -98,16 +99,18 @@ Window {
-             Systray.isOpen = true;
-             UserModel.fetchCurrentActivityModel();
+@@ -83,16 +84,19 @@ Window {
+                 appsMenu.close();
+             }
          }
-+        onShowWindow: onShowWindow()
- 
-         function onHideWindow() {
-             trayWindow.hide();
-             Systray.isOpen = false;
-         }
-+        onHideWindow: onHideWindow()
++        onIsOpenChanged: onIsOpenChanged()
  
          function onShowFileActivityDialog(objectName, objectId) {
              openFileActivityDialog(objectName, objectId)
          }
--
 +        onShowFileActivityDialog: onShowFileActivityDialog(sharePath, localPath)
+ 
          function onShowErrorMessageDialog(error) {
              var newErrorDialog = errorMessageDialog.createObject(trayWindow)
              newErrorDialog.text = error
-@@ -772,7 +775,7 @@ Window {
+             newErrorDialog.open()
+         }
++        onShowErrorMessageDialog: onShowErrorMessageDialog(error)
+     }
+ 
+     OpacityMask {
+@@ -752,7 +756,7 @@ Window {
  
                  keyNavigationEnabled: true
  
@@ -312,7 +312,7 @@ index 6419e651e..efc4eda8f 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -794,8 +797,6 @@ Window {
+@@ -774,8 +778,6 @@ Window {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
