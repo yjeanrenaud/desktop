@@ -34,6 +34,8 @@
 #include <QScreen>
 #include <QMenu>
 #include <QGuiApplication>
+#include <QPainter>
+#include <QBitmap>>
 
 #ifdef USE_FDO_NOTIFICATIONS
 #include <QDBusConnection>
@@ -141,6 +143,13 @@ void Systray::create()
 
         QQmlComponent trayWindowComponent(_trayEngine, QStringLiteral("qrc:/qml/src/gui/tray/Window.qml"));
         _trayWindow.reset(qobject_cast<QQuickWindow*>(trayWindowComponent.create()));
+
+        QPixmap pixmap(_trayWindow->size());
+        QPainter painter(&pixmap);
+        painter.fillRect(pixmap.rect(), Qt::white);
+        painter.setBrush(Qt::black);
+        painter.drawRoundedRect(pixmap.rect(), 10, 10);
+        _trayWindow->setMask(pixmap.createMaskFromColor(Qt::white));
     }
     hideWindow();
     emit activated(QSystemTrayIcon::ActivationReason::Unknown);
@@ -168,6 +177,14 @@ void Systray::showWindow(WindowPosition position)
     _trayWindow->show();
     _trayWindow->raise();
     _trayWindow->requestActivate();
+
+    QPixmap pixmap(_trayWindow->size());
+    QPainter painter(&pixmap);
+    painter.fillRect(pixmap.rect(), Qt::white);
+    painter.setBrush(Qt::black);
+    painter.drawRoundedRect(pixmap.rect(), 10, 10);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    _trayWindow->setMask(pixmap.createMaskFromColor(Qt::white));
 
     setIsOpen(true);
 

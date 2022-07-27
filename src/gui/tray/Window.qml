@@ -95,19 +95,6 @@ Window {
         }
     }
 
-    OpacityMask {
-        anchors.fill: parent
-        source: ShaderEffectSource {
-            sourceItem: trayWindowBackground
-            hideSource: true
-        }
-        maskSource: Rectangle {
-            width: trayWindowBackground.width
-            height: trayWindowBackground.height
-            radius: Systray.useNormalWindow ? 0.0 : Style.trayWindowRadius
-        }
-    }
-
     Rectangle {
         id: trayWindowBackground
 
