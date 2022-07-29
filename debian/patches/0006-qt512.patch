@@ -40,7 +40,7 @@ index ce21e51ac..cc08643c3 100644
      m_pixelDelta = event->pixelDelta();
      m_buttons = event->buttons();
 diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
-index 0c051c9a4..3db5ebd59 100644
+index cd3805799..cc03c8585 100644
 --- a/src/CMakeLists.txt
 +++ b/src/CMakeLists.txt
 @@ -4,8 +4,8 @@ endif()
@@ -117,7 +117,7 @@ index 887213f09..8b3f1d1b9 100644
          if (!QFile::remove(desktopFileLocation)) {
              qCWarning(lcUtility) << "Could not remove autostart desktop file";
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index 920996836..4844ed5dd 100644
+index 6ed209e43..c622c8d27 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
 @@ -60,7 +60,7 @@ set(client_UI_SRCS
@@ -283,6 +283,18 @@ index 7d5cd95db..50eee4a2e 100644
  
      QUrlQuery params;
      params.addQueryItem(QStringLiteral("term"), _searchTerm);
+diff --git a/src/gui/userstatusselectormodel.h b/src/gui/userstatusselectormodel.h
+index c60fc8926..d160649a2 100644
+--- a/src/gui/userstatusselectormodel.h
++++ b/src/gui/userstatusselectormodel.h
+@@ -22,6 +22,7 @@
+ #include <QObject>
+ #include <QMetaType>
+ #include <QtNumeric>
++#include <QVector>
+ 
+ #include <cstddef>
+ #include <memory>
 diff --git a/src/gui/wizard/webview.cpp b/src/gui/wizard/webview.cpp
 index 5f58df4f4..4699f64d6 100644
 --- a/src/gui/wizard/webview.cpp
@@ -310,7 +322,7 @@ index 5f58df4f4..4699f64d6 100644
  
  WebViewPageUrlSchemeHandler::WebViewPageUrlSchemeHandler(QObject *parent)
 diff --git a/src/libsync/account.cpp b/src/libsync/account.cpp
-index eab683dd6..42bb716ca 100644
+index fa874386b..839a28d7e 100644
 --- a/src/libsync/account.cpp
 +++ b/src/libsync/account.cpp
 @@ -51,7 +51,6 @@
@@ -403,7 +415,7 @@ index cbe65c320..12e1e20c0 100644
      qCWarning(lcOcsUserStatusConnector) << "Can not handle clear at endof day type" << clearAt._endof;
      return QDateTime::currentDateTime().toSecsSinceEpoch();
 diff --git a/src/libsync/owncloudpropagator.cpp b/src/libsync/owncloudpropagator.cpp
-index 889c0dce0..47eb2493b 100644
+index 245a8e8d6..3cdf37c57 100644
 --- a/src/libsync/owncloudpropagator.cpp
 +++ b/src/libsync/owncloudpropagator.cpp
 @@ -426,7 +426,7 @@ void OwncloudPropagator::adjustDeletedFoldersWithNewChildren(SyncFileItemVector
@@ -453,7 +465,7 @@ index ac19cd40c..d8dc8effc 100644
              qCWarning(lcEngine) << "**** Attention: POST_UPDATE_SCRIPT installed, but not executed because compiled with NDEBUG";
      #endif
 diff --git a/src/libsync/syncfilestatustracker.cpp b/src/libsync/syncfilestatustracker.cpp
-index 9c4ae0e8c..276bc4f8d 100644
+index 7d03fba32..d96f52017 100644
 --- a/src/libsync/syncfilestatustracker.cpp
 +++ b/src/libsync/syncfilestatustracker.cpp
 @@ -339,7 +339,7 @@ SyncFileStatus SyncFileStatusTracker::resolveSyncAndErrorStatus(const QString &r

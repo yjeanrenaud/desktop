@@ -52,32 +52,11 @@ index 3f86f8cf9..8bd0d0ad3 100644
  
  import com.nextcloud.desktopclient 1.0 as NC
  
-diff --git a/src/gui/main.cpp b/src/gui/main.cpp
-index 8b95de138..89154be82 100644
---- a/src/gui/main.cpp
-+++ b/src/gui/main.cpp
-@@ -69,7 +69,6 @@ int main(int argc, char **argv)
-     qmlRegisterType<UserStatusSelectorModel>("com.nextcloud.desktopclient", 1, 0, "UserStatusSelectorModel");
-     qmlRegisterType<OCC::ActivityListModel>("com.nextcloud.desktopclient", 1, 0, "ActivityListModel");
-     qmlRegisterType<OCC::FileActivityListModel>("com.nextcloud.desktopclient", 1, 0, "FileActivityListModel");
--    qmlRegisterType<Theme>("com.nextcloud.desktopclient", 1, 0, "Theme");
-     qmlRegisterUncreatableType<OCC::UnifiedSearchResultsListModel>(
-         "com.nextcloud.desktopclient", 1, 0, "UnifiedSearchResultsListModel", "UnifiedSearchResultsListModel");
-     qRegisterMetaType<UnifiedSearchResultsListModel *>("UnifiedSearchResultsListModel*");
-@@ -101,6 +100,8 @@ int main(int argc, char **argv)
- 
-     OCC::Application app(argc, argv);
- 
-+    qmlRegisterType<Theme>("com.nextcloud.desktopclient", 1, 0, "Theme");
-+
- #ifdef Q_OS_WIN
-     // The Windows style still has pixelated elements with Qt 5.6,
-     // it's recommended to use the Fusion style in this case, even
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index 52508aa8c..3a5e9fee2 100644
+index 49def80fc..eeab04c33 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
-@@ -207,16 +207,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
+@@ -251,16 +251,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
              });
          }
  
@@ -108,47 +87,10 @@ index 52508aa8c..3a5e9fee2 100644
  
          _callsAlreadyNotified.insert(callNotification._id);
      }
-diff --git a/src/gui/tray/ActivityActionButton.qml b/src/gui/tray/ActivityActionButton.qml
-index eca55ebdc..9f37dbbc4 100644
---- a/src/gui/tray/ActivityActionButton.qml
-+++ b/src/gui/tray/ActivityActionButton.qml
-@@ -1,6 +1,6 @@
--import QtQuick 2.15
-+import QtQuick 2.12
- import QtQuick.Controls 2.3
--import QtQuick.Layouts 1.15
-+import QtQuick.Layouts 1.12
- import Style 1.0
- import com.nextcloud.desktopclient 1.0
- 
-diff --git a/src/gui/tray/ActivityItem.qml b/src/gui/tray/ActivityItem.qml
-index 7848bb80c..785779bc2 100644
---- a/src/gui/tray/ActivityItem.qml
-+++ b/src/gui/tray/ActivityItem.qml
-@@ -1,7 +1,7 @@
--import QtQml 2.15
--import QtQuick 2.15
--import QtQuick.Controls 2.15
--import QtQuick.Layouts 1.15
-+import QtQml 2.12
-+import QtQuick 2.12
-+import QtQuick.Controls 2.12
-+import QtQuick.Layouts 1.12
- import Style 1.0
- import com.nextcloud.desktopclient 1.0
- 
 diff --git a/src/gui/tray/ActivityItemActions.qml b/src/gui/tray/ActivityItemActions.qml
-index 1b1b70e5c..efce73804 100644
+index 1b1b70e5c..d4a90ee79 100644
 --- a/src/gui/tray/ActivityItemActions.qml
 +++ b/src/gui/tray/ActivityItemActions.qml
-@@ -1,5 +1,5 @@
--import QtQml 2.15
--import QtQuick 2.15
-+import QtQml 2.12
-+import QtQuick 2.12
- import QtQuick.Controls 2.3
- import QtQuick.Layouts 1.2
- import Style 1.0
 @@ -102,6 +102,7 @@ RowLayout {
                  function onMovementStarted() {
                      moreActionsButtonContextMenu.close();
@@ -157,35 +99,6 @@ index 1b1b70e5c..efce73804 100644
              }
  
              ActivityItemContextMenu {
-diff --git a/src/gui/tray/ActivityItemContent.qml b/src/gui/tray/ActivityItemContent.qml
-index 785dccbdb..8e22a23b6 100644
---- a/src/gui/tray/ActivityItemContent.qml
-+++ b/src/gui/tray/ActivityItemContent.qml
-@@ -1,9 +1,9 @@
--import QtQml 2.15
--import QtQuick 2.15
-+import QtQml 2.12
-+import QtQuick 2.12
- import QtQuick.Controls 2.3
- import QtQuick.Layouts 1.2
- import Style 1.0
--import QtGraphicalEffects 1.15
-+import QtGraphicalEffects 1.12
- import com.nextcloud.desktopclient 1.0
- 
- RowLayout {
-diff --git a/src/gui/tray/ActivityItemContextMenu.qml b/src/gui/tray/ActivityItemContextMenu.qml
-index de35e3584..ad150bc0b 100644
---- a/src/gui/tray/ActivityItemContextMenu.qml
-+++ b/src/gui/tray/ActivityItemContextMenu.qml
-@@ -1,5 +1,5 @@
--import QtQml 2.15
--import QtQuick 2.15
-+import QtQml 2.12
-+import QtQuick 2.12
- import QtQuick.Controls 2.3
- import Style 1.0
- 
 diff --git a/src/gui/tray/ActivityList.qml b/src/gui/tray/ActivityList.qml
 index acfb1bbdc..1d4af0300 100644
 --- a/src/gui/tray/ActivityList.qml
@@ -202,50 +115,6 @@ diff --git a/src/gui/tray/AutoSizingMenu.qml b/src/gui/tray/AutoSizingMenu.qml
 index efc23d1bf..3c750eaa1 100644
 --- a/src/gui/tray/AutoSizingMenu.qml
 +++ b/src/gui/tray/AutoSizingMenu.qml
-@@ -1,4 +1,4 @@
--import QtQuick 2.15
-+import QtQuick 2.12
- import QtQuick.Controls 2.3
- import Style 1.0
- 
-diff --git a/src/gui/tray/CallNotificationDialog.qml b/src/gui/tray/CallNotificationDialog.qml
-index c3eb3e441..63374169c 100644
---- a/src/gui/tray/CallNotificationDialog.qml
-+++ b/src/gui/tray/CallNotificationDialog.qml
-@@ -13,14 +13,14 @@
-  * for more details.
-  */
- 
--import QtQuick 2.15
--import QtQuick.Window 2.15
-+import QtQuick 2.12
-+import QtQuick.Window 2.12
- import Style 1.0
- import com.nextcloud.desktopclient 1.0
- import QtQuick.Layouts 1.2
--import QtMultimedia 5.15
--import QtQuick.Controls 2.15
--import QtGraphicalEffects 1.15
-+import QtMultimedia 5.12
-+import QtQuick.Controls 2.12
-+import QtGraphicalEffects 1.12
- 
- Window {
-     id: root
-diff --git a/src/gui/tray/CustomButton.qml b/src/gui/tray/CustomButton.qml
-index 32d6ff575..fb7c21790 100644
---- a/src/gui/tray/CustomButton.qml
-+++ b/src/gui/tray/CustomButton.qml
-@@ -1,4 +1,4 @@
--import QtQuick 2.15
-+import QtQuick 2.12
- import QtQuick.Controls 2.3
- import QtQuick.Layouts 1.2
- import Style 1.0
-diff --git a/src/gui/tray/CustomTextButton.qml b/src/gui/tray/CustomTextButton.qml
-index 000a54d3c..d8b32eb43 100644
---- a/src/gui/tray/CustomTextButton.qml
-+++ b/src/gui/tray/CustomTextButton.qml
 @@ -1,4 +1,4 @@
 -import QtQuick 2.15
 +import QtQuick 2.12
@@ -280,21 +149,6 @@ index 5964c60db..be357f6d8 100644
  
  import Style 1.0
  
-diff --git a/src/gui/tray/TalkReplyTextField.qml b/src/gui/tray/TalkReplyTextField.qml
-index 996e6e250..ff0d09fba 100644
---- a/src/gui/tray/TalkReplyTextField.qml
-+++ b/src/gui/tray/TalkReplyTextField.qml
-@@ -1,7 +1,7 @@
--import QtQuick 2.15
-+import QtQuick 2.12
- import Style 1.0
--import QtQuick.Controls 2.15
--import QtQuick.Layouts 1.15
-+import QtQuick.Controls 2.12
-+import QtQuick.Layouts 1.12
- import com.nextcloud.desktopclient 1.0
- 
- Item {
 diff --git a/src/gui/tray/UnifiedSearchInputContainer.qml b/src/gui/tray/UnifiedSearchInputContainer.qml
 index cb5687530..c0b5ec4a0 100644
 --- a/src/gui/tray/UnifiedSearchInputContainer.qml
@@ -308,7 +162,7 @@ index cb5687530..c0b5ec4a0 100644
  import QtGraphicalEffects 1.0
  import Style 1.0
 diff --git a/src/gui/tray/UnifiedSearchResultFetchMoreTrigger.qml b/src/gui/tray/UnifiedSearchResultFetchMoreTrigger.qml
-index 02ea71f2b..964d33f48 100644
+index 83982841d..04503ffba 100644
 --- a/src/gui/tray/UnifiedSearchResultFetchMoreTrigger.qml
 +++ b/src/gui/tray/UnifiedSearchResultFetchMoreTrigger.qml
 @@ -1,5 +1,5 @@
@@ -320,7 +174,7 @@ index 02ea71f2b..964d33f48 100644
  import QtQuick.Layouts 1.2
  import Style 1.0
 diff --git a/src/gui/tray/UnifiedSearchResultItem.qml b/src/gui/tray/UnifiedSearchResultItem.qml
-index 702b3a331..7e62f694f 100644
+index d8a520f1e..1f41a789a 100644
 --- a/src/gui/tray/UnifiedSearchResultItem.qml
 +++ b/src/gui/tray/UnifiedSearchResultItem.qml
 @@ -1,4 +1,4 @@
@@ -330,7 +184,7 @@ index 702b3a331..7e62f694f 100644
  import QtQuick.Controls 2.3
  import QtQuick.Layouts 1.2
 diff --git a/src/gui/tray/UnifiedSearchResultItemSkeleton.qml b/src/gui/tray/UnifiedSearchResultItemSkeleton.qml
-index ddc38d29d..b33e203e1 100644
+index a7a1a6f95..4353ae0bc 100644
 --- a/src/gui/tray/UnifiedSearchResultItemSkeleton.qml
 +++ b/src/gui/tray/UnifiedSearchResultItemSkeleton.qml
 @@ -1,5 +1,5 @@
@@ -342,7 +196,7 @@ index ddc38d29d..b33e203e1 100644
  import Style 1.0
  
 diff --git a/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml b/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml
-index e128f6860..f5298a925 100644
+index 0ed23482c..16f95f910 100644
 --- a/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml
 +++ b/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml
 @@ -1,5 +1,5 @@
@@ -350,11 +204,11 @@ index e128f6860..f5298a925 100644
 -import QtQuick 2.15
 +import QtQml 2.12
 +import QtQuick 2.12
- import QtQuick.Controls 2.3
  import Style 1.0
  
+ Column {
 diff --git a/src/gui/tray/UnifiedSearchResultListItem.qml b/src/gui/tray/UnifiedSearchResultListItem.qml
-index ce942a4d1..69bb3166a 100644
+index c53ca4066..562a11368 100644
 --- a/src/gui/tray/UnifiedSearchResultListItem.qml
 +++ b/src/gui/tray/UnifiedSearchResultListItem.qml
 @@ -1,5 +1,5 @@
@@ -366,7 +220,7 @@ index ce942a4d1..69bb3166a 100644
  import Style 1.0
  import com.nextcloud.desktopclient 1.0
 diff --git a/src/gui/tray/UnifiedSearchResultNothingFound.qml b/src/gui/tray/UnifiedSearchResultNothingFound.qml
-index 67bd8108e..f012ffc5a 100644
+index cee73c336..1d41a07dd 100644
 --- a/src/gui/tray/UnifiedSearchResultNothingFound.qml
 +++ b/src/gui/tray/UnifiedSearchResultNothingFound.qml
 @@ -1,5 +1,5 @@
@@ -384,10 +238,10 @@ index 67bd8108e..f012ffc5a 100644
 -    required property string text
 +    property string text
  
-     spacing: 8
-     anchors.leftMargin: 10
+     spacing: Style.standardSpacing
+     anchors.leftMargin: Style.unifiedSearchResultNothingFoundHorizontalMargin
 diff --git a/src/gui/tray/UnifiedSearchResultSectionItem.qml b/src/gui/tray/UnifiedSearchResultSectionItem.qml
-index 89ad6bf31..04b687a6d 100644
+index ebc691a9c..e645a5c8c 100644
 --- a/src/gui/tray/UnifiedSearchResultSectionItem.qml
 +++ b/src/gui/tray/UnifiedSearchResultSectionItem.qml
 @@ -1,12 +1,12 @@
@@ -405,10 +259,10 @@ index 89ad6bf31..04b687a6d 100644
 -    required property string section
 +    property string section
  
-     topPadding: 8
-     bottomPadding: 8
+     topPadding: Style.unifiedSearchResultSectionItemVerticalPadding
+     bottomPadding: Style.unifiedSearchResultSectionItemVerticalPadding
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index cfb6aaacd..a57ab77ab 100644
+index e8c5681c5..28f3de9c2 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
 @@ -1,6 +1,6 @@
@@ -419,7 +273,7 @@ index cfb6aaacd..a57ab77ab 100644
  import QtQuick.Window 2.3
  import QtQuick.Controls 2.3
  import QtQuick.Layouts 1.2
-@@ -61,6 +61,7 @@ Window {
+@@ -59,6 +59,7 @@ Window {
              accountMenu.close();
              syncStatus.model.load();
          }
@@ -427,16 +281,11 @@ index cfb6aaacd..a57ab77ab 100644
      }
  
      Component {
-@@ -90,14 +91,17 @@ Window {
-             Systray.setOpened();
-             UserModel.fetchCurrentActivityModel();
+@@ -83,16 +84,19 @@ Window {
+                 appsMenu.close();
+             }
          }
-+        onShowWindow: onShowWindow()
-         function onHideWindow() {
-             trayWindow.hide();
-             Systray.setClosed();
-         }
-+        onHideWindow: onHideWindow()
++        onIsOpenChanged: onIsOpenChanged()
  
          function onShowFileActivityDialog(objectName, objectId) {
              openFileActivityDialog(objectName, objectId)
@@ -445,7 +294,14 @@ index cfb6aaacd..a57ab77ab 100644
  
          function onShowErrorMessageDialog(error) {
              var newErrorDialog = errorMessageDialog.createObject(trayWindow)
-@@ -746,7 +750,7 @@ Window {
+             newErrorDialog.text = error
+             newErrorDialog.open()
+         }
++        onShowErrorMessageDialog: onShowErrorMessageDialog(error)
+     }
+ 
+     OpacityMask {
+@@ -737,7 +741,7 @@ Window {
  
                  keyNavigationEnabled: true
  
@@ -454,7 +310,7 @@ index cfb6aaacd..a57ab77ab 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -768,8 +772,6 @@ Window {
+@@ -750,8 +754,6 @@ Window {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
@@ -463,15 +319,3 @@ index cfb6aaacd..a57ab77ab 100644
                  }
  
                  section.property: "providerName"
-diff --git a/theme/Style/Style.qml b/theme/Style/Style.qml
-index ae5410896..b98d128cd 100644
---- a/theme/Style/Style.qml
-+++ b/theme/Style/Style.qml
-@@ -1,6 +1,6 @@
- pragma Singleton
- 
--import QtQuick 2.15
-+import QtQuick 2.12
- 
- import com.nextcloud.desktopclient 1.0
- 
