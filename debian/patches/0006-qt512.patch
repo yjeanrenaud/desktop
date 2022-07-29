@@ -117,7 +117,7 @@ index 887213f09..8b3f1d1b9 100644
          if (!QFile::remove(desktopFileLocation)) {
              qCWarning(lcUtility) << "Could not remove autostart desktop file";
 diff --git a/src/gui/CMakeLists.txt b/src/gui/CMakeLists.txt
-index e2a817aa5..8dfe3b2ed 100644
+index 5a1157813..4bb427323 100644
 --- a/src/gui/CMakeLists.txt
 +++ b/src/gui/CMakeLists.txt
 @@ -60,7 +60,7 @@ set(client_UI_SRCS
@@ -415,7 +415,7 @@ index a8364d6cd..e54845661 100644
      qCWarning(lcOcsUserStatusConnector) << "Can not handle clear at endof day type" << clearAt._endof;
      return QDateTime::currentDateTime().toSecsSinceEpoch();
 diff --git a/src/libsync/owncloudpropagator.cpp b/src/libsync/owncloudpropagator.cpp
-index 889c0dce0..47eb2493b 100644
+index 245a8e8d6..3cdf37c57 100644
 --- a/src/libsync/owncloudpropagator.cpp
 +++ b/src/libsync/owncloudpropagator.cpp
 @@ -426,7 +426,7 @@ void OwncloudPropagator::adjustDeletedFoldersWithNewChildren(SyncFileItemVector
@@ -465,7 +465,7 @@ index ac19cd40c..d8dc8effc 100644
              qCWarning(lcEngine) << "**** Attention: POST_UPDATE_SCRIPT installed, but not executed because compiled with NDEBUG";
      #endif
 diff --git a/src/libsync/syncfilestatustracker.cpp b/src/libsync/syncfilestatustracker.cpp
-index 9c4ae0e8c..276bc4f8d 100644
+index 7d03fba32..d96f52017 100644
 --- a/src/libsync/syncfilestatustracker.cpp
 +++ b/src/libsync/syncfilestatustracker.cpp
 @@ -339,7 +339,7 @@ SyncFileStatus SyncFileStatusTracker::resolveSyncAndErrorStatus(const QString &r
@@ -506,7 +506,7 @@ index eb2268ca2..13f4ae26c 100644
  }
  
 diff --git a/test/syncenginetestutils.cpp b/test/syncenginetestutils.cpp
-index 340cf82ba..3ede8090a 100644
+index f01772cb2..f0ae37c52 100644
 --- a/test/syncenginetestutils.cpp
 +++ b/test/syncenginetestutils.cpp
 @@ -24,7 +24,7 @@ PathComponents::PathComponents(const char *path)
@@ -527,7 +527,16 @@ index 340cf82ba..3ede8090a 100644
      for (const auto &onePart : allParts) {
          auto headerEndPosition = onePart.indexOf(QStringLiteral("\r\n\r\n"));
          auto onePartHeaderPart = onePart.left(headerEndPosition);
-@@ -914,7 +914,7 @@ void FakeHangingReply::abort()
+@@ -842,7 +842,7 @@ void FakePayloadReply::respond()
+     setAttribute(QNetworkRequest::HttpStatusCodeAttribute, 200);
+     setHeader(QNetworkRequest::ContentLengthHeader, _body.size());
+     for (auto it = _additionalHeaders.constKeyValueBegin(); it != _additionalHeaders.constKeyValueEnd(); ++it) {
+-        setHeader(it->first, it->second);
++        setHeader((*it).first, (*it).second);
+     }
+     emit metaDataChanged();
+     emit readyRead();
+@@ -917,7 +917,7 @@ void FakeHangingReply::abort()
      // Follow more or less the implementation of QNetworkReplyImpl::abort
      close();
      setError(OperationCanceledError, tr("Operation canceled"));
@@ -536,7 +545,7 @@ index 340cf82ba..3ede8090a 100644
      setFinished(true);
      emit finished();
  }
-@@ -936,7 +936,7 @@ QJsonObject FakeQNAM::forEachReplyPart(QIODevice *outgoingData,
+@@ -939,7 +939,7 @@ QJsonObject FakeQNAM::forEachReplyPart(QIODevice *outgoingData,
      constexpr int boundaryPosition = sizeof("multipart/related; boundary=");
      const QString boundaryValue = QStringLiteral("--") + contentType.mid(boundaryPosition, contentType.length() - boundaryPosition - 1) + QStringLiteral("\r\n");
      auto stringPutPayloadRef = QString{stringPutPayload}.left(stringPutPayload.size() - 2 - boundaryValue.size());
