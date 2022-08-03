@@ -104,10 +104,10 @@ index d51919f49..967eb8dd7 100644
      int _transaction;
      bool _metadataTableIsEmpty;
 diff --git a/src/common/utility_unix.cpp b/src/common/utility_unix.cpp
-index 887213f09..8b3f1d1b9 100644
+index 27e66dc73..b2a50562e 100644
 --- a/src/common/utility_unix.cpp
 +++ b/src/common/utility_unix.cpp
-@@ -95,7 +95,7 @@ void setLaunchOnStartup_private(const QString &appName, const QString &guiName,
+@@ -96,7 +96,7 @@ void setLaunchOnStartup_private(const QString &appName, const QString &guiName,
             << QLatin1String("Type=") << QLatin1String("Application\n")
             << QLatin1String("StartupNotify=") << "false\n"
             << QLatin1String("X-GNOME-Autostart-enabled=") << "true\n"
@@ -129,6 +129,19 @@ index 5a1157813..4bb427323 100644
  endif()
  
  set(client_SRCS
+diff --git a/src/gui/application.cpp b/src/gui/application.cpp
+index b99bf4a6a..40aabf7d9 100644
+--- a/src/gui/application.cpp
++++ b/src/gui/application.cpp
+@@ -754,7 +754,7 @@ void Application::handleEditLocallyFromOptions()
+ 
+ void Application::handleEditLocally(const QUrl &url) const
+ {
+-    auto pathSplit = url.path().split('/', Qt::SkipEmptyParts);
++    auto pathSplit = url.path().split('/', QString::SkipEmptyParts);
+ 
+     if (pathSplit.size() < 2) {
+         qCWarning(lcApplication) << "Invalid URL for file local editing: " + pathSplit.join('/');
 diff --git a/src/gui/creds/oauth.cpp b/src/gui/creds/oauth.cpp
 index 39534fa48..e1474bab1 100644
 --- a/src/gui/creds/oauth.cpp
@@ -505,6 +518,19 @@ index eb2268ca2..13f4ae26c 100644
      return helpText;
  }
  
+diff --git a/src/libsync/vfs/cfapi/shellext/thumbnailprovideripc.cpp b/src/libsync/vfs/cfapi/shellext/thumbnailprovideripc.cpp
+index 8a6d057b5..e1fba04db 100644
+--- a/src/libsync/vfs/cfapi/shellext/thumbnailprovideripc.cpp
++++ b/src/libsync/vfs/cfapi/shellext/thumbnailprovideripc.cpp
+@@ -109,7 +109,7 @@ QString ThumbnailProviderIpc::getServerNameForPath(const QString &filePath)
+             OCC::Utility::registryWalkValues(HKEY_LOCAL_MACHINE, syncRootIdUserSyncRootsRegistryKey, [&](const QString &userSyncRootName, bool *done) {
+                 const auto userSyncRootValue = QDir::fromNativeSeparators(OCC::Utility::registryGetKeyValue(HKEY_LOCAL_MACHINE, syncRootIdUserSyncRootsRegistryKey, userSyncRootName).toString());
+                 if (QDir::fromNativeSeparators(filePath).startsWith(userSyncRootValue)) {
+-                    const auto syncRootIdSplit = syncRootId.split(QLatin1Char('!'), Qt::SkipEmptyParts);
++                    const auto syncRootIdSplit = syncRootId.split(QLatin1Char('!'), QString::SkipEmptyParts);
+                     if (!syncRootIdSplit.isEmpty()) {
+                         serverName = VfsShellExtensions::serverNameForApplicationName(syncRootIdSplit.first());
+                         *done = true;
 diff --git a/test/syncenginetestutils.cpp b/test/syncenginetestutils.cpp
 index f01772cb2..f0ae37c52 100644
 --- a/test/syncenginetestutils.cpp
