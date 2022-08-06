@@ -168,6 +168,27 @@ index cb343a11e..4593636d8 100644
  namespace OCC {
  
  /**
+diff --git a/src/gui/main.cpp b/src/gui/main.cpp
+index 8b95de138..89154be82 100644
+--- a/src/gui/main.cpp
++++ b/src/gui/main.cpp
+@@ -69,7 +69,6 @@ int main(int argc, char **argv)
+     qmlRegisterType<UserStatusSelectorModel>("com.nextcloud.desktopclient", 1, 0, "UserStatusSelectorModel");
+     qmlRegisterType<OCC::ActivityListModel>("com.nextcloud.desktopclient", 1, 0, "ActivityListModel");
+     qmlRegisterType<OCC::FileActivityListModel>("com.nextcloud.desktopclient", 1, 0, "FileActivityListModel");
+-    qmlRegisterType<Theme>("com.nextcloud.desktopclient", 1, 0, "Theme");
+     qmlRegisterUncreatableType<OCC::UnifiedSearchResultsListModel>(
+         "com.nextcloud.desktopclient", 1, 0, "UnifiedSearchResultsListModel", "UnifiedSearchResultsListModel");
+     qRegisterMetaType<UnifiedSearchResultsListModel *>("UnifiedSearchResultsListModel*");
+@@ -101,6 +100,8 @@ int main(int argc, char **argv)
+ 
+     OCC::Application app(argc, argv);
+ 
++    qmlRegisterType<Theme>("com.nextcloud.desktopclient", 1, 0, "Theme");
++
+ #ifdef Q_OS_WIN
+     // The Windows style still has pixelated elements with Qt 5.6,
+     // it's recommended to use the Fusion style in this case, even
 diff --git a/src/gui/notificationconfirmjob.cpp b/src/gui/notificationconfirmjob.cpp
 index 09e147da3..760d8869b 100644
 --- a/src/gui/notificationconfirmjob.cpp
