@@ -1,5 +1,24 @@
+diff --git a/src/gui/BasicComboBox.qml b/src/gui/BasicComboBox.qml
+index f24c04818..1c2ba78b8 100644
+--- a/src/gui/BasicComboBox.qml
++++ b/src/gui/BasicComboBox.qml
+@@ -12,10 +12,10 @@
+  * for more details.
+  */
+ 
+-import QtQuick 2.15
+-import QtQuick.Dialogs 1.3
+-import QtQuick.Layouts 1.15
+-import QtQuick.Controls 2.15
++import QtQuick 2.12
++import QtQuick.Dialogs 1.2
++import QtQuick.Layouts 1.12
++import QtQuick.Controls 2.5
+ import QtGraphicalEffects 1.0
+ 
+ import Style 1.0
 diff --git a/src/gui/EmojiPicker.qml b/src/gui/EmojiPicker.qml
-index 8a9cc920e..fbfc566ec 100644
+index 8a9cc920e..876add095 100644
 --- a/src/gui/EmojiPicker.qml
 +++ b/src/gui/EmojiPicker.qml
 @@ -12,9 +12,9 @@
@@ -10,40 +29,86 @@ index 8a9cc920e..fbfc566ec 100644
 -import QtQuick.Controls 2.15
 -import QtQuick.Layouts 1.15
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
 +import QtQuick.Layouts 1.12
  
  import Style 1.0
  import com.nextcloud.desktopclient 1.0 as NC
 diff --git a/src/gui/ErrorBox.qml b/src/gui/ErrorBox.qml
-index 750a4cb00..204713d89 100644
+index 750a4cb00..4b072889f 100644
 --- a/src/gui/ErrorBox.qml
 +++ b/src/gui/ErrorBox.qml
 @@ -1,5 +1,5 @@
 -import QtQuick 2.15
 -import QtQuick.Controls 2.15
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
+ 
+ import Style 1.0
+ 
+diff --git a/src/gui/PredefinedStatusButton.qml b/src/gui/PredefinedStatusButton.qml
+index 3186bb5e1..13cd73f37 100644
+--- a/src/gui/PredefinedStatusButton.qml
++++ b/src/gui/PredefinedStatusButton.qml
+@@ -12,10 +12,10 @@
+  * for more details.
+  */
+ 
+-import QtQuick 2.15
+-import QtQuick.Dialogs 1.3
+-import QtQuick.Layouts 1.15
+-import QtQuick.Controls 2.15
++import QtQuick 2.12
++import QtQuick.Dialogs 1.2
++import QtQuick.Layouts 1.12
++import QtQuick.Controls 2.5
  
  import Style 1.0
  
 diff --git a/src/gui/UserStatusSelector.qml b/src/gui/UserStatusSelector.qml
-index f480597cb..8a9df804c 100644
+index f480597cb..2b776649c 100644
 --- a/src/gui/UserStatusSelector.qml
 +++ b/src/gui/UserStatusSelector.qml
-@@ -14,9 +14,9 @@
+@@ -13,10 +13,10 @@
+  */
  
  import QtQuick 2.6
- import QtQuick.Dialogs 1.3
+-import QtQuick.Dialogs 1.3
 -import QtQuick.Layouts 1.15
 -import QtQuick.Controls 2.15
 -import QtQuick.Window 2.15
++import QtQuick.Dialogs 1.2
 +import QtQuick.Layouts 1.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
 +import QtQuick.Window 2.12
  import com.nextcloud.desktopclient 1.0 as NC
  
  import Style 1.0
+@@ -281,7 +281,6 @@ ColumnLayout {
+            Layout.fillWidth: true
+            model: userStatusSelectorModel.clearStageTypes
+            textRole: "display"
+-           valueRole: "clearStageType"
+            displayText: userStatusSelectorModel.clearAtDisplayString
+            onActivated: userStatusSelectorModel.setClearAt(currentValue)
+        }
+diff --git a/src/gui/UserStatusSelectorButton.qml b/src/gui/UserStatusSelectorButton.qml
+index 8321232df..0738530e5 100644
+--- a/src/gui/UserStatusSelectorButton.qml
++++ b/src/gui/UserStatusSelectorButton.qml
+@@ -13,9 +13,9 @@
+  */
+ 
+ import QtQuick 2.6
+-import QtQuick.Dialogs 1.3
+-import QtQuick.Layouts 1.15
+-import QtQuick.Controls 2.15
++import QtQuick.Dialogs 1.2
++import QtQuick.Layouts 1.12
++import QtQuick.Controls 2.5
+ 
+ import Style 1.0
+ 
 diff --git a/src/gui/UserStatusSelectorDialog.qml b/src/gui/UserStatusSelectorDialog.qml
 index 938eae547..f6aa4d287 100644
 --- a/src/gui/UserStatusSelectorDialog.qml
@@ -103,7 +168,7 @@ index eca55ebdc..9f37dbbc4 100644
  import com.nextcloud.desktopclient 1.0
  
 diff --git a/src/gui/tray/ActivityItem.qml b/src/gui/tray/ActivityItem.qml
-index b0ead37ed..12573622d 100644
+index b0ead37ed..2bfdd2688 100644
 --- a/src/gui/tray/ActivityItem.qml
 +++ b/src/gui/tray/ActivityItem.qml
 @@ -1,7 +1,7 @@
@@ -113,7 +178,7 @@ index b0ead37ed..12573622d 100644
 -import QtQuick.Layouts 1.15
 +import QtQml 2.12
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
 +import QtQuick.Layouts 1.12
  import Style 1.0
  import com.nextcloud.desktopclient 1.0
@@ -168,14 +233,14 @@ index de35e3584..ad150bc0b 100644
  import Style 1.0
  
 diff --git a/src/gui/tray/ActivityList.qml b/src/gui/tray/ActivityList.qml
-index f3a6416c2..845f5d079 100644
+index f3a6416c2..c68154c03 100644
 --- a/src/gui/tray/ActivityList.qml
 +++ b/src/gui/tray/ActivityList.qml
 @@ -1,5 +1,5 @@
 -import QtQuick 2.15
 -import QtQuick.Controls 2.15
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
  
  import com.nextcloud.desktopclient 1.0 as NC
  
@@ -190,7 +255,7 @@ index efc23d1bf..3c750eaa1 100644
  import Style 1.0
  
 diff --git a/src/gui/tray/CallNotificationDialog.qml b/src/gui/tray/CallNotificationDialog.qml
-index 23d9e2bc8..a4f0560d1 100644
+index 23d9e2bc8..b8933670e 100644
 --- a/src/gui/tray/CallNotificationDialog.qml
 +++ b/src/gui/tray/CallNotificationDialog.qml
 @@ -13,14 +13,14 @@
@@ -208,8 +273,8 @@ index 23d9e2bc8..a4f0560d1 100644
 -import QtQuick.Controls 2.15
 -import QtGraphicalEffects 1.15
 +import QtMultimedia 5.12
-+import QtQuick.Controls 2.12
-+import QtGraphicalEffects 1.12
++import QtQuick.Controls 2.5
++import QtGraphicalEffects 1.0
  
  Window {
      id: root
@@ -247,8 +312,23 @@ index 58264ef28..61905bcbf 100644
  
  import Style 1.0
  import com.nextcloud.desktopclient 1.0 as NC
+diff --git a/src/gui/tray/NCBusyIndicator.qml b/src/gui/tray/NCBusyIndicator.qml
+index c489e5f39..cc963a9ee 100644
+--- a/src/gui/tray/NCBusyIndicator.qml
++++ b/src/gui/tray/NCBusyIndicator.qml
+@@ -12,8 +12,8 @@
+  * for more details.
+  */
+ 
+-import QtQuick 2.15
+-import QtQuick.Controls 2.15
++import QtQuick 2.12
++import QtQuick.Controls 2.5
+ import Style 1.0
+ 
+ BusyIndicator {
 diff --git a/src/gui/tray/SyncStatus.qml b/src/gui/tray/SyncStatus.qml
-index bae630a4d..4c455cebf 100644
+index bae630a4d..6babceb9f 100644
 --- a/src/gui/tray/SyncStatus.qml
 +++ b/src/gui/tray/SyncStatus.qml
 @@ -1,6 +1,6 @@
@@ -256,13 +336,13 @@ index bae630a4d..4c455cebf 100644
 -import QtQuick.Controls 2.15
 -import QtQuick.Layouts 1.15
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
 +import QtQuick.Layouts 1.12
  
  import Style 1.0
  
 diff --git a/src/gui/tray/TalkReplyTextField.qml b/src/gui/tray/TalkReplyTextField.qml
-index bec9e11df..29a970e55 100644
+index bec9e11df..a2a9deccb 100644
 --- a/src/gui/tray/TalkReplyTextField.qml
 +++ b/src/gui/tray/TalkReplyTextField.qml
 @@ -1,6 +1,6 @@
@@ -270,7 +350,7 @@ index bec9e11df..29a970e55 100644
 -import QtQuick.Controls 2.15
 -import QtQuick.Layouts 1.15
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
 +import QtQuick.Layouts 1.12
  
  import com.nextcloud.desktopclient 1.0
@@ -310,17 +390,20 @@ index d8a520f1e..1f41a789a 100644
  import QtQuick.Controls 2.3
  import QtQuick.Layouts 1.2
 diff --git a/src/gui/tray/UnifiedSearchResultItemSkeleton.qml b/src/gui/tray/UnifiedSearchResultItemSkeleton.qml
-index 32e19cca3..4c9823fe4 100644
+index 32e19cca3..6cbf7c5f0 100644
 --- a/src/gui/tray/UnifiedSearchResultItemSkeleton.qml
 +++ b/src/gui/tray/UnifiedSearchResultItemSkeleton.qml
-@@ -1,5 +1,5 @@
+@@ -1,7 +1,7 @@
 -import QtQml 2.15
 -import QtQuick 2.15
 +import QtQml 2.12
 +import QtQuick 2.12
  import QtQuick.Layouts 1.2
- import QtGraphicalEffects 1.15
+-import QtGraphicalEffects 1.15
++import QtGraphicalEffects 1.0
  import Style 1.0
+ 
+ RowLayout {
 diff --git a/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml b/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml
 index 354835d51..935a082ea 100644
 --- a/src/gui/tray/UnifiedSearchResultItemSkeletonContainer.qml
@@ -367,7 +450,7 @@ index cee73c336..1d41a07dd 100644
      spacing: Style.standardSpacing
      anchors.leftMargin: Style.unifiedSearchResultNothingFoundHorizontalMargin
 diff --git a/src/gui/tray/UnifiedSearchResultSectionItem.qml b/src/gui/tray/UnifiedSearchResultSectionItem.qml
-index ebc691a9c..e645a5c8c 100644
+index ebc691a9c..4e91f6f56 100644
 --- a/src/gui/tray/UnifiedSearchResultSectionItem.qml
 +++ b/src/gui/tray/UnifiedSearchResultSectionItem.qml
 @@ -1,12 +1,12 @@
@@ -376,7 +459,7 @@ index ebc691a9c..e645a5c8c 100644
 -import QtQuick.Controls 2.15
 +import QtQml 2.12
 +import QtQuick 2.12
-+import QtQuick.Controls 2.12
++import QtQuick.Controls 2.5
  import QtQuick.Layouts 1.2
  import Style 1.0
  import com.nextcloud.desktopclient 1.0
@@ -388,10 +471,10 @@ index ebc691a9c..e645a5c8c 100644
      topPadding: Style.unifiedSearchResultSectionItemVerticalPadding
      bottomPadding: Style.unifiedSearchResultSectionItemVerticalPadding
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index 22c92f648..3da5c847f 100644
+index 22c92f648..ac4c532b9 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
-@@ -1,6 +1,6 @@
+@@ -1,11 +1,11 @@
  import QtQml 2.12
  import QtQml.Models 2.1
 -import QtQuick 2.15
@@ -399,6 +482,12 @@ index 22c92f648..3da5c847f 100644
  import QtQuick.Window 2.3
  import QtQuick.Controls 2.3
  import QtQuick.Layouts 1.2
+ import QtGraphicalEffects 1.0
+-import Qt.labs.platform 1.1 as NativeDialogs
++import Qt.labs.platform 1.0 as NativeDialogs
+ import "../"
+ 
+ // Custom qml modules are in /theme (and included by resources.qrc)
 @@ -59,6 +59,7 @@ Window {
              accountMenu.close();
              syncStatus.model.load();
