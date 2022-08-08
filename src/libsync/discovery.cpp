@@ -768,12 +768,14 @@ void ProcessDirectoryJob::processFileAnalyzeRemoteInfo(
                 if (etag || etag.error().code != 404 ||
                     // Somehow another item claimed this original path, consider as if it existed
                     _discoveryData->isRenamed(originalPath)) {
+                    qCDebug(lcDisco) << "(processFileAnalyzeRemoteInfo) RequestEtagJob finished, retrieved etag:" << etag.get();
                     // If the file exist or if there is another error, consider it is a new file.
                     postProcessServerNew();
                     return;
                 }
 
                 // The file do not exist, it is a rename
+                qCDebug(lcDisco) << "(processFileAnalyzeRemoteInfo) RequestEtagJob finished but retrieved no etag";
 
                 // In case the deleted item was discovered in parallel
                 _discoveryData->findAndCancelDeletedJob(originalPath);
@@ -1296,14 +1298,13 @@ void ProcessDirectoryJob::processFileAnalyzeLocalInfo(
             chopVirtualFileSuffix(serverOriginalPath);
         auto job = new RequestEtagJob(_discoveryData->_account, serverOriginalPath, this);
         connect(job, &RequestEtagJob::finishedWithResult, this, [=](const HttpResult<QByteArray> &etag) mutable {
-            
-
             if (!etag || (etag.get() != base._etag && !item->isDirectory()) || _discoveryData->isRenamed(originalPath)
                 || (isAnyParentBeingRestored(originalPath) && !isRename(originalPath))) {
                 qCInfo(lcDisco) << "Can't rename because the etag has changed or the directory is gone or we are restoring one of the file's parents." << originalPath;
                 // Can't be a rename, leave it as a new.
                 postProcessLocalNew();
             } else {
+                qDebug(lcDisco) << "(processFileAnalyzeLocalInfo) RequestEtagJob finished, retrieved etag:" << etag.get();
                 // In case the deleted item was discovered in parallel
                 _discoveryData->findAndCancelDeletedJob(originalPath);
                 processRename(path);
