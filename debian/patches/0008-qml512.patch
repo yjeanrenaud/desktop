@@ -66,7 +66,7 @@ index 3186bb5e1..13cd73f37 100644
  import Style 1.0
  
 diff --git a/src/gui/UserStatusSelector.qml b/src/gui/UserStatusSelector.qml
-index f480597cb..2b776649c 100644
+index 68809ae4b..a1da42a87 100644
 --- a/src/gui/UserStatusSelector.qml
 +++ b/src/gui/UserStatusSelector.qml
 @@ -13,10 +13,10 @@
@@ -84,14 +84,14 @@ index f480597cb..2b776649c 100644
  import com.nextcloud.desktopclient 1.0 as NC
  
  import Style 1.0
-@@ -281,7 +281,6 @@ ColumnLayout {
-            Layout.fillWidth: true
-            model: userStatusSelectorModel.clearStageTypes
-            textRole: "display"
--           valueRole: "clearStageType"
-            displayText: userStatusSelectorModel.clearAtDisplayString
-            onActivated: userStatusSelectorModel.setClearAt(currentValue)
-        }
+@@ -289,7 +289,6 @@ ColumnLayout {
+                     Layout.fillWidth: true
+                     model: userStatusSelectorModel.clearStageTypes
+                     textRole: "display"
+-                    valueRole: "clearStageType"
+                     displayText: userStatusSelectorModel.clearAtDisplayString
+                     onActivated: userStatusSelectorModel.setClearAt(currentValue)
+                 }
 diff --git a/src/gui/UserStatusSelectorButton.qml b/src/gui/UserStatusSelectorButton.qml
 index 8321232df..0738530e5 100644
 --- a/src/gui/UserStatusSelectorButton.qml
@@ -109,13 +109,18 @@ index 8321232df..0738530e5 100644
  
  import Style 1.0
  
-diff --git a/src/gui/UserStatusSelectorDialog.qml b/src/gui/UserStatusSelectorDialog.qml
-index 938eae547..f6aa4d287 100644
---- a/src/gui/UserStatusSelectorDialog.qml
-+++ b/src/gui/UserStatusSelectorDialog.qml
-@@ -1,4 +1,4 @@
--import QtQuick.Window 2.15
-+import QtQuick.Window 2.12
+diff --git a/src/gui/UserStatusSelectorPage.qml b/src/gui/UserStatusSelectorPage.qml
+index c89d821d9..a15d42cb9 100644
+--- a/src/gui/UserStatusSelectorPage.qml
++++ b/src/gui/UserStatusSelectorPage.qml
+@@ -12,8 +12,8 @@
+  * for more details.
+  */
+ 
+-import QtQuick 2.15
+-import QtQuick.Controls 2.15
++import QtQuick 2.12
++import QtQuick.Controls 2.12
  import Style 1.0
  
  import com.nextcloud.desktopclient 1.0 as NC
@@ -380,7 +385,7 @@ index 83982841d..04503ffba 100644
  import QtQuick.Layouts 1.2
  import Style 1.0
 diff --git a/src/gui/tray/UnifiedSearchResultItem.qml b/src/gui/tray/UnifiedSearchResultItem.qml
-index d8a520f1e..1f41a789a 100644
+index e6e7d1fcc..ae4661d2a 100644
 --- a/src/gui/tray/UnifiedSearchResultItem.qml
 +++ b/src/gui/tray/UnifiedSearchResultItem.qml
 @@ -1,4 +1,4 @@
@@ -471,12 +476,10 @@ index ebc691a9c..4e91f6f56 100644
      topPadding: Style.unifiedSearchResultSectionItemVerticalPadding
      bottomPadding: Style.unifiedSearchResultSectionItemVerticalPadding
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index 22c92f648..ac4c532b9 100644
+index bc629d8ee..7674922f0 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
-@@ -1,11 +1,11 @@
- import QtQml 2.12
- import QtQml.Models 2.1
+@@ -1,9 +1,9 @@
 -import QtQuick 2.15
 +import QtQuick 2.12
  import QtQuick.Window 2.3
@@ -488,7 +491,7 @@ index 22c92f648..ac4c532b9 100644
  import "../"
  
  // Custom qml modules are in /theme (and included by resources.qrc)
-@@ -59,6 +59,7 @@ Window {
+@@ -64,6 +64,7 @@ ApplicationWindow {
              accountMenu.close();
              syncStatus.model.load();
          }
@@ -496,7 +499,7 @@ index 22c92f648..ac4c532b9 100644
      }
  
      Component {
-@@ -83,16 +84,19 @@ Window {
+@@ -90,16 +91,19 @@ ApplicationWindow {
                  appsMenu.close();
              }
          }
@@ -516,7 +519,7 @@ index 22c92f648..ac4c532b9 100644
      }
  
      OpacityMask {
-@@ -763,7 +767,7 @@ Window {
+@@ -780,7 +784,7 @@ ApplicationWindow {
  
                  keyNavigationEnabled: true
  
@@ -525,7 +528,7 @@ index 22c92f648..ac4c532b9 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -776,8 +780,6 @@ Window {
+@@ -793,8 +797,6 @@ ApplicationWindow {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
@@ -535,7 +538,7 @@ index 22c92f648..ac4c532b9 100644
  
                  section.property: "providerName"
 diff --git a/theme/Style/Style.qml b/theme/Style/Style.qml
-index 06970bae0..760b8d7c1 100644
+index 6d1adb5ec..af38afdf2 100644
 --- a/theme/Style/Style.qml
 +++ b/theme/Style/Style.qml
 @@ -1,6 +1,6 @@
