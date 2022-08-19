@@ -47,7 +47,7 @@ index 750a4cb00..4b072889f 100644
  import Style 1.0
  
 diff --git a/src/gui/PredefinedStatusButton.qml b/src/gui/PredefinedStatusButton.qml
-index 3186bb5e1..13cd73f37 100644
+index dabef84ae..6ce460df3 100644
 --- a/src/gui/PredefinedStatusButton.qml
 +++ b/src/gui/PredefinedStatusButton.qml
 @@ -12,10 +12,10 @@
@@ -66,7 +66,7 @@ index 3186bb5e1..13cd73f37 100644
  import Style 1.0
  
 diff --git a/src/gui/UserStatusSelector.qml b/src/gui/UserStatusSelector.qml
-index 68809ae4b..a1da42a87 100644
+index eebcee586..5bfb43720 100644
 --- a/src/gui/UserStatusSelector.qml
 +++ b/src/gui/UserStatusSelector.qml
 @@ -13,10 +13,10 @@
@@ -84,8 +84,8 @@ index 68809ae4b..a1da42a87 100644
  import com.nextcloud.desktopclient 1.0 as NC
  
  import Style 1.0
-@@ -289,7 +289,6 @@ ColumnLayout {
-                     Layout.fillWidth: true
+@@ -303,7 +303,6 @@ ColumnLayout {
+ 
                      model: userStatusSelectorModel.clearStageTypes
                      textRole: "display"
 -                    valueRole: "clearStageType"
@@ -125,10 +125,10 @@ index c89d821d9..a15d42cb9 100644
  
  import com.nextcloud.desktopclient 1.0 as NC
 diff --git a/src/gui/systray.cpp b/src/gui/systray.cpp
-index cef7c57ad..541a41104 100644
+index 51ba0e267..3adfb74db 100644
 --- a/src/gui/systray.cpp
 +++ b/src/gui/systray.cpp
-@@ -251,16 +251,22 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
+@@ -256,13 +256,13 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
              });
          }
  
@@ -148,6 +148,11 @@ index cef7c57ad..541a41104 100644
 +        // };
  
          const auto callDialog = new QQmlComponent(_trayEngine, QStringLiteral("qrc:/qml/src/gui/tray/CallNotificationDialog.qml"));
+ 
+@@ -271,7 +271,14 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
+             return;
+         }
+ 
 -        callDialog->createWithInitialProperties(initialProperties);
 +        auto component = callDialog->beginCreate(_trayEngine->rootContext());
 +        callDialog->setProperty("accountState", QVariant::fromValue(accountState.data()));
@@ -156,9 +161,10 @@ index cef7c57ad..541a41104 100644
 +        callDialog->setProperty("subject", callNotification._subject);
 +        callDialog->setProperty("link", callNotification._link);
 +        callDialog->completeCreate();
- 
++        
          _callsAlreadyNotified.insert(callNotification._id);
      }
+ }
 diff --git a/src/gui/tray/ActivityActionButton.qml b/src/gui/tray/ActivityActionButton.qml
 index eca55ebdc..9f37dbbc4 100644
 --- a/src/gui/tray/ActivityActionButton.qml
@@ -304,7 +310,7 @@ index 000a54d3c..d8b32eb43 100644
  import Style 1.0
  
 diff --git a/src/gui/tray/FileActivityDialog.qml b/src/gui/tray/FileActivityDialog.qml
-index 58264ef28..61905bcbf 100644
+index b2d5fb809..66029cf20 100644
 --- a/src/gui/tray/FileActivityDialog.qml
 +++ b/src/gui/tray/FileActivityDialog.qml
 @@ -1,6 +1,6 @@
@@ -476,7 +482,7 @@ index ebc691a9c..4e91f6f56 100644
      topPadding: Style.unifiedSearchResultSectionItemVerticalPadding
      bottomPadding: Style.unifiedSearchResultSectionItemVerticalPadding
 diff --git a/src/gui/tray/Window.qml b/src/gui/tray/Window.qml
-index bc629d8ee..7674922f0 100644
+index 867bfc5c4..214e838ea 100644
 --- a/src/gui/tray/Window.qml
 +++ b/src/gui/tray/Window.qml
 @@ -1,9 +1,9 @@
@@ -519,7 +525,7 @@ index bc629d8ee..7674922f0 100644
      }
  
      OpacityMask {
-@@ -780,7 +784,7 @@ ApplicationWindow {
+@@ -781,7 +785,7 @@ ApplicationWindow {
  
                  keyNavigationEnabled: true
  
@@ -528,7 +534,7 @@ index bc629d8ee..7674922f0 100644
  
                  Accessible.role: Accessible.List
                  Accessible.name: qsTr("Unified search results list")
-@@ -793,8 +797,6 @@ ApplicationWindow {
+@@ -794,8 +798,6 @@ ApplicationWindow {
                      currentFetchMoreInProgressProviderId: unifiedSearchResultsListView.model.currentFetchMoreInProgressProviderId
                      fetchMoreTriggerClicked: unifiedSearchResultsListView.model.fetchMoreTriggerClicked
                      resultClicked: unifiedSearchResultsListView.model.resultClicked
