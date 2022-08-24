@@ -23,6 +23,7 @@
 #include <QPointer>
 #include <QIODevice>
 #include <QMutex>
+#include <QtConcurrent>
 
 #include "csync.h"
 #include "syncfileitem.h"
@@ -212,7 +213,12 @@ public:
         qCInfo(lcPropagator) << "Starting" << _item->_instruction << "propagation of" << _item->destination() << "by" << this;
 
         _state = Running;
-        QMetaObject::invokeMethod(this, "start"); // We could be in a different thread (neon jobs)
+        if (_item->_direction == SyncFileItem::Up
+            && (_item->_instruction == CSYNC_INSTRUCTION_NEW || _item->_instruction == CSYNC_INSTRUCTION_SYNC)) {
+            QtConcurrent::run([this] {
+                QMetaObject::invokeMethod(this, "start", Qt::QueuedConnection); // We could be in a different thread (neon jobs)
+            });
+        }
         return true;
     }
 
