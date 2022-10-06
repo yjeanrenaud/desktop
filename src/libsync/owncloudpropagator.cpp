@@ -609,7 +609,7 @@ void OwncloudPropagator::start(SyncFileItemVector &&items)
             if (item->_instruction == SyncInstructions::CSYNC_INSTRUCTION_RENAME && item->_direction == SyncFileItem::Up
                 && j < items.size() - 1 && items[j]->_instruction == SyncInstructions::CSYNC_INSTRUCTION_RENAME
                 && items[j]->_direction == SyncFileItem::Up && items[j]->_file.startsWith(item->_renameTarget)) {
-                while (j < items.size() - 1 && items[j]->_instruction == SyncInstructions::CSYNC_INSTRUCTION_RENAME
+                while (j < items.size() && items[j]->_instruction == SyncInstructions::CSYNC_INSTRUCTION_RENAME
                     && items[j]->_direction == SyncFileItem::Up && items[j]->_file.startsWith(item->_renameTarget)) {
                     i = j;
                     nestedItems.push_back(items[j]);
