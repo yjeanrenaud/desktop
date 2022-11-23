@@ -186,6 +186,7 @@ target_link_libraries(nextcloudsync
   Qt::Network
   Qt::WebSockets
   Qt::Xml
+  Qt::Core5Compat
 )
 
 if (NOT TOKEN_AUTH_ONLY)
