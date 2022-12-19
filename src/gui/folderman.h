@@ -22,7 +22,9 @@
 
 #include "folder.h"
 #include "folderwatcher.h"
+#ifdef Q_OS_WIN
 #include "navigationpanehelper.h"
+#endif
 #include "syncfileitem.h"
 
 class TestFolderMan;
@@ -379,7 +381,9 @@ private:
     bool _nextSyncShouldStartImmediately = false;
 
     QScopedPointer<SocketApi> _socketApi;
+#ifdef Q_OS_WIN
     NavigationPaneHelper _navigationPaneHelper;
+#endif
 
     bool _appRestartRequired = false;
 
