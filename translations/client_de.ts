@@ -1069,6 +1069,11 @@ This action will abort any currently running synchronization.</source>
     <name>OCC::CaseClashConflictSolver</name>
     <message>
         <location filename="../src/libsync/caseclashconflictsolver.cpp" line="78"/>
+        <source>Cannot rename file because a file with the same name already exists on the server. Please pick another name.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/libsync/caseclashconflictsolver.cpp" line="78"/>
         <source>Cannot rename file because a file with the same name does already exist on the server. Please pick another name.</source>
         <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
@@ -5540,7 +5545,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/filedetails/ShareDelegate.qml" line="208"/>
         <source>Share options</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
@@ -5548,7 +5553,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="87"/>
         <source>An error occurred setting the share password.</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="220"/>
@@ -5558,22 +5563,22 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="237"/>
         <source>Dismiss</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="296"/>
         <source>Share label</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="329"/>
         <source>Allow editing</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="357"/>
         <source>Password protect</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="462"/>
@@ -5583,7 +5588,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="653"/>
         <source>Note to recipient</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
     <message>
         <location filename="../src/gui/filedetails/ShareDetailsPage.qml" line="721"/>
@@ -5703,7 +5708,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/tray/UnifiedSearchResultNothingFound.qml" line="26"/>
         <source>No results for</source>
-        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>

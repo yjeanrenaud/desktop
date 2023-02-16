@@ -1070,6 +1070,11 @@ This action will abort any currently running synchronization.</source>
     <name>OCC::CaseClashConflictSolver</name>
     <message>
         <location filename="../src/libsync/caseclashconflictsolver.cpp" line="78"/>
+        <source>Cannot rename file because a file with the same name already exists on the server. Please pick another name.</source>
+        <translation type="unfinished"/>
+    </message>
+    <message>
+        <location filename="../src/libsync/caseclashconflictsolver.cpp" line="78"/>
         <source>Cannot rename file because a file with the same name does already exist on the server. Please pick another name.</source>
         <translation type="unfinished"/>
     </message>
@@ -5723,7 +5728,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/tray/UnifiedSearchResultNothingFound.qml" line="26"/>
         <source>No results for</source>
-        <translation>Δεν υπάρχουν αποτελέσματα για</translation>
+        <translation type="unfinished"/>
     </message>
 </context>
 <context>
