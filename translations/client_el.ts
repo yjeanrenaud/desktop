@@ -5728,7 +5728,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/gui/tray/UnifiedSearchResultNothingFound.qml" line="26"/>
         <source>No results for</source>
-        <translation type="unfinished"/>
+        <translation>Δεν υπάρχουν αποτελέσματα για</translation>
     </message>
 </context>
 <context>
