@@ -287,7 +287,7 @@
     <message>
         <location filename="../src/gui/folderwizardtargetpage.ui" line="131"/>
         <source>Select a remote destination folder</source>
-        <translation>Vyberte federovanou cílovou složku</translation>
+        <translation>Vyberte vzdálenou cílovou složku</translation>
     </message>
     <message>
         <location filename="../src/gui/folderwizardtargetpage.ui" line="143"/>
@@ -341,7 +341,7 @@
     <message>
         <location filename="../src/libsync/account.cpp" line="908"/>
         <source>File %1 is already locked by %2.</source>
-        <translation>Soubor %1 už je uzamčeno %2.</translation>
+        <translation>Soubor %1 už je uzamčen %2.</translation>
     </message>
     <message>
         <location filename="../src/libsync/account.cpp" line="910"/>
