@@ -4913,7 +4913,7 @@ Server antwortete mit Fehler: %2</translation>
     <message>
         <location filename="../src/libsync/theme.cpp" line="571"/>
         <source>&lt;p&gt;This release was supplied by %1.&lt;/p&gt;</source>
-        <translation type="unfinished"/>
+        <translation>&lt;p&gt;Diese Version wird von %1 bereitgestellt&lt;/p&gt;.</translation>
     </message>
 </context>
 <context>
