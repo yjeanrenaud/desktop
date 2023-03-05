@@ -1069,7 +1069,7 @@ This action will abort any currently running synchronization.</source>
     <message>
         <location filename="../src/libsync/caseclashconflictsolver.cpp" line="78"/>
         <source>Cannot rename file because a file with the same name already exists on the server. Please pick another name.</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/libsync/caseclashconflictsolver.cpp" line="78"/>
@@ -4175,7 +4175,7 @@ This is a new, experimental mode. If you decide to use it, please report any iss
     <message>
         <location filename="../src/gui/filedetails/sharemodel.cpp" line="587"/>
         <source>Secure filedrop link</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/gui/filedetails/sharemodel.cpp" line="540"/>
@@ -4195,7 +4195,7 @@ This is a new, experimental mode. If you decide to use it, please report any iss
     <message>
         <location filename="../src/gui/filedetails/sharemodel.cpp" line="599"/>
         <source>Secure file drop</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/gui/filedetails/sharemodel.cpp" line="806"/>
@@ -4277,17 +4277,17 @@ This is a new, experimental mode. If you decide to use it, please report any iss
         <location filename="../src/gui/filedetails/shareemodel.cpp" line="33"/>
         <location filename="../src/gui/filedetails/shareemodel.cpp" line="290"/>
         <source>Search globally</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/gui/filedetails/shareemodel.cpp" line="286"/>
         <source>No results found</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/gui/filedetails/shareemodel.cpp" line="286"/>
         <source>Global search results</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/gui/filedetails/shareemodel.cpp" line="248"/>
@@ -4392,7 +4392,7 @@ Server replied with error: %2</source>
         <location filename="../src/gui/socketapi/socketapi.cpp" line="1183"/>
         <location filename="../src/gui/socketapi/socketapi.cpp" line="1189"/>
         <source>Copy secure filedrop link</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
     <message>
         <location filename="../src/gui/socketapi/socketapi.cpp" line="1151"/>
@@ -4908,7 +4908,7 @@ Server replied with error: %2</source>
     <message>
         <location filename="../src/libsync/theme.cpp" line="571"/>
         <source>&lt;p&gt;This release was supplied by %1.&lt;/p&gt;</source>
-        <translation type="unfinished"/>
+        <translation>Benötigt keine Übersetzung. Hier wird nur die formelle Übersetzung verwendet (de_DE).</translation>
     </message>
 </context>
 <context>
