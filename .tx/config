@@ -1,6 +1,6 @@
 [main]
 host     = https://www.transifex.com
-lang_map = th_TH: th, ja_JP: ja, et_EE: et, bg_BG: bg, cs_CZ: cs, hu_HU: hu, nb_NO: nb, sk_SK: sk, pt_PT: pt, de_DE: de, fi_FI: fi
+lang_map = th_TH: th, ja_JP: ja, et_EE: et, bg_BG: bg, cs_CZ: cs, hu_HU: hu, nb_NO: nb, sk_SK: sk, pt_PT: pt, fi_FI: fi
 
 [o:nextcloud:p:nextcloud:r:client]
 file_filter = translations/client_<lang>.ts
