@@ -527,7 +527,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 
         ncKit.readFileOrFolder(serverUrlFileName: serverUrl, depth: "0", showHiddenFiles: true) { account, files, _, error in
             guard error == .success else {
-                Logger.enumeration.error("0 depth readFileOrFolder of url: \(serverUrl, privacy: OSLogPrivacy.auto(mask: .hash)) did not complete successfully, received error: \(error, privacy: .public)")
+                Logger.enumeration.error("0 depth readFileOrFolder of url: \(serverUrl, privacy: OSLogPrivacy.auto(mask: .hash)) did not complete successfully, received error: \(error.error, privacy: .public)")
                 completionHandler(nil, nil, nil, nil, error.error)
                 return
             }
@@ -565,7 +565,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 
             ncKit.readFileOrFolder(serverUrlFileName: serverUrl, depth: "1", showHiddenFiles: true) { account, files, _, error in
                 guard error == .success else {
-                    Logger.enumeration.error("1 depth readFileOrFolder of url: \(serverUrl, privacy: OSLogPrivacy.auto(mask: .hash)) did not complete successfully, received error: \(error, privacy: .public)")
+                    Logger.enumeration.error("1 depth readFileOrFolder of url: \(serverUrl, privacy: OSLogPrivacy.auto(mask: .hash)) did not complete successfully, received error: \(error.error, privacy: .public)")
                     completionHandler(nil, nil, nil, nil, error.error)
                     return
                 }

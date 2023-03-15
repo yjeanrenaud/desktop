@@ -260,7 +260,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NKComm
         if itemTemplateIsFolder {
             self.ncKit.createFolder(serverUrlFileName: newServerUrlFileName) { account, ocId, _, error in
                 guard error == .success else {
-                    Logger.fileTransfer.error("Could not create new folder with name: \(itemTemplate.filename, privacy: .public), received error: \(error, privacy: .public)")
+                    Logger.fileTransfer.error("Could not create new folder with name: \(itemTemplate.filename, privacy: .public), received error: \(error.error, privacy: .public)")
                     completionHandler(itemTemplate, [], false, error.toFileProviderError())
                     return
                 }
@@ -268,7 +268,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NKComm
                 // Read contents after creation
                 self.ncKit.readFileOrFolder(serverUrlFileName: newServerUrlFileName, depth: "0", showHiddenFiles: true) { account, files, _, error in
                     guard error == .success else {
-                        Logger.fileTransfer.error("Could not read new folder with name: \(itemTemplate.filename, privacy: OSLogPrivacy.auto(mask: .hash)), received error: \(error, privacy: .public)")
+                        Logger.fileTransfer.error("Could not read new folder with name: \(itemTemplate.filename, privacy: OSLogPrivacy.auto(mask: .hash)), received error: \(error.error, privacy: .public)")
                         return
                     }
 
@@ -302,7 +302,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NKComm
             uploadProgress.copyCurrentStateToProgress(progress)
         }) { account, ocId, etag, date, size, _, _, error  in
             guard error == .success, let ocId = ocId else {
-                Logger.fileTransfer.error("Could not upload item with filename: \(itemTemplate.filename, privacy: OSLogPrivacy.auto(mask: .hash)), received error: \(error, privacy: .public)")
+                Logger.fileTransfer.error("Could not upload item with filename: \(itemTemplate.filename, privacy: OSLogPrivacy.auto(mask: .hash)), received error: \(error.error, privacy: .public)")
                 completionHandler(itemTemplate, [], false, error.toFileProviderError())
                 return
             }
@@ -572,7 +572,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NKComm
 
         self.ncKit.deleteFileOrFolder(serverUrlFileName: serverFileNameUrl) { account, error in
             guard error == .success else {
-                Logger.fileTransfer.error("Could not delete item with ocId \(identifier.rawValue, privacy: .public) at \(serverFileNameUrl, privacy: OSLogPrivacy.auto(mask: .hash)), received error: \(error, privacy: .public)")
+                Logger.fileTransfer.error("Could not delete item with ocId \(identifier.rawValue, privacy: .public) at \(serverFileNameUrl, privacy: OSLogPrivacy.auto(mask: .hash)), received error: \(error.error, privacy: .public)")
                 completionHandler(error.toFileProviderError())
                 return
             }
