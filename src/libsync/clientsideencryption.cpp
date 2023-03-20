@@ -966,6 +966,11 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
 
             verifKeyRes = -1;
         }
+
+        if (signers) {
+            sk_X509_free(signers);
+        }
+        signers = nullptr;
     }
 
     const auto error = ERR_get_error();
@@ -976,9 +981,6 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
 
 
     auto verifyResult = verifySignatureCMS(out3, data);
-
-    auto verifyResult2 = verifySignatureCMS(out2, data);
-
     return out;
 }
 
@@ -986,12 +988,14 @@ bool ClientSideEncryption::verifySignatureCMS(const QByteArray &cmsContent, cons
 {
     ClientSideEncryption::Bio cmsContentBio;
     BIO_write(cmsContentBio, cmsContent.constData(), cmsContent.size());
-    const auto cmsDataFromBio = CMS_data_create(cmsContentBio, 0);
+    const auto cmsDataFromBio = d2i_CMS_bio(cmsContentBio, nullptr);
+
+    if (!cmsDataFromBio) {
+        return false;
+    }
 
     ClientSideEncryption::Bio dataBio;
     BIO_write(dataBio, data.constData(), data.size());
-
-    ClientSideEncryption::Bio verifyOut;
 
     return CMS_verify(cmsDataFromBio, nullptr, nullptr, nullptr, nullptr, CMS_NO_SIGNER_CERT_VERIFY) == 1;
 }
