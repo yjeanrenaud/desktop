@@ -127,7 +127,6 @@ public:
     ClientSideEncryption();
 
     QByteArray _privateKey;
-    QByteArray _privateKeyRsa;
     QSslKey _publicKey;
     QSslCertificate _certificate;
     QString _mnemonic;

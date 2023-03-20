@@ -896,22 +896,13 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
     }
 
     Bio privateKeyBio;
-    BIO_write(privateKeyBio, _privateKeyRsa.constData(), _privateKeyRsa.size());
+    BIO_write(privateKeyBio, _privateKey.constData(), _privateKey.size());
     const auto privateKey = PKey::readPrivateKey(privateKeyBio);
 
-    // READ PKEY OPENSSL
-    BIO *bi = BIO_new(BIO_s_mem());
-    BIO_write(bi, _privateKeyRsa.constData(), _privateKeyRsa.size());
-    EVP_PKEY *pkey = PEM_read_bio_PrivateKey(bi, nullptr, passphrase_cb, nullptr);
-    BIO_free(bi);
-    //
-
-    const QByteArray dataCopy = data;
-
     ClientSideEncryption::Bio dataBio;
-    BIO_write(dataBio, dataCopy.constData(), dataCopy.size());
+    BIO_write(dataBio, data.constData(), data.size());
 
-    const auto contentInfo = CMS_sign(x509Certificate, privateKey, nullptr, dataBio, 0);
+    const auto contentInfo = CMS_sign(x509Certificate, privateKey, nullptr, dataBio, CMS_DETACHED);
 
     if (!contentInfo) {
         return {};
@@ -925,17 +916,37 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
     ClientSideEncryption::Bio cmsOut2;
     const auto result = PEM_write_bio_CMS(cmsOut2, contentInfo);
 
-    ClientSideEncryption::Bio cmsOut3;
-    auto rc = i2d_CMS_bio(cmsOut3, contentInfo);
-    const auto out3 = BIO2ByteArray(cmsOut3);
+    ClientSideEncryption::Bio i2dCmsBioOut;
+    auto resultI2dCms = i2d_CMS_bio(i2dCmsBioOut, contentInfo);
+    const auto i2dCmsBio = BIO2ByteArray(i2dCmsBioOut);
 
-    const auto out = BIO2ByteArray(cmsOut);
-    const auto out2 = BIO2ByteArray(cmsOut2);
+    ClientSideEncryption::Bio dataBioForVerification;
+    BIO_write(dataBioForVerification, data.constData(), data.size());
 
-    auto verifyRes1 = CMS_verify(contentInfo, nullptr, nullptr, nullptr, nullptr, CMS_NO_SIGNER_CERT_VERIFY);
+    auto verifyResult = verifySignatureCMS(i2dCmsBio, data);
+    return i2dCmsBio;
+}
 
-    if (verifyRes1) {
-        auto signers = CMS_get0_signers(contentInfo);
+bool ClientSideEncryption::verifySignatureCMS(const QByteArray &cmsContent, const QByteArray &data) const
+{
+    ClientSideEncryption::Bio cmsContentBio;
+    BIO_write(cmsContentBio, cmsContent.constData(), cmsContent.size());
+    const auto cmsDataFromBio = d2i_CMS_bio(cmsContentBio, nullptr);
+
+    if (!cmsDataFromBio) {
+        return false;
+    }
+
+    ClientSideEncryption::Bio dataBio;
+    BIO_write(dataBio, data.constData(), data.size());
+
+    ClientSideEncryption::Bio detachedData;
+    BIO_write(detachedData, data.constData(), data.size());
+
+    auto verifyResult = CMS_verify(cmsDataFromBio, nullptr, nullptr, detachedData, nullptr, CMS_DETACHED | CMS_NO_SIGNER_CERT_VERIFY);
+
+    if (verifyResult) {
+        auto signers = CMS_get0_signers(cmsDataFromBio);
 
         ClientSideEncryption::Bio publicKeyBio;
         const auto publicKeyPem = _publicKey.toPem();
@@ -946,7 +957,10 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
         char signerFile_buffer[128];
         for (int i = 0; i < numSigners; ++i) {
             X509 *signer = sk_X509_value(signers, i);
-            auto verifKeyRes = X509_verify(signer, publicKey);
+            if (X509_verify(signer, publicKey) != 0) {
+                verifyResult = false;
+                break;
+            }
 
             auto subjectName = X509_get_subject_name(signer);
             char subjectNameLine[256] = {};
@@ -963,8 +977,6 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
                     userId = subjectNameStringPart.split("=").last();
                 }
             }
-
-            verifKeyRes = -1;
         }
 
         if (signers) {
@@ -973,31 +985,7 @@ QByteArray ClientSideEncryption::generateSignatureCMS(const QByteArray &data) co
         signers = nullptr;
     }
 
-    const auto error = ERR_get_error();
-
-    char buf[256] = {};
-
-    ERR_error_string(error, buf);
-
-
-    auto verifyResult = verifySignatureCMS(out3, data);
-    return out;
-}
-
-bool ClientSideEncryption::verifySignatureCMS(const QByteArray &cmsContent, const QByteArray &data) const
-{
-    ClientSideEncryption::Bio cmsContentBio;
-    BIO_write(cmsContentBio, cmsContent.constData(), cmsContent.size());
-    const auto cmsDataFromBio = d2i_CMS_bio(cmsContentBio, nullptr);
-
-    if (!cmsDataFromBio) {
-        return false;
-    }
-
-    ClientSideEncryption::Bio dataBio;
-    BIO_write(dataBio, data.constData(), data.size());
-
-    return CMS_verify(cmsDataFromBio, nullptr, nullptr, nullptr, nullptr, CMS_NO_SIGNER_CERT_VERIFY) == 1;
+    return verifyResult > 0;
 }
 
 void ClientSideEncryption::publicKeyFetched(Job *incoming)
@@ -1064,8 +1052,6 @@ void ClientSideEncryption::privateKeyFetched(Job *incoming)
     }
 
     auto sslKey = QSslKey(readJob->binaryData(), QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey);
-
-    _privateKeyRsa = sslKey.toPem();
 
     //_privateKey = QSslKey(readJob->binaryData(), QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey);
     _privateKey = readJob->binaryData();
