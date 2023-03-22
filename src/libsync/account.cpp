@@ -134,7 +134,7 @@ void Account::setDavUser(const QString &newDavUser)
     if (_davUser == newDavUser)
         return;
     _davUser = newDavUser;
-    emit wantsAccountSaved(this);
+    emit wantsAccountSaved(sharedFromThis());
     emit prettyNameChanged();
 }
 
@@ -340,7 +340,7 @@ void Account::clearCookieJar()
     auto jar = qobject_cast<CookieJar *>(_am->cookieJar());
     ASSERT(jar);
     jar->setAllCookies(QList<QNetworkCookie>());
-    emit wantsAccountSaved(this);
+    emit wantsAccountSaved(sharedFromThis());
 }
 
 /*! This shares our official cookie jar (containing all the tasty
@@ -574,7 +574,7 @@ void Account::slotHandleSslErrors(QNetworkReply *reply, QList<QSslError> errors)
         if (!approvedCerts.isEmpty()) {
             QSslConfiguration::defaultConfiguration().addCaCertificates(approvedCerts);
             addApprovedCerts(approvedCerts);
-            emit wantsAccountSaved(this);
+            emit wantsAccountSaved(sharedFromThis());
 
             // all ssl certs are known and accepted. We can ignore the problems right away.
             qCInfo(lcAccount) << out << "Certs are known and trusted! This is not an actual error.";
