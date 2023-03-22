@@ -1049,7 +1049,7 @@ void FolderMan::slotForwardFolderSyncStateChange()
     }
 }
 
-void FolderMan::slotServerVersionChanged(Account *account)
+void FolderMan::slotServerVersionChanged(const OCC::AccountPtr &account)
 {
     // Pause folders if the server version is unsupported
     if (account->serverVersionUnsupported()) {
