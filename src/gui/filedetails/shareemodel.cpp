@@ -249,6 +249,7 @@ void ShareeModel::shareesFetched(const QJsonDocument &reply)
                     continue;
                 }
 
+                qCInfo(lcShareeModel) << "[DEBUG_SHAREES_SEARCH] parsing and appending sharee:" << parsedSharee->displayName();
                 newSharees.append(parsedSharee);
             }
         }
@@ -258,6 +259,11 @@ void ShareeModel::shareesFetched(const QJsonDocument &reply)
 
     appendSharees(replyDataObject);
     appendSharees(replyDataExactMatchObject);
+
+    qCInfo(lcShareeModel) << "[DEBUG_SHAREES_SEARCH] parsed sharees replyDataObject:" << replyDataObject;
+    qCInfo(lcShareeModel) << "[DEBUG_SHAREES_SEARCH] parsed sharees replyDataExactMatchObject:" << replyDataExactMatchObject;
+
+    qCInfo(lcShareeModel) << "[DEBUG_SHAREES_SEARCH] parsed sharees number:" << newSharees.size();
 
     beginResetModel();
     _sharees = newSharees;

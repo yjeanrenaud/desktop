@@ -35,7 +35,7 @@ void OcsShareeJob::getSharees(const QString &search,
 
     addParam(QString::fromLatin1("search"), search);
     addParam(QString::fromLatin1("itemType"), itemType);
-    addParam(QString::fromLatin1("page"), QString::number(page));
+    //addParam(QString::fromLatin1("page"), QString::number(page));
     addParam(QString::fromLatin1("perPage"), QString::number(perPage));
     addParam(QString::fromLatin1("lookup"), QVariant(lookup).toString());
 

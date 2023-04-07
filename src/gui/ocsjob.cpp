@@ -102,6 +102,10 @@ void OcsJob::start()
     }
     queryItems.addQueryItem(QLatin1String("format"), QLatin1String("json"));
     QUrl url = Utility::concatUrlPath(account()->url(), path(), queryItems);
+    const auto urlString = url.toString();
+    if (urlString.contains("sharees") && urlString.contains("search")) {
+        qCInfo(lcOcs) << "[DEBUG_SHAREES_SEARCH] starting sharee search job with URL:" << urlString;
+    }
     sendRequest(_verb, url, _request, buffer);
     AbstractNetworkJob::start();
 }
@@ -114,6 +118,11 @@ bool OcsJob::finished()
     QString message;
     int statusCode = 0;
     auto json = QJsonDocument::fromJson(replyData, &error);
+
+    if (reply()->url().toString().contains("sharees") && reply()->url().toString().contains("search")) {
+        qCInfo(lcOcs) << "[DEBUG_SHAREES_SEARCH] finished sharee search job with URL:" << reply()->url().toString();
+        qCInfo(lcOcs) << "[DEBUG_SHAREES_SEARCH] sharees fetched JSON is:" << json.toJson(QJsonDocument::JsonFormat::Compact);
+    }
 
     // when it is null we might have a 304 so get status code from reply() and gives a warning...
     if (error.error != QJsonParseError::NoError) {
