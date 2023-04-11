@@ -87,6 +87,19 @@ void OcsJob::start()
     QUrlQuery queryItems;
     if (_verb == "GET") {
         queryItems = percentEncodeQueryItems(_params);
+
+        if (_params.contains("search")) {
+            queryItems.addQueryItem("shareType[]", "0");
+            queryItems.addQueryItem("shareType[]", "1");
+            queryItems.addQueryItem("shareType[]", "6");
+            queryItems.addQueryItem("shareType[]", "9");
+            queryItems.addQueryItem("shareType[]", "7");
+            queryItems.addQueryItem("shareType[]", "10");
+            queryItems.addQueryItem("shareType[]", "8");
+            queryItems.addQueryItem("shareType[]", "12");
+            queryItems.addQueryItem("shareType[]", "4");
+        }
+
     } else if (_verb == "POST" || _verb == "PUT") {
         // Url encode the _postParams and put them in a buffer.
         QByteArray postData;
