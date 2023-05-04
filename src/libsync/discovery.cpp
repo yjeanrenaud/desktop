@@ -1851,7 +1851,7 @@ DiscoverySingleDirectoryJob *ProcessDirectoryJob::startAsyncServerQuery()
         if (_dirItem) {
             _dirItem->_isFileDropDetected = serverJob->isFileDropDetected();
             _dirItem->_isEncryptedMetadataNeedUpdate = serverJob->encryptedMetadataNeedUpdate();
-            qCInfo(lcDisco) << "serverJob has finished for folder:" << _dirItem->_file << " and it has _isFileDropDetected:" << true;
+            qCInfo(lcDisco) << "serverJob has finished for folder:" << _dirItem->_file << " and it has _isFileDropDetected:" << _dirItem->_isFileDropDetected;
         }
         _discoveryData->_currentlyActiveJobs--;
         _pendingAsyncJobs--;
