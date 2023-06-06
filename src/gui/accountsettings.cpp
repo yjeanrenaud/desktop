@@ -283,6 +283,7 @@ void AccountSettings::slotE2eEncryptionMnemonicReady()
 void AccountSettings::slotE2eEncryptionGenerateKeys()
 {
     connect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
+    connect(_accountState->account()->e2e(), &ClientSideEncryption::displayTokenInitDialog, this, &AccountSettings::slotDisplayTokenInitDialog);
     _accountState->account()->setE2eEncryptionKeysGenerationAllowed(true);
     _accountState->account()->setAskUserForMnemonic(true);
     _accountState->account()->e2e()->initialize(_accountState->account());
@@ -291,6 +292,7 @@ void AccountSettings::slotE2eEncryptionGenerateKeys()
 void AccountSettings::slotE2eEncryptionInitializationFinished(bool isNewMnemonicGenerated)
 {
     disconnect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
+    disconnect(_accountState->account()->e2e(), &ClientSideEncryption::displayTokenInitDialog, this, &AccountSettings::slotDisplayTokenInitDialog);
     if (_accountState->account()->e2e()->isInitialized()) {
         removeActionFromEncryptionMessage(e2EeUiActionEnableEncryptionId);
         slotE2eEncryptionMnemonicReady();
@@ -299,6 +301,14 @@ void AccountSettings::slotE2eEncryptionInitializationFinished(bool isNewMnemonic
         }
     }
     _accountState->account()->setAskUserForMnemonic(false);
+}
+
+void AccountSettings::slotDisplayTokenInitDialog()
+{
+    disconnect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
+    disconnect(_accountState->account()->e2e(), &ClientSideEncryption::displayTokenInitDialog, this, &AccountSettings::slotDisplayTokenInitDialog);
+    Systray::instance()->createTokenInitDialog(_accountState->account()->e2e()->discoveredTokens(),
+                                               _accountState->account()->e2e()->discoveredKeys());
 }
 
 void AccountSettings::slotEncryptFolderFinished(int status)

@@ -34,6 +34,7 @@
 #include <QScreen>
 #include <QMenu>
 #include <QGuiApplication>
+#include <QQuickView>
 
 #ifdef USE_FDO_NOTIFICATIONS
 #include <QDBusConnection>
@@ -410,6 +411,50 @@ void Systray::createFileActivityDialog(const QString &localPath)
 {
     createFileDetailsDialog(localPath);
     Q_EMIT showFileDetailsPage(localPath, FileDetailsPage::Activity);
+}
+
+void Systray::createTokenInitDialog(const QVariantList &tokensInfo,
+                                    const QVariantList &keysInfo)
+{
+    if(_tokenInitDialog) {
+        destroyDialog(_tokenInitDialog);
+        _tokenInitDialog = nullptr;
+    }
+
+    qCDebug(lcSystray) << "Opening new token init dialog with " << tokensInfo.size() << "possible tokens";
+
+    if (!_trayEngine) {
+        qCWarning(lcSystray) << "Could not open token init dialog as no tray engine was available";
+        return;
+    }
+
+    const QVariantMap initialProperties{
+        {"tokensInfo", tokensInfo},
+        {"keysInfo", keysInfo}
+    };
+
+    QQmlComponent encryptionTokenDialog(_trayEngine, QStringLiteral("qrc:/qml/src/gui/EncryptionTokenSelectionWindow.qml"));
+
+    if (!encryptionTokenDialog.isError()) {
+        const auto createdDialog = encryptionTokenDialog.createWithInitialProperties(initialProperties);
+        const auto dialog = qobject_cast<QQuickWindow*>(createdDialog);
+
+        if(!dialog) {
+            qCWarning(lcSystray) << "File details dialog window resulted in creation of object that was not a window!";
+            return;
+        }
+
+        _tokenInitDialog = dialog;
+
+        Q_EMIT hideSettingsDialog();
+
+        dialog->show();
+        dialog->raise();
+        dialog->requestActivate();
+
+    } else {
+        qCWarning(lcSystray) << encryptionTokenDialog.errorString();
+    }
 }
 
 void Systray::presentShareViewInTray(const QString &localPath)

@@ -58,6 +58,7 @@ public:
     ~AccountSettings() override;
     [[nodiscard]] QSize sizeHint() const override { return ownCloudGui::settingsDialogSize(); }
     bool canEncryptOrDecrypt(const FolderStatusModel::SubFolderInfo* folderInfo);
+    [[nodiscard]] OCC::AccountState *accountsState() const { return _accountState; }
 
 signals:
     void folderChanged();
@@ -72,7 +73,6 @@ public slots:
     void slotUpdateQuota(qint64 total, qint64 used);
     void slotAccountStateChanged();
     void slotStyleChanged();
-    OCC::AccountState *accountsState() { return _accountState; }
     void slotHideSelectiveSyncWidget();
 
 protected slots:
@@ -106,6 +106,7 @@ protected slots:
     void slotE2eEncryptionMnemonicReady();
     void slotE2eEncryptionGenerateKeys();
     void slotE2eEncryptionInitializationFinished(bool isNewMnemonicGenerated);
+    void slotDisplayTokenInitDialog();
     void slotEncryptFolderFinished(int status);
 
     void slotSelectiveSyncChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,

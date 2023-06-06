@@ -1012,11 +1012,25 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
 }
 
 
-ClientSideEncryption::ClientSideEncryption() = default;
+ClientSideEncryption::ClientSideEncryption()
+{
+    connect(&_usbTokenInformation, &ClientSideTokenSelector::discoveredTokensChanged,
+            this, &ClientSideEncryption::displayTokenInitDialog);
+}
 
 bool ClientSideEncryption::isInitialized() const
 {
     return !getMnemonic().isEmpty();
+}
+
+QVariantList ClientSideEncryption::discoveredTokens() const
+{
+    return _usbTokenInformation.discoveredTokens();
+}
+
+QVariantList ClientSideEncryption::discoveredKeys() const
+{
+    return _usbTokenInformation.discoveredKeys();
 }
 
 const QSslKey &ClientSideEncryption::getPublicKey() const
@@ -1080,8 +1094,19 @@ void ClientSideEncryption::initialize(const AccountPtr &account)
         return;
     }
 
-    if (account->useHardwareTokenEncryption()) {
-        initializeHardwareTokenEncryption(account);
+    if (account->enforceUseHardwareTokenEncryption()) {
+        if (_usbTokenInformation.isSetup()) {
+            initializeHardwareTokenEncryption(account);
+        } else if (account->e2eEncryptionKeysGenerationAllowed() && account->askUserForMnemonic()) {
+            _usbTokenInformation.searchForToken(account);
+            if (_usbTokenInformation.isSetup()) {
+                initializeHardwareTokenEncryption(account);
+            } else {
+                emit initializationFinished();
+            }
+        } else {
+            emit initializationFinished();
+        }
     } else {
         fetchCertificateFromKeyChain(account);
     }

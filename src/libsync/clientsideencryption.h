@@ -16,7 +16,9 @@
 #define CLIENTSIDEENCRYPTION_H
 
 #include "accountfwd.h"
+
 #include "networkjobs.h"
+#include "clientsidetokenselector.h"
 
 #include <QString>
 #include <QObject>
@@ -139,6 +141,12 @@ public:
 
     [[nodiscard]] bool isInitialized() const;
 
+    [[nodiscard]] bool tokenIsSetup() const;
+
+    [[nodiscard]] QVariantList discoveredTokens() const;
+
+    [[nodiscard]] QVariantList discoveredKeys() const;
+
     [[nodiscard]] const QSslKey& getPublicKey() const;
 
     void setPublicKey(const QSslKey &publicKey);
@@ -166,6 +174,7 @@ signals:
     void certificateDeleted();
     void mnemonicDeleted();
     void publicKeyDeleted();
+    void displayTokenInitDialog();
 
 public slots:
     void initialize(const OCC::AccountPtr &account);
@@ -247,6 +256,8 @@ private:
     QSslCertificate _certificate;
     QString _mnemonic;
     bool _newMnemonicGenerated = false;
+
+    ClientSideTokenSelector _usbTokenInformation;
 
     PKCS11_KEY* _tokenPublicKey = nullptr;
     PKCS11_KEY* _tokenPrivateKey = nullptr;

@@ -571,6 +571,10 @@ void ownCloudGui::slotShowSettings()
     if (_settingsDialog.isNull()) {
         _settingsDialog = new SettingsDialog(this);
         _settingsDialog->setAttribute(Qt::WA_DeleteOnClose, true);
+
+        connect(_tray.data(), &Systray::hideSettingsDialog,
+                _settingsDialog.data(), &SettingsDialog::close);
+
         _settingsDialog->show();
     }
     raiseDialog(_settingsDialog.data());

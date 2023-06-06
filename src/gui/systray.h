@@ -15,11 +15,11 @@
 #ifndef SYSTRAY_H
 #define SYSTRAY_H
 
-#include <QSystemTrayIcon>
-
 #include "accountmanager.h"
 #include "tray/usermodel.h"
 
+#include <QSystemTrayIcon>
+#include <QQuickImageProvider>
 #include <QQmlNetworkAccessManagerFactory>
 
 class QScreen;
@@ -112,6 +112,8 @@ signals:
     void syncIsPausedChanged();
     void isOpenChanged();
 
+    void hideSettingsDialog();
+
 public slots:
     void setTrayEngine(QQmlApplicationEngine *trayEngine);
     void create();
@@ -145,6 +147,8 @@ public slots:
 
     void createShareDialog(const QString &localPath);
     void createFileActivityDialog(const QString &localPath);
+    void createTokenInitDialog(const QVariantList &tokensInfo,
+                               const QVariantList &keysInfo);
 
     void presentShareViewInTray(const QString &localPath);
 
@@ -185,6 +189,7 @@ private:
     QSet<qlonglong> _callsAlreadyNotified;
     QPointer<QObject> _editFileLocallyLoadingDialog;
     QVector<QQuickWindow*> _fileDetailDialogs;
+    QQuickWindow* _tokenInitDialog = nullptr;
 };
 
 } // namespace OCC

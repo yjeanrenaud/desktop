@@ -80,3 +80,5 @@ endif()
 if (APPLE)
     option( BUILD_FILE_PROVIDER_MODULE "Build the macOS virtual files File Provider module" OFF )
 endif()
+
+set (CLIENTSIDEENCRYPTION_ENFORCE_USB_TOKEN true)

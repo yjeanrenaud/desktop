@@ -33,6 +33,8 @@
 #include "clientsideencryption.h"
 #include "ocsuserstatusconnector.h"
 
+#include "config.h"
+
 #include <QLoggingCategory>
 #include <QNetworkReply>
 #include <QNetworkAccessManager>
@@ -1023,9 +1025,9 @@ bool Account::askUserForMnemonic() const
     return _e2eAskUserForMnemonic;
 }
 
-bool Account::useHardwareTokenEncryption() const
+bool Account::enforceUseHardwareTokenEncryption() const
 {
-    return !encryptionHardwareTokenDriverPath().isEmpty();
+    return CLIENTSIDEENCRYPTION_ENFORCE_USB_TOKEN;
 }
 
 QString Account::encryptionHardwareTokenDriverPath() const
