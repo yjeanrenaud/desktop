@@ -51,6 +51,8 @@
 
 #if defined(Q_OS_WIN)
 #include <windows.h>
+#elif defined(Q_OS_MACOS)
+#include "macOS/fileprovider.h"
 #endif
 
 #if defined(WITH_CRASHREPORTER)
@@ -372,7 +374,7 @@ Application::Application(int &argc, char **argv)
     }
 
     _folderManager.reset(new FolderMan);
-#ifdef Q_OS_WIN
+#if defined(Q_OS_WIN)
     _shellExtensionsServer.reset(new ShellExtensionsServer);
 #endif
 
@@ -400,6 +402,10 @@ Application::Application(int &argc, char **argv)
             return;
         }
     }
+
+#if defined(Q_OS_MACOS)
+    _fileProvider.reset(new Mac::FileProvider);
+#endif
 
     FolderMan::instance()->setSyncEnabled(true);
 
