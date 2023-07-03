@@ -942,11 +942,24 @@ void ProcessDirectoryJob::processFileAnalyzeLocalInfo(
     bool noServerEntry = (_queryServer != ParentNotChanged && !serverEntry.isValid())
         || (_queryServer == ParentNotChanged && !dbEntry.isValid());
 
+    qCInfo(lcDisco) << "** noServerEntry:" << noServerEntry;
+    qCInfo(lcDisco) << "** _queryServer:" << _queryServer;
+    qCInfo(lcDisco) << "** serverEntry.isValid():" << serverEntry.isValid();
+    qCInfo(lcDisco) << "** dbEntry.isValid():" << dbEntry.isValid();
+    qCInfo(lcDisco) << "** (_queryServer != ParentNotChanged && !serverEntry.isValid())" << (_queryServer != ParentNotChanged && !serverEntry.isValid());
+    qCInfo(lcDisco) << "** (_queryServer == ParentNotChanged && !dbEntry.isValid())" << (_queryServer == ParentNotChanged && !dbEntry.isValid());
+
     if (noServerEntry)
         recurseQueryServer = ParentDontExist;
 
     bool serverModified = item->_instruction == CSYNC_INSTRUCTION_NEW || item->_instruction == CSYNC_INSTRUCTION_SYNC
         || item->_instruction == CSYNC_INSTRUCTION_RENAME || item->_instruction == CSYNC_INSTRUCTION_TYPE_CHANGE;
+
+    qCInfo(lcDisco) << "** serverModified:" << serverModified;
+    qCInfo(lcDisco) << "** item->_instruction == CSYNC_INSTRUCTION_NEW:" << (item->_instruction == CSYNC_INSTRUCTION_NEW);
+    qCInfo(lcDisco) << "** item->_instruction == CSYNC_INSTRUCTION_SYNC:" << (item->_instruction == CSYNC_INSTRUCTION_SYNC);
+    qCInfo(lcDisco) << "** item->_instruction == CSYNC_INSTRUCTION_RENAME:" << (item->_instruction == CSYNC_INSTRUCTION_RENAME);
+    qCInfo(lcDisco) << "** item->_instruction == CSYNC_INSTRUCTION_TYPE_CHANGE:" << (item->_instruction == CSYNC_INSTRUCTION_TYPE_CHANGE);
 
     qCDebug(lcDisco) << "File" << item->_file << "- servermodified:" << serverModified
                      << "noServerEntry:" << noServerEntry;
@@ -991,6 +1004,12 @@ void ProcessDirectoryJob::processFileAnalyzeLocalInfo(
             // Not modified locally (ParentNotChanged)
             if (noServerEntry) {
                 // not on the server: Removed on the server, delete locally
+                qCInfo(lcDisco) << "** ProcessDirectoryJob::processFileAnalyzeLocalInfo for" << item->_file;
+                qCInfo(lcDisco) << "** localEntry.isValid():" << localEntry.isValid();
+                qCInfo(lcDisco) << "** _queryLocal:" << _queryLocal;
+                qCInfo(lcDisco) << "** dbEntry.isValid():" << dbEntry.isValid();
+                qCInfo(lcDisco) << "** serverModified:" << serverModified;
+                qCInfo(lcDisco) << "** recurseQueryServer:" << recurseQueryServer;
 #if !defined QT_NO_DEBUG
                 qCInfo(lcDisco) << "File" << item->_file << "is not anymore on server. Going to delete it locally.";
 #endif
@@ -1062,6 +1081,15 @@ void ProcessDirectoryJob::processFileAnalyzeLocalInfo(
         } else if (!typeChange && ((dbEntry._modtime == localEntry.modtime && dbEntry._fileSize == localEntry.size) || localEntry.isDirectory)) {
             // Local file unchanged.
             if (noServerEntry) {
+                qCInfo(lcDisco) << "** ProcessDirectoryJob::processFileAnalyzeLocalInfo for" << item->_file;
+                qCInfo(lcDisco) << "** typeChange:" << typeChange;
+                qCInfo(lcDisco) << "** dbEntry._modtime:" << dbEntry._modtime;
+                qCInfo(lcDisco) << "** localEntry.modtime:" << localEntry.modtime;
+                qCInfo(lcDisco) << "** dbEntry._fileSize:" << dbEntry._fileSize;
+                qCInfo(lcDisco) << "** localEntry.size:" << localEntry.size;
+                qCInfo(lcDisco) << "** localEntry.isDirectory:" << localEntry.isDirectory;
+                qCInfo(lcDisco) << "** serverModified:" << serverModified;
+                qCInfo(lcDisco) << "** recurseQueryServer:" << recurseQueryServer;
 #if !defined QT_NO_DEBUG
                 qCInfo(lcDisco) << "File" << item->_file << "is not anymore on server. Going to delete it locally.";
 #endif

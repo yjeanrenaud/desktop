@@ -223,9 +223,11 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
     bool insideProp = false;
     bool insideMultiStatus = false;
 
+    qCWarning(lcLsColJob).noquote().nospace() << "** LsColXMLParser::parse ** " << expectedPath;
     while (!reader.atEnd()) {
         QXmlStreamReader::TokenType type = reader.readNext();
         QString name = reader.name().toString();
+
         // Start elements with DAV:
         if (type == QXmlStreamReader::StartElement && reader.namespaceUri() == QLatin1String("DAV:")) {
             if (name == QLatin1String("href")) {
@@ -272,7 +274,9 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
             } else if (name == QLatin1String("fileid")) {
                 (*fileInfo)[currentHref].fileId = propertyContent.toUtf8();
             }
-            currentTmpProperties.insert(reader.name().toString(), propertyContent);
+            const auto property = reader.name().toString();
+            currentTmpProperties.insert(property, propertyContent);
+            qCWarning(lcLsColJob).noquote().nospace() << "** " << currentHref << "[" << property << "]: " << propertyContent;
         }
 
         // End elements with DAV:

@@ -422,6 +422,10 @@ static void propertyMapToRemoteInfo(const QMap<QString, QString> &map, RemoteInf
     for (auto it = map.constBegin(); it != map.constEnd(); ++it) {
         QString property = it.key();
         QString value = it.value();
+
+        qWarning().noquote().nospace() << "** propertyMapToRemoteInfo **";
+        qWarning().noquote().nospace() << "** property [" << property << "]: " << value;
+
         if (property == QLatin1String("resourcetype")) {
             result.isDirectory = value.contains(QLatin1String("collection"));
         } else if (property == QLatin1String("getlastmodified")) {
@@ -550,6 +554,25 @@ void DiscoverySingleDirectoryJob::directoryListingIteratedSlot(const QString &fi
         result.name = file.mid(slash + 1);
         result.size = -1;
         propertyMapToRemoteInfo(map, result);
+        qWarning(lcDiscovery).noquote().nospace() << "** DiscoverySingleDirectoryJob::directoryListingIteratedSlot ** " << file;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.isDirectory: " << result.isDirectory;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.modtime: " << result.modtime;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.size: " << result.size;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.etag: " << result.etag;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.fileId: " << result.fileId;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.directDownloadUrl: " << result.directDownloadUrl;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.directDownloadCookies: " << result.directDownloadCookies;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.remotePerm: " << result.remotePerm;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.checksumHeader: " << result.checksumHeader;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.sharedByMe: " << result.sharedByMe;
+        qWarning(lcDiscovery).noquote().nospace() << "** result._isE2eEncrypted: " << result._isE2eEncrypted;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.locked: " << result.locked;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.lockOwnerDisplayName: " << result.lockOwnerDisplayName;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.lockOwnerId: " << result.lockOwnerId;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.lockOwnerType: " << result.lockOwnerType;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.lockEditorApp: " << result.lockEditorApp;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.lockTime: " << result.lockTime;
+        qWarning(lcDiscovery).noquote().nospace() << "** result.lockTimeout: " << result.lockTimeout;
         if (result.isDirectory)
             result.size = 0;
 
