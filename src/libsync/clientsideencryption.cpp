@@ -529,7 +529,7 @@ QByteArray encryptStringAsymmetric(const QSslKey key, const QByteArray &data)
     const auto publicKeyPem = key.toPem();
     BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
     const auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
-    return EncryptionHelper::encryptStringAsymmetric(publicKey, data.toBase64());
+    return EncryptionHelper::encryptStringAsymmetric(publicKey, data);
 }
 
 QByteArray decryptStringAsymmetric(const QByteArray &privateKeyPem, const QByteArray &data)
@@ -545,13 +545,13 @@ QByteArray decryptStringAsymmetric(const QByteArray &privateKeyPem, const QByteA
     const auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
 
     // Also base64 decode the result
-    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(key, QByteArray::fromBase64(data));
+    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(key, data);
 
     if (decryptResult.isEmpty()) {
         qCDebug(lcCse()) << "ERROR. Could not decrypt data";
         return {};
     }
-    return QByteArray::fromBase64(decryptResult);
+    return decryptResult;
 }
 
 QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data) {
@@ -743,9 +743,8 @@ QByteArray encryptStringAsymmetric(EVP_PKEY *publicKey, const QByteArray& data) 
         exit(1);
     }
 
-    // Transform the encrypted data into base64.
     qCInfo(lcCse()) << out.toBase64();
-    return out.toBase64();
+    return out;
 }
 
 }
@@ -860,7 +859,7 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = PKey::readPrivateKey(privateKeyBio);
 
-    QByteArray decryptResult = QByteArray::fromBase64(EncryptionHelper::decryptStringAsymmetric( key, QByteArray::fromBase64(encryptedData)));
+    QByteArray decryptResult = QByteArray::fromBase64(EncryptionHelper::decryptStringAsymmetric(key, encryptedData));
 
     if (data != decryptResult) {
         qCInfo(lcCse()) << "invalid private key";
