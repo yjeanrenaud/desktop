@@ -80,8 +80,7 @@ ActivityActionFunction ActivityAction::action() const
     return _action;
 }
 
-
-ActivityLink ActivityLink::createFomJsonObject(const QJsonObject &obj)
+ActivityLink ActivityLink::createFromJsonObject(const QJsonObject &obj)
 {
     ActivityLink activityLink;
     activityLink._label = QUrl::fromPercentEncoding(obj.value(QStringLiteral("label")).toString().toUtf8());
@@ -191,7 +190,7 @@ OCC::Activity Activity::fromActivityJson(const QJsonObject &json, const AccountP
 
     auto actions = json.value("actions").toArray();
     foreach (auto action, actions) {
-        activity._links.append(ActivityLink::createFomJsonObject(action.toObject()));
+        activity._links.append(ActivityLink::createFromJsonObject(action.toObject()));
     }
 
     return activity;

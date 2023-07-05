@@ -68,7 +68,7 @@ class ActivityLink
     Q_PROPERTY(bool primary MEMBER _primary)
 
 public:
-    static ActivityLink createFomJsonObject(const QJsonObject &obj);
+    static ActivityLink createFromJsonObject(const QJsonObject &obj);
 
 public:
     QString _imageSource;
