@@ -15,7 +15,7 @@
 #include <QtCore>
 
 #include "activitydata.h"
-#include "folderman.h"
+#include "guiutility.h"
 
 namespace {
 QUrl stringToUrl(const QUrl &accountUrl, const QString &link) {
@@ -82,6 +82,15 @@ ActivityLink ActivityLink::createFromJsonObject(const QJsonObject &obj)
     activityLink._link = obj.value(QStringLiteral("link")).toString();
     activityLink._verb = obj.value(QStringLiteral("type")).toString().toUtf8();
     activityLink._primary = obj.value(QStringLiteral("primary")).toBool();
+
+    activityLink._action = [activityLink]() -> bool {
+        if (activityLink._verb == "WEB" || !activityLink._link.isEmpty()) {
+            Utility::openBrowser(QUrl(activityLink._link));
+            return true;
+        }
+
+        return false;
+    };
 
     return activityLink;
 }
