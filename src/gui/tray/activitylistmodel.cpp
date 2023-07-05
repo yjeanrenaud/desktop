@@ -813,7 +813,7 @@ QVariantList ActivityListModel::convertLinksToActionButtons(const Activity &acti
     QVariantList customList;
 
     for (const auto &activityLink : activity._links) {
-        if (!activityLink._primary) {
+        if (!activityLink.primary()) {
             continue;
         }
 
@@ -847,9 +847,8 @@ QVariantList ActivityListModel::convertLinksToMenuEntries(const Activity &activi
     if (static_cast<quint32>(activity._links.size()) > maxActionButtons()) {
         for (int i = 0; i < activity._links.size(); ++i) {
             const auto &activityLink = activity._links[i];
-            if (!activityLink._primary) {
-                customList << QVariantMap{
-                    {QStringLiteral("actionIndex"), i}, {QStringLiteral("label"), activityLink._label}};
+            if (!activityLink.primary()) {
+                customList << QVariantMap{{QStringLiteral("actionIndex"), i}, {QStringLiteral("label"), activityLink.label()}};
             }
         }
     }

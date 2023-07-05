@@ -56,27 +56,22 @@ protected:
     };
 };
 
-class ActivityLink
+class ActivityLink : public ActivityAction
 {
     Q_GADGET
 
     Q_PROPERTY(QString imageSource MEMBER _imageSource)
     Q_PROPERTY(QString imageSourceHovered MEMBER _imageSourceHovered)
-    Q_PROPERTY(QString label MEMBER _label)
     Q_PROPERTY(QString link MEMBER _link)
     Q_PROPERTY(QByteArray verb MEMBER _verb)
-    Q_PROPERTY(bool primary MEMBER _primary)
 
 public:
     static ActivityLink createFromJsonObject(const QJsonObject &obj);
 
-public:
     QString _imageSource;
     QString _imageSourceHovered;
-    QString _label;
     QString _link;
     QByteArray _verb;
-    bool _primary = false;
 };
 
 /**
