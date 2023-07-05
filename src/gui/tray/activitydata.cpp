@@ -12,6 +12,7 @@
  * for more details.
  */
 
+#include <QtCore/qbytearray.h>
 #include <QtCore>
 
 #include "activitydata.h"
@@ -72,27 +73,64 @@ QString ActivityAction::label() const
 
 ActivityActionFunction ActivityAction::action() const
 {
-    return _action;
+    return _action == nullptr ? _fallbackAction : _action;
+}
+
+ActivityLink::ActivityLink(const QString &label,
+                           const bool primary,
+                           const QString &link,
+                           const QByteArray &verb,
+                           const QString &imageSource,
+                           const QString &imageSourceHovered)
+    : ActivityAction(label, primary, nullptr)
+    , _imageSource(imageSource)
+    , _imageSourceHovered(imageSourceHovered)
+    , _link(link)
+    , _verb(verb)
+{
+    _action = [this] {
+        return linkAction();
+    };
 }
 
 ActivityLink ActivityLink::createFromJsonObject(const QJsonObject &obj)
 {
-    ActivityLink activityLink;
-    activityLink._label = QUrl::fromPercentEncoding(obj.value(QStringLiteral("label")).toString().toUtf8());
-    activityLink._link = obj.value(QStringLiteral("link")).toString();
-    activityLink._verb = obj.value(QStringLiteral("type")).toString().toUtf8();
-    activityLink._primary = obj.value(QStringLiteral("primary")).toBool();
+    const auto label = QUrl::fromPercentEncoding(obj.value(QStringLiteral("label")).toString().toUtf8());
+    const auto link = obj.value(QStringLiteral("link")).toString();
+    const auto verb = obj.value(QStringLiteral("type")).toString().toUtf8();
+    const auto primary = obj.value(QStringLiteral("primary")).toBool();
 
-    activityLink._action = [activityLink]() -> bool {
-        if (activityLink._verb == "WEB" || !activityLink._link.isEmpty()) {
-            Utility::openBrowser(QUrl(activityLink._link));
-            return true;
-        }
+    return ActivityLink(label, primary, link, verb);
+}
 
-        return false;
-    };
+bool ActivityLink::linkAction()
+{
+    if (_verb == "WEB" || !_link.isEmpty()) {
+        Utility::openBrowser(QUrl(_link));
+        return true;
+    }
 
-    return activityLink;
+    return false;
+}
+
+QString ActivityLink::imageSource() const
+{
+    return _imageSource;
+}
+
+QString ActivityLink::imageSourceHovered() const
+{
+    return _imageSourceHovered;
+}
+
+QString ActivityLink::link() const
+{
+    return _link;
+}
+
+QByteArray ActivityLink::verb() const
+{
+    return _verb;
 }
 
 OCC::Activity Activity::fromActivityJson(const QJsonObject &json, const AccountPtr account)

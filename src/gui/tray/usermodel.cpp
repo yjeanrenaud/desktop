@@ -619,11 +619,7 @@ void User::slotAddError(const QString &folderAlias, const QString &message, Erro
 
 
         if (category == ErrorCategory::InsufficientRemoteStorage) {
-            ActivityLink link;
-            link._label = tr("Retry all uploads");
-            link._link = folderInstance->path();
-            link._verb = "";
-            link._primary = true;
+            ActivityLink link(tr("Retry all uploads"), true, folderInstance->path());
             activity._links.append(link);
         }
 
@@ -670,12 +666,7 @@ void User::slotAddErrorToGui(const QString &folderAlias, const SyncFileItem::Sta
         activity._folder = folderAlias;
 
         if (status == SyncFileItem::Conflict || status == SyncFileItem::FileNameClash) {
-            ActivityLink buttonActivityLink;
-            buttonActivityLink._label = tr("Resolve conflict");
-            buttonActivityLink._link = activity._link.toString();
-            buttonActivityLink._verb = "FIX_CONFLICT_LOCALLY";
-            buttonActivityLink._primary = true;
-
+            ActivityLink buttonActivityLink(tr("Resolve conflict"), true, activity._link.toString(), "FIX_CONFLICT_LOCALLY");
             activity._links = {buttonActivityLink};
         }
 
@@ -811,12 +802,7 @@ void User::processCompletedSyncItem(const Folder *folder, const SyncFileItemPtr 
             if (item->_status == SyncFileItem::Status::FileNameInvalid) {
                 showDesktopNotification(item->_file, activity._subject, activity._id);
             } else if (item->_status == SyncFileItem::Conflict || item->_status == SyncFileItem::FileNameClash) {
-                ActivityLink buttonActivityLink;
-                buttonActivityLink._label = tr("Resolve conflict");
-                buttonActivityLink._link = activity._link.toString();
-                buttonActivityLink._verb = "FIX_CONFLICT_LOCALLY";
-                buttonActivityLink._primary = true;
-
+                ActivityLink buttonActivityLink(tr("Resolve conflict"), true, activity._link.toString(), "FIX_CONFLICT_LOCALLY");
                 activity._links = {buttonActivityLink};
             }
             _activityModel->addErrorToActivityList(activity, ActivityListModel::ErrorType::SyncError);

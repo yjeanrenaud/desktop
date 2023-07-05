@@ -394,7 +394,7 @@ public slots:
                         // TODO: move the logic to populate "_links" to "activitylistmodel.cpp"
                         auto actions = activityJsonObject.toObject().value("actions").toArray();
                         foreach (auto action, actions) {
-                            activity._links.append(OCC::ActivityLink::createFomJsonObject(action.toObject()));
+                            activity._links.append(OCC::ActivityLink::createFromJsonObject(action.toObject()));
                         }
 
                         finalListCopy[modelIndex.row()] = activity;
@@ -702,9 +702,12 @@ private slots:
                     QVERIFY(actionsLinksContextMenu.isEmpty() || actionsLinksContextMenu.size() < actionsLinks.size());
 
                     // context menu must not contain the primary action
-                    QVERIFY(std::find_if(std::begin(actionsLinksContextMenu), std::end(actionsLinksContextMenu),
-                                [](const QVariant &entry) { return entry.value<OCC::ActivityLink>()._primary; })
-                        == std::end(actionsLinksContextMenu));
+                    QVERIFY(std::find_if(std::begin(actionsLinksContextMenu),
+                                         std::end(actionsLinksContextMenu),
+                                         [](const QVariant &entry) {
+                                             return entry.value<OCC::ActivityLink>().primary();
+                                         })
+                            == std::end(actionsLinksContextMenu));
 
                     const auto objectType = index.data(OCC::ActivityListModel::ObjectTypeRole).toString();
 
@@ -714,15 +717,15 @@ private slots:
                     // Login attempt notification
                     if (objectType == QStringLiteral("2fa_id")) {
                         QVERIFY(actionsLinks.size() == 2);
-                        QVERIFY(actionsLinks[0].value<OCC::ActivityLink>()._primary);
-                        QVERIFY(!actionsLinks[1].value<OCC::ActivityLink>()._primary);
+                        QVERIFY(actionsLinks[0].value<OCC::ActivityLink>().primary());
+                        QVERIFY(!actionsLinks[1].value<OCC::ActivityLink>().primary());
                         QVERIFY(actionsLinksContextMenu.isEmpty());
                     }
 
                     // Generate 2FA backup codes notification
                     if (objectType == QStringLiteral("create")) {
                         QVERIFY(actionsLinks.size() == 1);
-                        QVERIFY(!actionsLinks[0].value<OCC::ActivityLink>()._primary);
+                        QVERIFY(!actionsLinks[0].value<OCC::ActivityLink>().primary());
                         QVERIFY(actionsLinksContextMenu.isEmpty());
                     }
 
@@ -735,7 +738,7 @@ private slots:
                         }
 
                         // both action links and buttons must contain a "REPLY" verb element as secondary action
-                        QVERIFY(actionsLinks[replyActionPos].value<OCC::ActivityLink>()._verb == QStringLiteral("REPLY"));
+                        QVERIFY(actionsLinks[replyActionPos].value<OCC::ActivityLink>().verb() == QStringLiteral("REPLY"));
                         //QVERIFY(actionButtonsLinks[replyActionPos].value<OCC::ActivityLink>()._verb == QStringLiteral("REPLY"));
 
                         // the first action button for chat must have image set
@@ -747,7 +750,7 @@ private slots:
                                 || (objectType != QStringLiteral("room") && objectType != QStringLiteral("call")))) {
 
                             // button's label for "chat" must be renamed to "Reply"
-                            QVERIFY(actionButtonsLinks[0].value<OCC::ActivityLink>()._label == QObject::tr("Reply"));
+                            QVERIFY(actionButtonsLinks[0].value<OCC::ActivityLink>().label() == QObject::tr("Reply"));
 
                             if (static_cast<quint32>(actionsLinks.size()) > OCC::ActivityListModel::maxActionButtons()) {
                                 // in case total actions is longer than ActivityListModel::maxActionButtons, only one button must be present in a list of action buttons
@@ -757,8 +760,7 @@ private slots:
                                 QVERIFY(actionButtonsLinks.size() + actionsLinksContextMenu.size() == actionsLinks.size());
                             }
                         } else if ((objectType == QStringLiteral("call"))) {
-                            QVERIFY(
-                                actionButtonsLinks[0].value<OCC::ActivityLink>()._label == QStringLiteral("Call back"));
+                            QVERIFY(actionButtonsLinks[0].value<OCC::ActivityLink>().label() == QStringLiteral("Call back"));
                         }
                     }
                 }

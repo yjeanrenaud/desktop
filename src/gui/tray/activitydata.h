@@ -43,6 +43,9 @@ class ActivityAction
     Q_PROPERTY(QString label READ label CONSTANT)
 
 public:
+    explicit ActivityAction() = default;
+    explicit ActivityAction(const QString &label, const bool primary, ActivityActionFunction action = nullptr);
+
     bool primary() const;
     QString label() const;
 
@@ -51,7 +54,10 @@ public:
 protected:
     bool _primary = false;
     QString _label;
-    ActivityActionFunction _action = [] {
+    ActivityActionFunction _action = nullptr;
+
+private:
+    ActivityActionFunction _fallbackAction = [] {
         return false;
     };
 };
@@ -60,13 +66,28 @@ class ActivityLink : public ActivityAction
 {
     Q_GADGET
 
-    Q_PROPERTY(QString imageSource MEMBER _imageSource)
-    Q_PROPERTY(QString imageSourceHovered MEMBER _imageSourceHovered)
-    Q_PROPERTY(QString link MEMBER _link)
-    Q_PROPERTY(QByteArray verb MEMBER _verb)
+    Q_PROPERTY(QString imageSource READ imageSource CONSTANT)
+    Q_PROPERTY(QString imageSourceHovered READ imageSourceHovered CONSTANT)
+    Q_PROPERTY(QString link READ link CONSTANT)
+    Q_PROPERTY(QByteArray verb READ verb CONSTANT)
 
 public:
+    explicit ActivityLink() = default;
+    explicit ActivityLink(const QString &label,
+                          const bool primary,
+                          const QString &link,
+                          const QByteArray &verb = {},
+                          const QString &imageSource = {},
+                          const QString &imageSourceHovered = {});
     static ActivityLink createFromJsonObject(const QJsonObject &obj);
+
+    QString imageSource() const;
+    QString imageSourceHovered() const;
+    QString link() const;
+    QByteArray verb() const;
+
+private:
+    bool linkAction();
 
     QString _imageSource;
     QString _imageSourceHovered;

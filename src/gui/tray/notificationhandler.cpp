@@ -115,10 +115,9 @@ void ServerNotificationHandler::slotNotificationsReceived(const QJsonDocument &j
             const auto objectId = json.value("object_id").toString();
             const auto objectIdData = objectId.split("/");
 
-            ActivityLink al;
-            al._label = tr("Reply");
-            al._verb = "REPLY";
-            al._primary = true;
+            const auto label = tr("Reply");
+            const auto verb = "REPLY";
+            auto primary = true;
 
             a._talkNotificationData.conversationToken = objectIdData.first();
 
@@ -132,7 +131,7 @@ void ServerNotificationHandler::slotNotificationsReceived(const QJsonDocument &j
 
                 // callback then it is the primary action
                 if (a._objectType == "call") {
-                    al._primary = false;
+                    primary = false;
                 }
 
                 a._talkNotificationData.userAvatar = ai->account()->url().toString() + QStringLiteral("/index.php/avatar/") + a._subjectRichParameters["user"].value<Activity::RichSubjectParameter>().id + QStringLiteral("/128");
@@ -143,14 +142,12 @@ void ServerNotificationHandler::slotNotificationsReceived(const QJsonDocument &j
                 callList.append(a);
             }
 
-            a._links.insert(al._primary? 0 : a._links.size(), al);
+            ActivityLink al(label, primary, {}, verb);
+            a._links.insert(al.primary() ? 0 : a._links.size(), al);
         }
 
         if (a._links.isEmpty()) {
-            ActivityLink dismissLink;
-            dismissLink._label = tr("Dismiss");
-            dismissLink._verb = "DELETE";
-            dismissLink._primary = false;
+            ActivityLink dismissLink(tr("Dismiss"), false, {}, "DELETE");
             a._links.insert(0, dismissLink);
         }
 

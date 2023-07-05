@@ -776,13 +776,13 @@ void ActivityListModel::slotTriggerAction(const int activityIndex, const int act
 
     if (action.action()()) {
         return;
-    } else if (action._verb == "FIX_CONFLICT_LOCALLY" && activity._type == Activity::SyncFileItemType
+    } else if (action.verb() == "FIX_CONFLICT_LOCALLY" && activity._type == Activity::SyncFileItemType
                && (activity._syncFileItemStatus == SyncFileItem::Conflict || activity._syncFileItemStatus == SyncFileItem::FileNameClash)) {
         slotTriggerDefaultAction(activityIndex);
         return;
     }
 
-    emit sendNotificationRequest(activity._accName, action._link, action._verb, activityIndex);
+    emit sendNotificationRequest(activity._accName, action.link(), action.verb(), activityIndex);
 }
 
 void ActivityListModel::slotTriggerDismiss(const int activityIndex)
@@ -821,17 +821,15 @@ QVariantList ActivityListModel::convertLinksToActionButtons(const Activity &acti
 
 QVariant ActivityListModel::convertLinkToActionButton(const OCC::ActivityLink &activityLink)
 {
-    auto activityLinkCopy = activityLink;
-
-    const auto isReplyIconApplicable = activityLink._verb == QStringLiteral("REPLY");
-
-    const QString replyButtonPath = QStringLiteral("image://svgimage-custom-color/reply.svg");
-
-    if (isReplyIconApplicable) {
-        activityLinkCopy._imageSource = QString(replyButtonPath + "/");
-        activityLinkCopy._imageSourceHovered = QString(replyButtonPath + "/");
+    const auto linkVerb = activityLink.verb();
+    const auto isReplyIconApplicable = linkVerb == QStringLiteral("REPLY");
+    if (!isReplyIconApplicable) {
+        return QVariant::fromValue(activityLink);
     }
 
+    static const QString replyButtonPath = QStringLiteral("image://svgimage-custom-color/reply.svg");
+    const auto imageSource = QString(replyButtonPath + "/");
+    const auto activityLinkCopy = ActivityLink(activityLink.label(), activityLink.primary(), activityLink.link(), linkVerb, imageSource, imageSource);
     return QVariant::fromValue(activityLinkCopy);
 }
 

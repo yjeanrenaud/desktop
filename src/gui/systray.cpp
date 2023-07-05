@@ -226,12 +226,12 @@ void Systray::createCallDialog(const Activity &callNotification, const AccountSt
         QVariantList links;
         for(const auto &link : callNotification._links) {
             links.append(QVariantMap{
-                {"imageSource", link._imageSource},
-                {"imageSourceHovered", link._imageSourceHovered},
-                {"label", link._label},
-                {"link", link._link},
-                {"primary", link._primary},
-                {"verb", link._verb},
+                {"imageSource", link.imageSource()},
+                {"imageSourceHovered", link.imageSourceHovered()},
+                {"label", link.label()},
+                {"link", link.link()},
+                {"primary", link.primary()},
+                {"verb", link.verb()},
             });
         }
 
