@@ -166,8 +166,6 @@ class Activity
     Q_PROPERTY(QVariantMap subjectRichParameters MEMBER _subjectRichParameters)
 
 public:
-    using Identifier = QPair<qlonglong, QString>;
-
     // Note that these are in the order we want to present them in the model!
     enum Type {
         DummyFetchingActivityType,
@@ -224,8 +222,6 @@ public:
      */
 
     bool _shouldNotify = true;
-
-    [[nodiscard]] Identifier ident() const;
 };
 
 bool operator==(const Activity &rhs, const Activity &lhs);

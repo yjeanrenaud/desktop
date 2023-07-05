@@ -60,11 +60,6 @@ bool operator!=(const Activity &rhs, const Activity &lhs)
     return !(rhs == lhs);
 }
 
-Activity::Identifier Activity::ident() const
-{
-    return Identifier(_id, _accName);
-}
-
 bool ActivityAction::primary() const
 {
     return _primary;
