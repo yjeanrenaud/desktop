@@ -25,11 +25,36 @@
 #include <QVariantMap>
 
 namespace OCC {
+
+// Return true if the action was handled, false if not
+using ActivityActionFunction = std::function<bool()>;
+
 /**
  * @brief The ActivityLink class describes actions of an activity
  *
  * These are part of notifications which are mapped into activities.
  */
+
+class ActivityAction
+{
+    Q_GADGET
+
+    Q_PROPERTY(bool primary READ primary CONSTANT)
+    Q_PROPERTY(QString label READ label CONSTANT)
+
+public:
+    bool primary() const;
+    QString label() const;
+
+    ActivityActionFunction action() const;
+
+protected:
+    bool _primary = false;
+    QString _label;
+    ActivityActionFunction _action = [] {
+        return false;
+    };
+};
 
 class ActivityLink
 {

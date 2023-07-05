@@ -65,6 +65,22 @@ Activity::Identifier Activity::ident() const
     return Identifier(_id, _accName);
 }
 
+bool ActivityAction::primary() const
+{
+    return _primary;
+}
+
+QString ActivityAction::label() const
+{
+    return _label;
+}
+
+ActivityActionFunction ActivityAction::action() const
+{
+    return _action;
+}
+
+
 ActivityLink ActivityLink::createFomJsonObject(const QJsonObject &obj)
 {
     ActivityLink activityLink;
