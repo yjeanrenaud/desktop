@@ -82,7 +82,7 @@ void PropagateUploadEncrypted::slotFolderEncryptedIdReceived(const QStringList &
 
 void PropagateUploadEncrypted::slotTryLock(const QByteArray& fileId)
 {
-  const auto lockJob = new LockEncryptFolderApiJob(_propagator->account(), fileId, _propagator->_journal, _propagator->account()->e2e()->_publicKey, this);
+  const auto lockJob = new LockEncryptFolderApiJob(_propagator->account(), fileId, _propagator->_journal, _propagator->account()->e2e()->getPublicKey(), this);
   connect(lockJob, &LockEncryptFolderApiJob::success, this, &PropagateUploadEncrypted::slotFolderLockedSuccessfully);
   connect(lockJob, &LockEncryptFolderApiJob::error, this, &PropagateUploadEncrypted::slotFolderLockedError);
   lockJob->start();

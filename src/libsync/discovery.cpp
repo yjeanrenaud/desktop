@@ -222,7 +222,7 @@ void ProcessDirectoryJob::process()
             continue;
 
         const auto isEncryptedFolderButE2eIsNotSetup = e.serverEntry.isValid() && e.serverEntry.isE2eEncrypted() &&
-            _discoveryData->_account->e2e() && !_discoveryData->_account->e2e()->_publicKey.isNull() && _discoveryData->_account->e2e()->_privateKey.isNull();
+            _discoveryData->_account->e2e() && !_discoveryData->_account->e2e()->getPublicKey().isNull() && _discoveryData->_account->e2e()->getPrivateKey().isNull();
 
         if (isEncryptedFolderButE2eIsNotSetup) {
             checkAndUpdateSelectiveSyncListsForE2eeFolders(path._server + "/");

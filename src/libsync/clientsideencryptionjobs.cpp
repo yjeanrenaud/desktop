@@ -253,7 +253,7 @@ void LockEncryptFolderApiJob::start()
 
     if (!folderTokenEncrypted.isEmpty()) {
         qCInfo(lcCseJob()) << "lock folder started for:" << path() << " for fileId: " << _fileId << " but we need to first lift the previous lock";
-        const auto folderToken = EncryptionHelper::decryptStringAsymmetric(_account->e2e()->_privateKey, folderTokenEncrypted);
+        const auto folderToken = EncryptionHelper::decryptStringAsymmetric(_account->e2e()->getPrivateKey(), folderTokenEncrypted);
         const auto unlockJob = new OCC::UnlockEncryptFolderApiJob(_account, _fileId, folderToken, _journalDb, this);
         connect(unlockJob, &UnlockEncryptFolderApiJob::done, this, [this]() {
             this->start();

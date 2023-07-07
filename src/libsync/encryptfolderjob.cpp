@@ -62,7 +62,7 @@ void EncryptFolderJob::slotEncryptionFlagSuccess(const QByteArray &fileId)
         qCWarning(lcEncryptFolderJob) << "Error when setting the file record to the database" << rec._path << result.error();
     }
 
-    const auto lockJob = new LockEncryptFolderApiJob(_account, fileId, _journal, _account->e2e()->_publicKey, this);
+    const auto lockJob = new LockEncryptFolderApiJob(_account, fileId, _journal, _account->e2e()->getPublicKey(), this);
     connect(lockJob, &LockEncryptFolderApiJob::success,
             this, &EncryptFolderJob::slotLockForEncryptionSuccess);
     connect(lockJob, &LockEncryptFolderApiJob::error,

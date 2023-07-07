@@ -878,6 +878,36 @@ QByteArray encryptStringAsymmetric(EVP_PKEY *publicKey, const QByteArray& data) 
 
 ClientSideEncryption::ClientSideEncryption() = default;
 
+const QSslKey &ClientSideEncryption::getPublicKey() const
+{
+    return _publicKey;
+}
+
+void ClientSideEncryption::setPublicKey(const QSslKey &publicKey)
+{
+    _publicKey = publicKey;
+}
+
+const QByteArray &ClientSideEncryption::getPrivateKey() const
+{
+    return _privateKey;
+}
+
+void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
+{
+    _privateKey = privateKey;
+}
+
+const QString &ClientSideEncryption::getMnemonic() const
+{
+    return _mnemonic;
+}
+
+void ClientSideEncryption::setCertificate(const QSslCertificate &certificate)
+{
+    _certificate = certificate;
+}
+
 void ClientSideEncryption::initialize(const AccountPtr &account)
 {
     Q_ASSERT(account);
@@ -1878,7 +1908,7 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
 QByteArray FolderMetadata::encryptData(const QByteArray& data) const
 {
     Bio publicKeyBio;
-    QByteArray publicKeyPem = _account->e2e()->_publicKey.toPem();
+    QByteArray publicKeyPem = _account->e2e()->getPublicKey().toPem();
     BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
     auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
 
@@ -1889,7 +1919,7 @@ QByteArray FolderMetadata::encryptData(const QByteArray& data) const
 QByteArray FolderMetadata::decryptData(const QByteArray &data) const
 {
     Bio privateKeyBio;
-    QByteArray privateKeyPem = _account->e2e()->_privateKey;
+    QByteArray privateKeyPem = _account->e2e()->getPrivateKey();
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
 
@@ -1945,7 +1975,7 @@ QByteArray FolderMetadata::computeMetadataKeyChecksum(const QByteArray &metadata
 {
     auto hashAlgorithm = QCryptographicHash{QCryptographicHash::Sha256};
 
-    hashAlgorithm.addData(_account->e2e()->_mnemonic.remove(' ').toUtf8());
+    hashAlgorithm.addData(QString(_account->e2e()->getMnemonic()).remove(' ').toUtf8());
     auto sortedFiles = _files;
     std::sort(sortedFiles.begin(), sortedFiles.end(), [] (const auto &first, const auto &second) {
         return first.encryptedFilename < second.encryptedFilename;
@@ -1966,7 +1996,7 @@ bool FolderMetadata::isMetadataSetup() const
 void FolderMetadata::setupEmptyMetadata() {
     qCDebug(lcCse) << "Settint up empty metadata";
     _metadataKey = EncryptionHelper::generateRandom(metadataKeySize);
-    QString publicKey = _account->e2e()->_publicKey.toPem().toBase64();
+    QString publicKey = _account->e2e()->getPublicKey().toPem().toBase64();
     QString displayName = _account->displayName();
 
     _sharing.append({displayName, publicKey});

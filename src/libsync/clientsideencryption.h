@@ -123,11 +123,17 @@ public:
 
     ClientSideEncryption();
 
-    QByteArray _privateKey;
-    QSslKey _publicKey;
-    QSslCertificate _certificate;
-    QString _mnemonic;
-    bool _newMnemonicGenerated = false;
+    [[nodiscard]] const QSslKey& getPublicKey() const;
+
+    void setPublicKey(const QSslKey &publicKey);
+
+    [[nodiscard]] const QByteArray& getPrivateKey() const;
+
+    void setPrivateKey(const QByteArray &privateKey);
+
+    [[nodiscard]] const QString &getMnemonic() const;
+
+    void setCertificate(const QSslCertificate &certificate);
 
 signals:
     void initializationFinished(bool isNewMnemonicGenerated = false);
@@ -208,6 +214,12 @@ private:
     [[nodiscard]] bool sensitiveDataRemaining() const;
 
     void failedToInitialize(const AccountPtr &account);
+
+    QByteArray _privateKey;
+    QSslKey _publicKey;
+    QSslCertificate _certificate;
+    QString _mnemonic;
+    bool _newMnemonicGenerated = false;
 
     bool isInitialized = false;
 };
