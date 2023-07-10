@@ -212,6 +212,8 @@ if(BUILD_CLIENT)
     find_package(Sphinx)
     find_package(PdfLatex)
     find_package(OpenSSL 1.1 REQUIRED )
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(OPENSC-LIBP11 libp11 IMPORTED_TARGET)
 
     find_package(ZLIB REQUIRED)
 

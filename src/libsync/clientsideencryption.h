@@ -28,6 +28,8 @@
 #include <QVector>
 #include <QMap>
 
+#include <libp11.h>
+
 #include <openssl/evp.h>
 
 #include <optional>

@@ -44,15 +44,12 @@
 #include <QRandomGenerator>
 #include <QCryptographicHash>
 
-#define OPENSSL_SUPPRESS_DEPRECATED
-
 #include <openssl/rsa.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 #include <openssl/err.h>
 #include <openssl/engine.h>
 #include <openssl/rand.h>
-#include <openssl/provider.h>
 
 #include <map>
 #include <string>
@@ -896,7 +893,115 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *p
 }
 
 
-ClientSideEncryption::ClientSideEncryption() = default;
+ClientSideEncryption::ClientSideEncryption()
+{
+    auto ctx = PKCS11_CTX_new();
+
+    auto rc = PKCS11_CTX_load(ctx, "");
+    if (rc) {
+        qCWarning(lcCse()) << "loading pkcs11 engine failed:" << ERR_reason_error_string(ERR_get_error());
+        rc = 1;
+        exit(-1);
+    }
+
+    auto nslots = 0u;
+    PKCS11_SLOT *tokenSlots = nullptr;
+    /* get information on all slots */
+    rc = PKCS11_enumerate_slots(ctx, &tokenSlots, &nslots);
+    if (rc < 0) {
+        qCWarning(lcCse()) << "no slots available";
+        rc = 2;
+        exit(-1);
+    }
+
+    /* get first slot with a token */
+    auto slot = PKCS11_find_token(ctx, tokenSlots, nslots);
+    if (slot == NULL || slot->token == NULL) {
+        qCWarning(lcCse()) << "no token available";
+        rc = 3;
+        exit(-1);
+    }
+    qCInfo(lcCse()) << "Slot manufacturer......:" << slot->manufacturer;
+    qCInfo(lcCse()) << "Slot description.......:" << slot->description;
+    qCInfo(lcCse()) << "Slot token label.......:" << slot->token->label;
+    qCInfo(lcCse()) << "Slot token manufacturer:" << slot->token->manufacturer;
+    qCInfo(lcCse()) << "Slot token model.......:" << slot->token->model;
+    qCInfo(lcCse()) << "Slot token serialnr....:" << slot->token->serialnr;
+
+    auto logged_in = 0;
+    rc = PKCS11_is_logged_in(slot, 0, &logged_in);
+    if (rc != 0) {
+        qCWarning(lcCse()) << "PKCS11_is_logged_in failed";
+        rc = 8;
+        exit(-1);
+    }
+
+    /* perform pkcs #11 login */
+    QByteArray password = "0000";
+    rc = PKCS11_login(slot, 0, password.data());
+    if (rc != 0) {
+        qCWarning(lcCse()) << "PKCS11_login failed";
+        rc = 10;
+        exit(-1);
+    }
+
+    /* check if user is logged in */
+    rc = PKCS11_is_logged_in(slot, 0, &logged_in);
+    if (rc != 0) {
+        qCWarning(lcCse()) << "PKCS11_is_logged_in failed";
+        rc = 11;
+        exit(-1);
+    }
+    if (!logged_in) {
+        qCWarning(lcCse()) << "PKCS11_is_logged_in says user is not logged in, expected to be logged in";
+        rc = 12;
+        exit(-1);
+    }
+
+    auto privateKeysCount = 0u;
+    auto tokenPrivateKeys = static_cast<PKCS11_KEY*>(nullptr);
+    rc = PKCS11_enumerate_keys(slot->token, &tokenPrivateKeys, &privateKeysCount);
+    if (rc) {
+        qCWarning(lcCse()) << "PKCS11_enumerate_keys failed";
+        rc = 13;
+        exit(-1);
+    }
+    if (privateKeysCount <= 0) {
+        qCWarning(lcCse()) << "no keys found";
+        rc = 14;
+        exit(-1);
+    }
+
+    qCInfo(lcCse()) << "hardware token has" << privateKeysCount << "private keys";
+
+    auto tokenPrivateKey = &tokenPrivateKeys[0];
+    qCInfo(lcCse()) << "key metadata"
+                    << " type:" << (tokenPrivateKey->isPrivate ? "is private" : "is public")
+                    << "label:" << tokenPrivateKey->label
+                    << "need login:" << (tokenPrivateKey->needLogin ? "true" : "false");
+
+    auto publicKeysCount = 0u;
+    auto tokenPublicKeys = static_cast<PKCS11_KEY*>(nullptr);
+    rc = PKCS11_enumerate_public_keys(slot->token, &tokenPublicKeys, &publicKeysCount);
+    if (rc) {
+        qCWarning(lcCse()) << "PKCS11_enumerate_keys failed";
+        rc = 13;
+        exit(-1);
+    }
+    if (publicKeysCount <= 0) {
+        qCWarning(lcCse()) << "no keys found";
+        rc = 14;
+        exit(-1);
+    }
+
+    qCInfo(lcCse()) << "hardware token has" << publicKeysCount << "public keys";
+
+    auto tokenPublicKey = &tokenPublicKeys[0];
+    qCInfo(lcCse()) << "key metadata"
+                    << " type:" << (tokenPublicKey->isPrivate ? "is private" : "is public")
+                    << "label:" << tokenPublicKey->label
+                    << "need login:" << (tokenPublicKey->needLogin ? "true" : "false");
+}
 
 const QSslKey &ClientSideEncryption::getPublicKey() const
 {

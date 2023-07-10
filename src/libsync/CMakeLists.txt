@@ -181,6 +181,7 @@ target_link_libraries(nextcloudsync
   Nextcloud::csync
   OpenSSL::Crypto
   OpenSSL::SSL
+  PkgConfig::OPENSC-LIBP11
   ${OS_SPECIFIC_LINK_LIBRARIES}
   Qt5::Core
   Qt5::Network
