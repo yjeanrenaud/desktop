@@ -29,7 +29,7 @@
 		538E397627F4765000FA63D5 /* FileProviderExt.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 538E396727F4765000FA63D5 /* FileProviderExt.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		53903D1E2956164F00D0B308 /* NCDesktopClientSocketKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 53903D0E2956164F00D0B308 /* NCDesktopClientSocketKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		53903D212956164F00D0B308 /* NCDesktopClientSocketKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53903D0C2956164F00D0B308 /* NCDesktopClientSocketKit.framework */; };
-		53903D222956164F00D0B308 /* NCDesktopClientSocketKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 53903D0C2956164F00D0B308 /* NCDesktopClientSocketKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		53903D222956164F00D0B308 /* NCDesktopClientSocketKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 53903D0C2956164F00D0B308 /* NCDesktopClientSocketKit.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		53903D2A295616F000D0B308 /* LocalSocketClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 539158B227BEC98A00816F56 /* LocalSocketClient.m */; };
 		53903D2B2956173000D0B308 /* NCDesktopClientSocketKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53903D0C2956164F00D0B308 /* NCDesktopClientSocketKit.framework */; };
 		53903D2C2956173000D0B308 /* NCDesktopClientSocketKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 53903D0C2956164F00D0B308 /* NCDesktopClientSocketKit.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -840,6 +840,7 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
