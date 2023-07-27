@@ -675,6 +675,15 @@ bool SyncJournalDb::updateDatabaseStructure()
         return false;
     if (!updateErrorBlacklistTableStructure())
         return false;
+
+    SqlQuery query(_db);
+    query.prepare("CREATE INDEX IF NOT EXISTS caseconflicts_basePath ON caseconflicts(basePath);");
+    if (!query.exec()) {
+        sqlFail(QStringLiteral("caseconflictsTableStructure: create index basePath"), query);
+        return false;
+    }
+    commitInternal(QStringLiteral("update database structure: add basePath index"));
+
     return true;
 }
 
