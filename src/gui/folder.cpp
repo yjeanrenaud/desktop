@@ -559,7 +559,7 @@ void Folder::slotWatchedPathChanged(const QStringView &path, const ChangeReason 
 
     auto relativePath = path.mid(this->path().size());
 
-    if (pathIsIgnored(path)) {
+    if (pathIsIgnored(path.toString())) {
         const auto pinState = _vfs->pinState(relativePath.toString());
         if (!pinState || *pinState != PinState::Excluded) {
             if (!_vfs->setPinState(relativePath.toString(), PinState::Excluded)) {
@@ -1659,8 +1659,8 @@ void Folder::removeLocalE2eFiles()
     const auto existingBlacklist = _journal.getSelectiveSyncList(SyncJournalDb::SelectiveSyncBlackList, &ok);
     Q_ASSERT(ok);
 
-    const auto existingBlacklistSet = existingBlacklist.toSet();
-    auto expandedBlacklistSet = existingBlacklist.toSet();
+    const auto existingBlacklistSet = QSet<QString>{existingBlacklist.begin(), existingBlacklist.end()};
+    auto expandedBlacklistSet = QSet<QString>{existingBlacklist.begin(), existingBlacklist.end()};
 
     for (const auto &path : qAsConst(e2eFoldersToBlacklist)) {
         expandedBlacklistSet.insert(path);
