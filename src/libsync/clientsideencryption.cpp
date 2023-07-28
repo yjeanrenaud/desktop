@@ -2,13 +2,6 @@
 
 #include "clientsideencryption.h"
 
-#include <openssl/rsa.h>
-#include <openssl/evp.h>
-#include <openssl/pem.h>
-#include <openssl/err.h>
-#include <openssl/engine.h>
-#include <openssl/rand.h>
-
 #include "account.h"
 #include "capabilities.h"
 #include "networkjobs.h"
@@ -36,10 +29,20 @@
 #include <QRandomGenerator>
 #include <QCryptographicHash>
 
+#define OPENSSL_SUPPRESS_DEPRECATED
+
+#include <openssl/rsa.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+#include <openssl/engine.h>
+#include <openssl/rand.h>
+#include <openssl/provider.h>
+
 #include <map>
 #include <string>
 #include <algorithm>
-
+#include <optional>
 #include <cstdio>
 
 QDebug operator<<(QDebug out, const std::string& str)
@@ -643,7 +646,7 @@ QByteArray privateKeyToPem(const QByteArray key) {
     return pem;
 }
 
-QByteArray encryptStringAsymmetric(const QSslKey key, const QByteArray &data)
+std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, const QSslKey key, const QByteArray &data)
 {
     Q_ASSERT(!key.isNull());
     if (key.isNull()) {
@@ -654,10 +657,10 @@ QByteArray encryptStringAsymmetric(const QSslKey key, const QByteArray &data)
     const auto publicKeyPem = key.toPem();
     BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
     const auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
-    return EncryptionHelper::encryptStringAsymmetric(publicKey, data.toBase64());
+    return EncryptionHelper::encryptStringAsymmetric(sslEngine, publicKey, data.toBase64());
 }
 
-QByteArray decryptStringAsymmetric(const QByteArray &privateKeyPem, const QByteArray &data)
+std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, const QByteArray &privateKeyPem, const QByteArray &data)
 {
     Q_ASSERT(!privateKeyPem.isEmpty());
     if (privateKeyPem.isEmpty()) {
@@ -670,13 +673,17 @@ QByteArray decryptStringAsymmetric(const QByteArray &privateKeyPem, const QByteA
     const auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
 
     // Also base64 decode the result
-    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(key, QByteArray::fromBase64(data));
+    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(sslEngine, key, QByteArray::fromBase64(data));
+    if (!decryptResult) {
+        qCWarning(lcCse()) << "decrypt failed";
+        return {};
+    }
 
-    if (decryptResult.isEmpty()) {
+    if (decryptResult->isEmpty()) {
         qCDebug(lcCse()) << "ERROR. Could not decrypt data";
         return {};
     }
-    return QByteArray::fromBase64(decryptResult);
+    return QByteArray::fromBase64(*decryptResult);
 }
 
 QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data) {
@@ -761,11 +768,11 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
     return result;
 }
 
-QByteArray decryptStringAsymmetric(EVP_PKEY *privateKey, const QByteArray& data) {
+std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *privateKey, const QByteArray& data) {
     int err = -1;
 
     qCInfo(lcCseDecryption()) << "Start to work the decryption.";
-    auto ctx = PKeyCtx::forKey(privateKey, ENGINE_get_default_RSA());
+    auto ctx = PKeyCtx::forKey(privateKey, sslEngine);
     if (!ctx) {
         qCInfo(lcCseDecryption()) << "Could not create the PKEY context.";
         handleErrors();
@@ -820,44 +827,42 @@ QByteArray decryptStringAsymmetric(EVP_PKEY *privateKey, const QByteArray& data)
 
     // we don't need extra zeroes in out, so let's only return meaningful data
     out = QByteArray(out.constData(), outlen);
-
-    qCInfo(lcCse()) << out;
     return out;
 }
 
-QByteArray encryptStringAsymmetric(EVP_PKEY *publicKey, const QByteArray& data) {
+std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *publicKey, const QByteArray& data) {
     int err = -1;
 
-    auto ctx = PKeyCtx::forKey(publicKey, ENGINE_get_default_RSA());
+    auto ctx = PKeyCtx::forKey(publicKey, sslEngine);
     if (!ctx) {
-        qCInfo(lcCse()) << "Could not initialize the pkey context.";
-        exit(1);
+        qCInfo(lcCse()) << "Could not initialize the pkey context." << publicKey << sslEngine;
+        return {};
     }
 
     if (EVP_PKEY_encrypt_init(ctx) != 1) {
         qCInfo(lcCse()) << "Error initilaizing the encryption.";
-        exit(1);
+        return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
         qCInfo(lcCse()) << "Error setting the encryption padding.";
-        exit(1);
+        return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha256()) <= 0) {
         qCInfo(lcCse()) << "Error setting OAEP SHA 256";
-        exit(1);
+        return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha256()) <= 0) {
         qCInfo(lcCse()) << "Error setting MGF1 padding";
-        exit(1);
+        return {};
     }
 
     size_t outLen = 0;
     if (EVP_PKEY_encrypt(ctx, nullptr, &outLen, (unsigned char *)data.constData(), data.size()) != 1) {
         qCInfo(lcCse()) << "Error retrieving the size of the encrypted data";
-        exit(1);
+        return {};
     } else {
         qCInfo(lcCse()) << "Encryption Length:" << outLen;
     }
@@ -865,7 +870,7 @@ QByteArray encryptStringAsymmetric(EVP_PKEY *publicKey, const QByteArray& data) 
     QByteArray out(static_cast<int>(outLen), '\0');
     if (EVP_PKEY_encrypt(ctx, unsignedData(out), &outLen, (unsigned char *)data.constData(), data.size()) != 1) {
         qCInfo(lcCse()) << "Could not encrypt key." << err;
-        exit(1);
+        return {};
     }
 
     // Transform the encrypted data into base64.
@@ -906,6 +911,11 @@ const QString &ClientSideEncryption::getMnemonic() const
 void ClientSideEncryption::setCertificate(const QSslCertificate &certificate)
 {
     _certificate = certificate;
+}
+
+ENGINE* ClientSideEncryption::sslEngine() const
+{
+    return ENGINE_get_default_RSA();
 }
 
 void ClientSideEncryption::initialize(const AccountPtr &account)
@@ -963,14 +973,23 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
     auto publicKey = PKey::readPublicKey(publicKeyBio);
 
-    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(publicKey, data.toBase64());
+    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(ENGINE_get_default_RSA(), publicKey, data.toBase64());
+    if (!encryptedData) {
+        qCWarning(lcCse()) << "encryption error";
+        return false;
+    }
 
     Bio privateKeyBio;
     QByteArray privateKeyPem = account->e2e()->_privateKey;
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = PKey::readPrivateKey(privateKeyBio);
 
-    QByteArray decryptResult = QByteArray::fromBase64(EncryptionHelper::decryptStringAsymmetric( key, QByteArray::fromBase64(encryptedData)));
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(ENGINE_get_default_RSA(), key, QByteArray::fromBase64(*encryptedData));
+    if (!decryptionResult) {
+        qCWarning(lcCse()) << "encryption error";
+        return false;
+    }
+    QByteArray decryptResult = QByteArray::fromBase64(*decryptionResult);
 
     if (data != decryptResult) {
         qCInfo(lcCse()) << "invalid private key";
@@ -1128,7 +1147,7 @@ void ClientSideEncryption::mnemonicKeyFetched(QKeychain::Job *incoming)
 
     _mnemonic = readJob->textData();
 
-    qCInfo(lcCse()) << "Mnemonic key fetched from keychain: " << _mnemonic;
+    qCInfo(lcCse()) << "Mnemonic key fetched from keychain";
 
     checkServerHasSavedKeys(account);
 }
@@ -1792,7 +1811,7 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
 
     const auto metadataKeyFromJson = metadataObj[metadataKeyJsonKey].toString().toLocal8Bit();
     if (!metadataKeyFromJson.isEmpty()) {
-        const auto decryptedMetadataKeyBase64 = decryptData(metadataKeyFromJson);
+        const auto decryptedMetadataKeyBase64 = *decryptData(metadataKeyFromJson);
         if (!decryptedMetadataKeyBase64.isEmpty()) {
             _metadataKey = QByteArray::fromBase64(decryptedMetadataKeyBase64);
         }
@@ -1809,7 +1828,7 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
         }
 
         const auto lastMetadataKey = metadataKeys.keys().last();
-        const auto decryptedMetadataKeyBase64 = decryptData(metadataKeys.value(lastMetadataKey).toString().toLocal8Bit());
+        const auto decryptedMetadataKeyBase64 = *decryptData(metadataKeys.value(lastMetadataKey).toString().toLocal8Bit());
         if (!decryptedMetadataKeyBase64.isEmpty()) {
             _metadataKey = QByteArray::fromBase64(decryptedMetadataKeyBase64);
         }
@@ -1905,7 +1924,7 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
 }
 
 // RSA/ECB/OAEPWithSHA-256AndMGF1Padding using private / public key.
-QByteArray FolderMetadata::encryptData(const QByteArray& data) const
+std::optional<QByteArray> FolderMetadata::encryptData(const QByteArray& data) const
 {
     Bio publicKeyBio;
     QByteArray publicKeyPem = _account->e2e()->getPublicKey().toPem();
@@ -1913,10 +1932,10 @@ QByteArray FolderMetadata::encryptData(const QByteArray& data) const
     auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
 
     // The metadata key is binary so base64 encode it first
-    return EncryptionHelper::encryptStringAsymmetric(publicKey, data.toBase64());
+    return EncryptionHelper::encryptStringAsymmetric(_account->e2e()->sslEngine(), publicKey, data.toBase64());
 }
 
-QByteArray FolderMetadata::decryptData(const QByteArray &data) const
+std::optional<QByteArray> FolderMetadata::decryptData(const QByteArray &data) const
 {
     Bio privateKeyBio;
     QByteArray privateKeyPem = _account->e2e()->getPrivateKey();
@@ -1924,14 +1943,14 @@ QByteArray FolderMetadata::decryptData(const QByteArray &data) const
     auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
 
     // Also base64 decode the result
-    QByteArray decryptResult = EncryptionHelper::decryptStringAsymmetric(key, QByteArray::fromBase64(data));
+    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(_account->e2e()->sslEngine(), key, QByteArray::fromBase64(data));
 
-    if (decryptResult.isEmpty())
+    if (!decryptResult || decryptResult->isEmpty())
     {
         qCDebug(lcCse()) << "ERROR. Could not decrypt the metadata key";
         return {};
     }
-    return QByteArray::fromBase64(decryptResult);
+    return QByteArray::fromBase64(*decryptResult);
 }
 
 QByteArray FolderMetadata::decryptDataUsingKey(const QByteArray &data,
@@ -2013,10 +2032,14 @@ QByteArray FolderMetadata::encryptedMetadata() const {
     }
     const auto version = _account->capabilities().clientSideEncryptionVersion();
     const auto encryptedMetadataKey = encryptData(_metadataKey.toBase64());
+    if (!encryptedMetadataKey || encryptedMetadataKey->isEmpty()) {
+        qCDebug(lcCse) << "encryption failed";
+        return {};
+    }
     QJsonObject metadata{
         {"version", version},
-        {metadataKeyJsonKey, QJsonValue::fromVariant(encryptedMetadataKey)},
-        {"checksum", QJsonValue::fromVariant(computeMetadataKeyChecksum(encryptedMetadataKey))},
+        {metadataKeyJsonKey, QJsonValue::fromVariant(*encryptedMetadataKey)},
+        {"checksum", QJsonValue::fromVariant(computeMetadataKeyChecksum(*encryptedMetadataKey))},
     };
 
     QJsonObject files;
@@ -2111,7 +2134,7 @@ bool FolderMetadata::moveFromFileDropToFiles()
     for (auto it = _fileDrop.begin(); it != _fileDrop.end(); ) {
         const auto fileObject = it.value().toObject();
 
-        const auto decryptedKey = decryptData(fileObject["encryptedKey"].toString().toLocal8Bit());
+        const auto decryptedKey = *decryptData(fileObject["encryptedKey"].toString().toLocal8Bit());
         const auto decryptedAuthenticationTag = fileObject["encryptedTag"].toString().toLocal8Bit();
         const auto decryptedInitializationVector = fileObject["encryptedInitializationVector"].toString().toLocal8Bit();
 

@@ -1,6 +1,9 @@
 #ifndef CLIENTSIDEENCRYPTION_H
 #define CLIENTSIDEENCRYPTION_H
 
+#include "accountfwd.h"
+#include "networkjobs.h"
+
 #include <QString>
 #include <QObject>
 #include <QJsonDocument>
@@ -13,8 +16,7 @@
 
 #include <openssl/evp.h>
 
-#include "accountfwd.h"
-#include "networkjobs.h"
+#include <optional>
 
 namespace QKeychain {
 class Job;
@@ -48,20 +50,22 @@ namespace EncryptionHelper {
             const QByteArray& key,
             const QByteArray& data
     );
-    OWNCLOUDSYNC_EXPORT QByteArray encryptStringAsymmetric(const QSslKey key, const QByteArray &data);
-    OWNCLOUDSYNC_EXPORT QByteArray decryptStringAsymmetric(const QByteArray &privateKeyPem, const QByteArray &data);
+    OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
+                                                                          const QSslKey key,
+                                                                          const QByteArray &data);
+    OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
+                                                                          const QByteArray &privateKeyPem,
+                                                                          const QByteArray &data);
 
     QByteArray privateKeyToPem(const QByteArray key);
 
-    //TODO: change those two EVP_PKEY into QSslKey.
-    QByteArray encryptStringAsymmetric(
-            EVP_PKEY *publicKey,
-            const QByteArray& data
-    );
-    QByteArray decryptStringAsymmetric(
-            EVP_PKEY *privateKey,
-            const QByteArray& data
-    );
+           //TODO: change those two EVP_PKEY into QSslKey.
+    std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
+                                                      EVP_PKEY *publicKey,
+                                                      const QByteArray& data);
+    std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
+                                                      EVP_PKEY *privateKey,
+                                                      const QByteArray& data);
 
     OWNCLOUDSYNC_EXPORT bool fileEncryption(const QByteArray &key, const QByteArray &iv,
                       QFile *input, QFile *output, QByteArray& returnTag);
@@ -134,6 +138,8 @@ public:
     [[nodiscard]] const QString &getMnemonic() const;
 
     void setCertificate(const QSslCertificate &certificate);
+
+    ENGINE* sslEngine() const;
 
 signals:
     void initializationFinished(bool isNewMnemonicGenerated = false);
@@ -221,6 +227,8 @@ private:
     QString _mnemonic;
     bool _newMnemonicGenerated = false;
 
+    ENGINE* _sslEngine = nullptr;
+
     bool isInitialized = false;
 };
 
@@ -270,8 +278,8 @@ private:
     void setupEmptyMetadata();
     void setupExistingMetadata(const QByteArray& metadata);
 
-    [[nodiscard]] QByteArray encryptData(const QByteArray &data) const;
-    [[nodiscard]] QByteArray decryptData(const QByteArray &data) const;
+    [[nodiscard]] std::optional<QByteArray> encryptData(const QByteArray &data) const;
+    [[nodiscard]] std::optional<QByteArray> decryptData(const QByteArray &data) const;
     [[nodiscard]] QByteArray decryptDataUsingKey(const QByteArray &data,
                                                  const QByteArray &key,
                                                  const QByteArray &authenticationTag,

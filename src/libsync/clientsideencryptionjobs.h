@@ -5,7 +5,6 @@
 #include "accountfwd.h"
 #include <QString>
 #include <QJsonDocument>
-#include <QSslKey>
 
 namespace OCC {
 /* Here are all of the network jobs for the client side encryption.
@@ -145,7 +144,7 @@ class OWNCLOUDSYNC_EXPORT LockEncryptFolderApiJob : public AbstractNetworkJob
 {
     Q_OBJECT
 public:
-    explicit LockEncryptFolderApiJob(const AccountPtr &account, const QByteArray &fileId, SyncJournalDb *journalDb, const QSslKey publicKey, QObject *parent = nullptr);
+    explicit LockEncryptFolderApiJob(const AccountPtr &account, const QByteArray &fileId, SyncJournalDb *journalDb, QObject *parent = nullptr);
 
 public slots:
     void start() override;
@@ -162,7 +161,6 @@ signals:
 private:
     QByteArray _fileId;
     QPointer<SyncJournalDb> _journalDb;
-    QSslKey _publicKey;
 };
 
 
