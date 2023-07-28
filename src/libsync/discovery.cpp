@@ -463,6 +463,8 @@ void ProcessDirectoryJob::processFile(PathTuple path,
     const char *hasLocal = localEntry.isValid() ? "true" : _queryLocal == ParentNotChanged ? "db" : "false";
     const auto serverFileIsLocked = (serverEntry.isValid() ? (serverEntry.locked == SyncFileItem::LockStatus::LockedItem ? "locked" : "not locked")  : "");
     const auto localFileIsLocked = dbEntry._lockstate._locked ? "locked" : "not locked";
+    // TODO: Optimize this part of logging -> delayed << such that logs are not flushed and gzipped way too often? Or, maybe, aggregate log lines and do the << part as one long call with multiple files (10, 100) more?
+    // OR?, do whatever would dicrease subsequent calls to this log line
     qCInfo(lcDisco).nospace() << "Processing " << path._original
                               << " | (db/local/remote)"
                               << " | valid: " << dbEntry.isValid() << "/" << hasLocal << "/" << hasServer
