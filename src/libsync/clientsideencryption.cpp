@@ -890,6 +890,21 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *p
     return out.toBase64();
 }
 
+void debugOpenssl()
+{
+    if (ERR_peek_error() == 0) {
+        return;
+    }
+
+    const char *file;
+    char errorMessage[255];
+    int line;
+    while (const auto errorNumber = ERR_get_error_line(&file, &line)) {
+        ERR_error_string(errorNumber, errorMessage);
+        qCWarning(lcCse()) << errorMessage << file << line;
+    }
+}
+
 }
 
 
