@@ -735,7 +735,7 @@ void ProcessDirectoryJob::processFileAnalyzeRemoteInfo(
     item->_modtime = serverEntry.modtime;
     item->_size = serverEntry.size;
 
-    auto conflictRecord = _discoveryData->_statedb->caseConflictRecordByBasePath(item->_file);
+    auto conflictRecord = _discoveryData->_noCaseConflictRecordsInDb ? ConflictRecord{} : _discoveryData->_statedb->caseConflictRecordByBasePath(item->_file);
     if (conflictRecord.isValid() && QString::fromUtf8(conflictRecord.path).contains(QStringLiteral("(case clash from"))) {
         qCInfo(lcDisco) << "should ignore" << item->_file << "has already a case clash conflict record" << conflictRecord.path;
 

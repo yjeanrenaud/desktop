@@ -309,6 +309,8 @@ public:
 
     QStringList _listExclusiveFiles;
 
+    bool _noCaseConflictRecordsInDb = false;
+
 signals:
     void fatalError(const QString &errorString, const OCC::ErrorCategory errorCategory);
     void itemDiscovered(const OCC::SyncFileItemPtr &item);
