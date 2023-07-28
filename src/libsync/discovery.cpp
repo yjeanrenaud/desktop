@@ -76,6 +76,8 @@ void ProcessDirectoryJob::start()
 {
     qCInfo(lcDisco) << "STARTING" << _currentFolder._server << _queryServer << _currentFolder._local << _queryLocal;
 
+    _discoveryData->_noCaseConflictRecordsInDb = _discoveryData->_statedb->caseClashConflictRecordPaths().isEmpty();
+
     if (_queryServer == NormalQuery) {
         _serverJob = startAsyncServerQuery();
     } else {
