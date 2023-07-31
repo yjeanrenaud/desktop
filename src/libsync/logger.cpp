@@ -119,6 +119,7 @@ bool Logger::isLoggingToFile() const
 void Logger::doLog(QtMsgType type, const QMessageLogContext &ctx, const QString &message)
 {
     static long long int linesCounter = 0;
+    static long long int linesCounterFlushDisabled = 0;
     const auto &msg = qFormatLogMessage(type, ctx, message);
 #if defined(Q_OS_WIN) && defined(QT_DEBUG)
     // write logs to Output window of Visual Studio
@@ -152,7 +153,13 @@ void Logger::doLog(QtMsgType type, const QMessageLogContext &ctx, const QString 
             closeNoLock();
             enterNextLogFileNoLock();
         }
-        ++linesCounter;
+        if (_doFileFlush) {
+            linesCounter += linesCounterFlushDisabled;
+            linesCounterFlushDisabled = 0;
+            ++linesCounter;
+        } else {
+            ++linesCounterFlushDisabled;
+        }
 
         _crashLogIndex = (_crashLogIndex + 1) % CrashLogSize;
         _crashLog[_crashLogIndex] = msg;
@@ -214,6 +221,7 @@ void Logger::setLogDir(const QString &dir)
 void Logger::setLogFlush(bool flush)
 {
     _doFileFlush = flush;
+    qInfo() << "Logger Setting flush to:" << flush;
 }
 
 void Logger::setLogDebug(bool debug)

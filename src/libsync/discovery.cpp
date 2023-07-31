@@ -17,6 +17,7 @@
 #include "common/filesystembase.h"
 #include "common/syncjournaldb.h"
 #include "filesystem.h"
+#include "logger.h"
 #include "syncfileitem.h"
 #include "progressdispatcher.h"
 #include <QDebug>
@@ -172,6 +173,7 @@ void ProcessDirectoryJob::process()
     //
     // Iterate over entries and process them
     //
+    Logger::instance()->setLogFlush(false);
     for (auto &f : entries) {
         auto &e = f.second;
 
@@ -241,6 +243,7 @@ void ProcessDirectoryJob::process()
 
         processFile(std::move(path), e.localEntry, e.serverEntry, e.dbEntry);
     }
+    Logger::instance()->setLogFlush(true);
     _discoveryData->_listExclusiveFiles.clear();
     QTimer::singleShot(0, _discoveryData, &DiscoveryPhase::scheduleMoreJobs);
 }
