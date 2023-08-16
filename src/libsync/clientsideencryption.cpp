@@ -658,44 +658,77 @@ QByteArray privateKeyToPem(const QByteArray key) {
     return pem;
 }
 
-std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, const QSslKey key, const QByteArray &data)
-{
-    Q_ASSERT(!key.isNull());
-    if (key.isNull()) {
-        qCDebug(lcCse) << "Public key is null. Could not encrypt.";
-        return {};
-    }
-    Bio publicKeyBio;
-    const auto publicKeyPem = key.toPem();
-    BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
-    const auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
-    return EncryptionHelper::encryptStringAsymmetric(sslEngine, publicKey, data.toBase64());
+namespace internals {
+
+[[nodiscard]] std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
+                                                                EVP_PKEY *publicKey,
+                                                                const QByteArray& data);
+
+[[nodiscard]] std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
+                                                                EVP_PKEY *privateKey,
+                                                                const QByteArray& data);
+
+[[nodiscard]] std::optional<QByteArray> encryptStringAsymmetricWithToken(ENGINE *sslEngine,
+                                                                         PKCS11_KEY *key,
+                                                                         const QByteArray &data);
+
+[[nodiscard]] std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
+                                                                         PKCS11_KEY *key,
+                                                                         const QByteArray &data);
+
 }
 
-std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, const QByteArray &privateKeyPem, const QByteArray &data)
+std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine, const QByteArray &data)
 {
-    Q_ASSERT(!privateKeyPem.isEmpty());
-    if (privateKeyPem.isEmpty()) {
-        qCDebug(lcCse) << "Private key is empty. Could not encrypt.";
+    if (encryptionEngine.useTokenBasedEncryption()) {
+        qCWarning(lcCse()) << "not implemented";
         return {};
+    } else {
+        const auto key = encryptionEngine.getPublicKey();
+        Q_ASSERT(!key.isNull());
+        if (key.isNull()) {
+            qCDebug(lcCse) << "Public key is null. Could not encrypt.";
+            return {};
+        }
+        Bio publicKeyBio;
+        const auto publicKeyPem = key.toPem();
+        BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
+        const auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
+        return internals::encryptStringAsymmetric(encryptionEngine.sslEngine(), publicKey, data.toBase64());
     }
+}
 
-    Bio privateKeyBio;
-    BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
-    const auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
-
-    // Also base64 decode the result
-    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(sslEngine, key, QByteArray::fromBase64(data));
-    if (!decryptResult) {
-        qCWarning(lcCse()) << "decrypt failed";
+std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
+                                                  const QByteArray &data)
+{
+    if (encryptionEngine.useTokenBasedEncryption()) {
+        qCWarning(lcCse()) << "not implemented";
         return {};
-    }
+    } else {
+        const auto privateKeyPem = encryptionEngine.getPrivateKey();
+        Q_ASSERT(!privateKeyPem.isEmpty());
+        if (privateKeyPem.isEmpty()) {
+            qCDebug(lcCse) << "Private key is empty. Could not encrypt.";
+            return {};
+        }
 
-    if (decryptResult->isEmpty()) {
-        qCDebug(lcCse()) << "ERROR. Could not decrypt data";
-        return {};
+        Bio privateKeyBio;
+        BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
+        const auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
+
+        // Also base64 decode the result
+        const auto decryptResult = internals::decryptStringAsymmetric(encryptionEngine.sslEngine(), key, QByteArray::fromBase64(data));
+        if (!decryptResult) {
+            qCWarning(lcCse()) << "decrypt failed";
+            return {};
+        }
+
+        if (decryptResult->isEmpty()) {
+            qCDebug(lcCse()) << "ERROR. Could not decrypt data";
+            return {};
+        }
+        return QByteArray::fromBase64(*decryptResult);
     }
-    return QByteArray::fromBase64(*decryptResult);
 }
 
 QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data) {
@@ -779,6 +812,8 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
 
     return result;
 }
+
+namespace internals {
 
 std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *privateKey, const QByteArray& data) {
     int err = -1;
@@ -890,6 +925,8 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *p
     return out.toBase64();
 }
 
+}
+
 void debugOpenssl()
 {
     if (ERR_peek_error() == 0) {
@@ -903,6 +940,22 @@ void debugOpenssl()
         ERR_error_string(errorNumber, errorMessage);
         qCWarning(lcCse()) << errorMessage << file << line;
     }
+}
+
+std::optional<QByteArray> encryptStringAsymmetricWithToken(ENGINE *sslEngine, PKCS11_KEY *key, const QByteArray &data)
+{
+    Q_UNUSED(sslEngine)
+    Q_UNUSED(key)
+    Q_UNUSED(data)
+    return {};
+}
+
+std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine, PKCS11_KEY *key, const QByteArray &data)
+{
+    Q_UNUSED(sslEngine)
+    Q_UNUSED(key)
+    Q_UNUSED(data)
+    return {};
 }
 
 }
@@ -989,11 +1042,11 @@ ClientSideEncryption::ClientSideEncryption()
 
     qCInfo(lcCse()) << "hardware token has" << privateKeysCount << "private keys";
 
-    auto tokenPrivateKey = &tokenPrivateKeys[0];
+    _tokenPrivateKey = &tokenPrivateKeys[0];
     qCInfo(lcCse()) << "key metadata"
-                    << " type:" << (tokenPrivateKey->isPrivate ? "is private" : "is public")
-                    << "label:" << tokenPrivateKey->label
-                    << "need login:" << (tokenPrivateKey->needLogin ? "true" : "false");
+                    << " type:" << (_tokenPrivateKey->isPrivate ? "is private" : "is public")
+                    << "label:" << _tokenPrivateKey->label
+                    << "need login:" << (_tokenPrivateKey->needLogin ? "true" : "false");
 
     auto publicKeysCount = 0u;
     auto tokenPublicKeys = static_cast<PKCS11_KEY*>(nullptr);
@@ -1011,11 +1064,11 @@ ClientSideEncryption::ClientSideEncryption()
 
     qCInfo(lcCse()) << "hardware token has" << publicKeysCount << "public keys";
 
-    auto tokenPublicKey = &tokenPublicKeys[0];
+    _tokenPublicKey = &tokenPublicKeys[0];
     qCInfo(lcCse()) << "key metadata"
-                    << " type:" << (tokenPublicKey->isPrivate ? "is private" : "is public")
-                    << "label:" << tokenPublicKey->label
-                    << "need login:" << (tokenPublicKey->needLogin ? "true" : "false");
+                    << " type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
+                    << "label:" << _tokenPublicKey->label
+                    << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
 }
 
 const QSslKey &ClientSideEncryption::getPublicKey() const
@@ -1036,6 +1089,21 @@ const QByteArray &ClientSideEncryption::getPrivateKey() const
 void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
 {
     _privateKey = privateKey;
+}
+
+PKCS11_KEY* ClientSideEncryption::getTokenPublicKey() const
+{
+    return _tokenPublicKey;
+}
+
+PKCS11_KEY* ClientSideEncryption::getTokenPrivateKey() const
+{
+    return _tokenPrivateKey;
+}
+
+bool ClientSideEncryption::useTokenBasedEncryption() const
+{
+    return _tokenPublicKey && _tokenPrivateKey;
 }
 
 const QString &ClientSideEncryption::getMnemonic() const
@@ -1108,7 +1176,7 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
     auto publicKey = PKey::readPublicKey(publicKeyBio);
 
-    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(ENGINE_get_default_RSA(), publicKey, data.toBase64());
+    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(*account->e2e(), data.toBase64());
     if (!encryptedData) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -1119,7 +1187,7 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = PKey::readPrivateKey(privateKeyBio);
 
-    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(ENGINE_get_default_RSA(), key, QByteArray::fromBase64(*encryptedData));
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*account->e2e(), QByteArray::fromBase64(*encryptedData));
     if (!decryptionResult) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -2061,24 +2129,14 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
 // RSA/ECB/OAEPWithSHA-256AndMGF1Padding using private / public key.
 std::optional<QByteArray> FolderMetadata::encryptData(const QByteArray& data) const
 {
-    Bio publicKeyBio;
-    QByteArray publicKeyPem = _account->e2e()->getPublicKey().toPem();
-    BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
-    auto publicKey = ClientSideEncryption::PKey::readPublicKey(publicKeyBio);
-
     // The metadata key is binary so base64 encode it first
-    return EncryptionHelper::encryptStringAsymmetric(_account->e2e()->sslEngine(), publicKey, data.toBase64());
+    return EncryptionHelper::encryptStringAsymmetric(*_account->e2e(), data.toBase64());
 }
 
 std::optional<QByteArray> FolderMetadata::decryptData(const QByteArray &data) const
 {
-    Bio privateKeyBio;
-    QByteArray privateKeyPem = _account->e2e()->getPrivateKey();
-    BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
-    auto key = ClientSideEncryption::PKey::readPrivateKey(privateKeyBio);
-
     // Also base64 decode the result
-    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(_account->e2e()->sslEngine(), key, QByteArray::fromBase64(data));
+    const auto decryptResult = EncryptionHelper::decryptStringAsymmetric(*_account->e2e(), QByteArray::fromBase64(data));
 
     if (!decryptResult || decryptResult->isEmpty())
     {

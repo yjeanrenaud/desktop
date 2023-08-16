@@ -42,52 +42,46 @@ class ReadPasswordJob;
 
 namespace OCC {
 
+class ClientSideEncryption;
 QString e2eeBaseUrl();
 
 namespace EncryptionHelper {
-    QByteArray generateRandomFilename();
-    OWNCLOUDSYNC_EXPORT QByteArray generateRandom(int size);
-    QByteArray generatePassword(const QString &wordlist, const QByteArray& salt);
-    OWNCLOUDSYNC_EXPORT QByteArray encryptPrivateKey(
-            const QByteArray& key,
-            const QByteArray& privateKey,
-            const QByteArray &salt
-    );
-    OWNCLOUDSYNC_EXPORT QByteArray decryptPrivateKey(
-            const QByteArray& key,
-            const QByteArray& data
-    );
-    OWNCLOUDSYNC_EXPORT QByteArray extractPrivateKeySalt(const QByteArray &data);
-    OWNCLOUDSYNC_EXPORT QByteArray encryptStringSymmetric(
-            const QByteArray& key,
-            const QByteArray& data
-    );
-    OWNCLOUDSYNC_EXPORT QByteArray decryptStringSymmetric(
-            const QByteArray& key,
-            const QByteArray& data
-    );
-    OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
-                                                                          const QSslKey key,
-                                                                          const QByteArray &data);
-    OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
-                                                                          const QByteArray &privateKeyPem,
-                                                                          const QByteArray &data);
 
-    QByteArray privateKeyToPem(const QByteArray key);
+QByteArray generateRandomFilename();
+OWNCLOUDSYNC_EXPORT QByteArray generateRandom(int size);
+QByteArray generatePassword(const QString &wordlist, const QByteArray& salt);
+OWNCLOUDSYNC_EXPORT QByteArray encryptPrivateKey(
+        const QByteArray& key,
+        const QByteArray& privateKey,
+        const QByteArray &salt
+);
+OWNCLOUDSYNC_EXPORT QByteArray decryptPrivateKey(
+        const QByteArray& key,
+        const QByteArray& data
+);
+OWNCLOUDSYNC_EXPORT QByteArray extractPrivateKeySalt(const QByteArray &data);
+OWNCLOUDSYNC_EXPORT QByteArray encryptStringSymmetric(
+        const QByteArray& key,
+        const QByteArray& data
+);
+OWNCLOUDSYNC_EXPORT QByteArray decryptStringSymmetric(
+        const QByteArray& key,
+        const QByteArray& data
+);
 
-           //TODO: change those two EVP_PKEY into QSslKey.
-    std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
-                                                      EVP_PKEY *publicKey,
-                                                      const QByteArray& data);
-    std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
-                                                      EVP_PKEY *privateKey,
-                                                      const QByteArray& data);
+[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
+                                                                                    const QByteArray &data);
 
-    OWNCLOUDSYNC_EXPORT bool fileEncryption(const QByteArray &key, const QByteArray &iv,
-                      QFile *input, QFile *output, QByteArray& returnTag);
+[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
+                                                                                    const QByteArray &data);
 
-    OWNCLOUDSYNC_EXPORT bool fileDecryption(const QByteArray &key, const QByteArray &iv,
-                               QFile *input, QFile *output);
+QByteArray privateKeyToPem(const QByteArray key);
+
+OWNCLOUDSYNC_EXPORT bool fileEncryption(const QByteArray &key, const QByteArray &iv,
+                  QFile *input, QFile *output, QByteArray& returnTag);
+
+OWNCLOUDSYNC_EXPORT bool fileDecryption(const QByteArray &key, const QByteArray &iv,
+                           QFile *input, QFile *output);
 
 //
 // Simple classes for safe (RAII) handling of OpenSSL
@@ -150,6 +144,12 @@ public:
     [[nodiscard]] const QByteArray& getPrivateKey() const;
 
     void setPrivateKey(const QByteArray &privateKey);
+
+    [[nodiscard]] PKCS11_KEY* getTokenPublicKey() const;
+
+    [[nodiscard]] PKCS11_KEY* getTokenPrivateKey() const;
+
+    [[nodiscard]] bool useTokenBasedEncryption() const;
 
     [[nodiscard]] const QString &getMnemonic() const;
 
@@ -243,7 +243,8 @@ private:
     QString _mnemonic;
     bool _newMnemonicGenerated = false;
 
-    ENGINE* _sslEngine = nullptr;
+    PKCS11_KEY* _tokenPublicKey = nullptr;
+    PKCS11_KEY* _tokenPrivateKey = nullptr;
 
     bool isInitialized = false;
 };
