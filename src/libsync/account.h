@@ -88,6 +88,8 @@ class OWNCLOUDSYNC_EXPORT Account : public QObject
     Q_PROPERTY(QUrl url MEMBER _url)
     Q_PROPERTY(bool e2eEncryptionKeysGenerationAllowed MEMBER _e2eEncryptionKeysGenerationAllowed)
     Q_PROPERTY(bool askUserForMnemonic READ askUserForMnemonic WRITE setAskUserForMnemonic NOTIFY askUserForMnemonicChanged)
+    Q_PROPERTY(bool useHardwareTokenEncryption READ useHardwareTokenEncryption NOTIFY useHardwareTokenEncryptionChanged)
+    Q_PROPERTY(QString encryptionHardwareTokenDriverPath READ encryptionHardwareTokenDriverPath NOTIFY encryptionHardwareTokenDriverPathChanged)
 
 public:
     static AccountPtr create();
@@ -326,6 +328,10 @@ public:
 
     [[nodiscard]] bool askUserForMnemonic() const;
 
+    [[nodiscard]] bool useHardwareTokenEncryption() const;
+
+    [[nodiscard]] QString encryptionHardwareTokenDriverPath() const;
+
 public slots:
     /// Used when forgetting credentials
     void clearQNAMCache();
@@ -354,6 +360,8 @@ signals:
     void accountChangedDisplayName();
     void prettyNameChanged();
     void askUserForMnemonicChanged();
+    void useHardwareTokenEncryptionChanged();
+    void encryptionHardwareTokenDriverPathChanged();
 
     /// Used in RemoteWipe
     void appPasswordRetrieved(QString);

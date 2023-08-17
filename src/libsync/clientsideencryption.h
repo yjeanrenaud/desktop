@@ -167,6 +167,7 @@ signals:
 
 public slots:
     void initialize(const OCC::AccountPtr &account);
+    void initializeHardwareTokenEncryption(const AccountPtr &account);
     void forgetSensitiveData(const OCC::AccountPtr &account);
 
 private slots:

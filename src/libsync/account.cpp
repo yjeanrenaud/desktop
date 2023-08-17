@@ -1023,6 +1023,16 @@ bool Account::askUserForMnemonic() const
     return _e2eAskUserForMnemonic;
 }
 
+bool Account::useHardwareTokenEncryption() const
+{
+    return !encryptionHardwareTokenDriverPath().isEmpty();
+}
+
+QString Account::encryptionHardwareTokenDriverPath() const
+{
+    return {};
+}
+
 void Account::setAskUserForMnemonic(const bool ask)
 {
     _e2eAskUserForMnemonic = ask;

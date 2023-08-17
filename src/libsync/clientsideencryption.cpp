@@ -961,11 +961,81 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine, PK
 }
 
 
-ClientSideEncryption::ClientSideEncryption()
+ClientSideEncryption::ClientSideEncryption() = default;
+
+const QSslKey &ClientSideEncryption::getPublicKey() const
+{
+    return _publicKey;
+}
+
+void ClientSideEncryption::setPublicKey(const QSslKey &publicKey)
+{
+    _publicKey = publicKey;
+}
+
+const QByteArray &ClientSideEncryption::getPrivateKey() const
+{
+    return _privateKey;
+}
+
+void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
+{
+    _privateKey = privateKey;
+}
+
+PKCS11_KEY* ClientSideEncryption::getTokenPublicKey() const
+{
+    return _tokenPublicKey;
+}
+
+PKCS11_KEY* ClientSideEncryption::getTokenPrivateKey() const
+{
+    return _tokenPrivateKey;
+}
+
+bool ClientSideEncryption::useTokenBasedEncryption() const
+{
+    return _tokenPublicKey && _tokenPrivateKey;
+}
+
+const QString &ClientSideEncryption::getMnemonic() const
+{
+    return _mnemonic;
+}
+
+void ClientSideEncryption::setCertificate(const QSslCertificate &certificate)
+{
+    _certificate = certificate;
+}
+
+ENGINE* ClientSideEncryption::sslEngine() const
+{
+    return ENGINE_get_default_RSA();
+}
+
+void ClientSideEncryption::initialize(const AccountPtr &account)
+{
+    Q_ASSERT(account);
+
+    if (account->useHardwareTokenEncryption()) {
+        initializeHardwareTokenEncryption(account);
+    }
+
+    qCInfo(lcCse()) << "Initializing";
+    if (!account->capabilities().clientSideEncryptionAvailable()) {
+        qCInfo(lcCse()) << "No Client side encryption available on server.";
+        emit initializationFinished();
+        return;
+    }
+
+    fetchCertificateFromKeyChain(account);
+}
+
+void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &account)
 {
     auto ctx = PKCS11_CTX_new();
 
-    auto rc = PKCS11_CTX_load(ctx, "");
+    auto rc = PKCS11_CTX_load(ctx, account->encryptionHardwareTokenDriverPath().toLatin1().constData());
     if (rc) {
         qCWarning(lcCse()) << "loading pkcs11 engine failed:" << ERR_reason_error_string(ERR_get_error());
         rc = 1;
@@ -1069,70 +1139,6 @@ ClientSideEncryption::ClientSideEncryption()
                     << " type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
                     << "label:" << _tokenPublicKey->label
                     << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
-}
-
-const QSslKey &ClientSideEncryption::getPublicKey() const
-{
-    return _publicKey;
-}
-
-void ClientSideEncryption::setPublicKey(const QSslKey &publicKey)
-{
-    _publicKey = publicKey;
-}
-
-const QByteArray &ClientSideEncryption::getPrivateKey() const
-{
-    return _privateKey;
-}
-
-void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
-{
-    _privateKey = privateKey;
-}
-
-PKCS11_KEY* ClientSideEncryption::getTokenPublicKey() const
-{
-    return _tokenPublicKey;
-}
-
-PKCS11_KEY* ClientSideEncryption::getTokenPrivateKey() const
-{
-    return _tokenPrivateKey;
-}
-
-bool ClientSideEncryption::useTokenBasedEncryption() const
-{
-    return _tokenPublicKey && _tokenPrivateKey;
-}
-
-const QString &ClientSideEncryption::getMnemonic() const
-{
-    return _mnemonic;
-}
-
-void ClientSideEncryption::setCertificate(const QSslCertificate &certificate)
-{
-    _certificate = certificate;
-}
-
-ENGINE* ClientSideEncryption::sslEngine() const
-{
-    return ENGINE_get_default_RSA();
-}
-
-void ClientSideEncryption::initialize(const AccountPtr &account)
-{
-    Q_ASSERT(account);
-
-    qCInfo(lcCse()) << "Initializing";
-    if (!account->capabilities().clientSideEncryptionAvailable()) {
-        qCInfo(lcCse()) << "No Client side encryption available on server.";
-        emit initializationFinished();
-        return;
-    }
-
-    fetchCertificateFromKeyChain(account);
 }
 
 void ClientSideEncryption::fetchCertificateFromKeyChain(const AccountPtr &account)
