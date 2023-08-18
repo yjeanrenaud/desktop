@@ -70,10 +70,10 @@ OWNCLOUDSYNC_EXPORT QByteArray decryptStringSymmetric(
 );
 
 [[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
-                                                                                    const QByteArray &data);
+                                                                                    const QByteArray &binaryData);
 
 [[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
-                                                                                    const QByteArray &data);
+                                                                                    const QByteArray &base64Data);
 
 QByteArray privateKeyToPem(const QByteArray key);
 
@@ -296,8 +296,8 @@ private:
     void setupEmptyMetadata();
     void setupExistingMetadata(const QByteArray& metadata);
 
-    [[nodiscard]] std::optional<QByteArray> encryptData(const QByteArray &data) const;
-    [[nodiscard]] std::optional<QByteArray> decryptData(const QByteArray &data) const;
+    [[nodiscard]] std::optional<QByteArray> encryptData(const QByteArray &binaryDatadata) const;
+    [[nodiscard]] std::optional<QByteArray> decryptData(const QByteArray &base64Data) const;
     [[nodiscard]] QByteArray decryptDataUsingKey(const QByteArray &data,
                                                  const QByteArray &key,
                                                  const QByteArray &authenticationTag,
