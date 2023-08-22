@@ -665,6 +665,9 @@ namespace internals {
                                                                 EVP_PKEY *publicKey,
                                                                 const QByteArray& binaryData);
 
+[[nodiscard]] std::optional<QByteArray> encryptStringAsymmetricWithToken(EVP_PKEY *publicKey,
+                                                                         const QByteArray& binaryData);
+
 [[nodiscard]] std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
                                                                 EVP_PKEY *privateKey,
                                                                 const QByteArray& binaryData);
@@ -684,17 +687,11 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
             qCWarning(lcCseEncryption()) << "encryptStringAsymmetric" << "hardware public key" << publicKey;
         }
 
-        {
-            Bio publicKeyBio;
-            PEM_write_bio_PKCS8PrivateKey(publicKeyBio, publicKey, nullptr, nullptr, 0, nullptr, nullptr);
-            const auto publicKeyBase64 = BIO2ByteArray(publicKeyBio).toBase64();
-            qCInfo(lcCseDecryption()) << "decryptStringAsymmetric" << "hardware public key to base64" << publicKeyBase64;
-        }
-
         qCInfo(lcCseEncryption()) << "encryptStringAsymmetric:"
                                   << "data:" << binaryData.toBase64();
 
-        auto encryptedBase64Result = internals::encryptStringAsymmetric(encryptionEngine.sslEngine(), publicKey, binaryData);
+        auto encryptedBase64Result = internals::encryptStringAsymmetricWithToken(PKCS11_get_public_key(encryptionEngine.getTokenPublicKey()),
+                                                                                 binaryData);
 
         if (!encryptedBase64Result) {
             qCWarning(lcCseEncryption()) << "encrypt failed";
@@ -1008,6 +1005,39 @@ void debugOpenssl()
 
 namespace internals {
 
+std::optional<QByteArray> encryptStringAsymmetricWithToken(EVP_PKEY *publicKey,
+                                                           const QByteArray& binaryData)
+{
+    const auto initialLength = RSA_size(EVP_PKEY_get0_RSA(publicKey));
+    auto out = QByteArray{static_cast<int>(initialLength), 0};
+
+    const auto rc = RSA_public_encrypt(binaryData.size(),
+                                       reinterpret_cast<const unsigned char*>(binaryData.data()),
+                                       reinterpret_cast<unsigned char*>(out.data()),
+                                       const_cast<RSA*>(EVP_PKEY_get0_RSA(publicKey)),
+                                       RSA_PKCS1_PADDING);
+
+    if (rc != initialLength) {
+        qCInfo(lcCseEncryption()) << "data to encrypt:" << binaryData.toBase64()
+                                  << "size:" << binaryData.size()
+                                  << "key size:" << initialLength;
+        qCCritical(lcCseEncryption()) << "RSA_public_encrypt failed"
+                                      << "expected encrypted length" << initialLength
+                                      << "result" << rc << ERR_reason_error_string(ERR_get_error());
+
+        return {};
+    } else {
+        qCInfo(lcCseEncryption()) << "data to encrypt:" << binaryData.toBase64()
+                                  << "size:" << binaryData.size()
+                                  << "key size:" << initialLength;
+        qCInfo(lcCseEncryption()) << "data encrypted:" << out.toBase64()
+                                  << "size:" << out.size()
+                                  << "key size:" << initialLength;
+    }
+
+    return out.toBase64();
+}
+
 std::optional<QByteArray> decryptStringAsymmetricWithToken(PKCS11_KEY *privateKey,
                                                            EVP_PKEY *publicKey,
                                                            const QByteArray &binaryData)
@@ -1020,7 +1050,11 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(PKCS11_KEY *privateKe
                                            reinterpret_cast<unsigned char*>(decryptedData.data()),
                                            privateKey,
                                            RSA_PKCS1_PADDING);
-    if (rc != initialLength) {
+
+    if (rc < 0) {
+        qCInfo(lcCseDecryption()) << "data to decrypt:" << binaryData.toBase64()
+                                  << "size:" << binaryData.size()
+                                  << "key size:" << initialLength;
         qCCritical(lcCseDecryption()) << "PKCS11_private_decrypt failed"
                                       << "expected decrypted length" << initialLength
                                       << "result" << rc << ERR_reason_error_string(ERR_get_error());
@@ -1030,6 +1064,13 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(PKCS11_KEY *privateKe
                                   << "need login:" << (privateKey->needLogin ? "true" : "false");
 
         return {};
+    } else {
+        qCInfo(lcCseDecryption()) << "data to decrypt:" << binaryData.toBase64()
+                                  << "size:" << binaryData.size()
+                                  << "key size:" << initialLength;
+        qCInfo(lcCseDecryption()) << "data decrypted:" << decryptedData.toBase64()
+                                  << "size:" << decryptedData.size()
+                                  << "key size:" << initialLength;
     }
 
     qCInfo(lcCseDecryption()) << "result to base64" << decryptedData.toBase64();
