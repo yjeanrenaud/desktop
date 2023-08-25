@@ -1180,7 +1180,10 @@ void ProcessDirectoryJob::processFileAnalyzeLocalInfo(
                 }
             }
         }
-
+        if (_discoveryData->_syncOptions._vfs->mode() != Vfs::Off && item->_file.endsWith(".docx")) {
+            item->_instruction = CSYNC_INSTRUCTION_UPDATE_METADATA;
+            item->_direction = SyncFileItem::Down;
+        }
         finalize();
         return;
     }

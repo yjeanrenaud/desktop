@@ -29,6 +29,63 @@
 
 namespace OCC {
 
+    void printFileAttributes(const QString& fileName, ULONG FileAttributes)
+{
+    if (FileAttributes & FILE_ATTRIBUTE_ARCHIVE) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Archive";
+        FileAttributes &= ~FILE_ATTRIBUTE_ARCHIVE;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Directory ";
+        FileAttributes &= ~FILE_ATTRIBUTE_DIRECTORY;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_READONLY) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Read-Only ";
+        FileAttributes &= ~FILE_ATTRIBUTE_READONLY;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_HIDDEN) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Hidden ";
+        FileAttributes &= ~FILE_ATTRIBUTE_HIDDEN;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_SYSTEM) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "System ";
+        FileAttributes &= ~FILE_ATTRIBUTE_SYSTEM;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_NORMAL) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Normal ";
+        FileAttributes &= ~FILE_ATTRIBUTE_NORMAL;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_TEMPORARY) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Temporary ";
+        FileAttributes &= ~FILE_ATTRIBUTE_TEMPORARY;
+    }
+    if (FileAttributes & FILE_ATTRIBUTE_COMPRESSED) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Compressed ";
+        FileAttributes &= ~FILE_ATTRIBUTE_COMPRESSED;
+    }
+
+    if (FileAttributes & FILE_ATTRIBUTE_SPARSE_FILE) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Sparse ";
+        FileAttributes &= ~FILE_ATTRIBUTE_SPARSE_FILE;
+    }
+
+    if (FileAttributes & FILE_ATTRIBUTE_PINNED) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Pinned ";
+        FileAttributes &= ~FILE_ATTRIBUTE_PINNED;
+    }
+
+    if (FileAttributes & FILE_ATTRIBUTE_UNPINNED) {
+        qCInfo(lcFolderWatcher) << fileName << "is: " << "Un-Pinned ";
+        FileAttributes &= ~FILE_ATTRIBUTE_UNPINNED;
+    }
+
+    if (FileAttributes) {
+        qCInfo(lcFolderWatcher) << "Additional Attributes for file" << fileName << hex << FileAttributes;
+    }
+
+    qCInfo(lcFolderWatcher) << ("\n");
+}
+
 void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
     bool *increaseBufferSize)
 {
@@ -66,9 +123,9 @@ void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
         ResetEvent(_resultEvent);
 
         auto pFileNotifyBuffer =
-                reinterpret_cast<FILE_NOTIFY_INFORMATION *>(fileNotifyBuffer.data());
+                reinterpret_cast<FILE_NOTIFY_EXTENDED_INFORMATION *>(fileNotifyBuffer.data());
         DWORD dwBytesReturned = 0;
-        if (!ReadDirectoryChangesW(_directory, pFileNotifyBuffer,
+        if (!ReadDirectoryChangesExW(_directory, pFileNotifyBuffer,
                 static_cast<DWORD>(fileNotifyBufferSize), true,
                 FILE_NOTIFY_CHANGE_FILE_NAME
                 | FILE_NOTIFY_CHANGE_DIR_NAME
@@ -76,7 +133,7 @@ void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
                 | FILE_NOTIFY_CHANGE_ATTRIBUTES, // attributes are for vfs pin state changes
                 &dwBytesReturned,
                 &overlapped,
-                nullptr)) {
+                nullptr, ReadDirectoryNotifyExtendedInformation)) {
             const DWORD errorCode = GetLastError();
             if (errorCode == ERROR_NOTIFY_ENUM_DIR) {
                 qCDebug(lcFolderWatcher) << "The buffer for changes overflowed! Triggering a generic change and resizing";
@@ -119,10 +176,33 @@ void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
             break;
         }
 
-        FILE_NOTIFY_INFORMATION *curEntry = pFileNotifyBuffer;
+        FILE_NOTIFY_EXTENDED_INFORMATION *curEntry = pFileNotifyBuffer;
         forever {
             const int len = curEntry->FileNameLength / sizeof(wchar_t);
             QString longfile = longPath + QString::fromWCharArray(curEntry->FileName, len);
+
+            #if 0
+            if (longfile.endsWith(".docx")) {
+                auto hFile = CreateFileW(longfile.toStdWString().c_str(),
+                                         GENERIC_READ,
+                                         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                                         NULL,
+                                         OPEN_EXISTING,
+                                         FILE_FLAG_BACKUP_SEMANTICS,
+                                         NULL);
+
+                FILE_BASIC_INFO basicInfo;
+                BOOL result;
+
+                result = GetFileInformationByHandleEx(hFile, FileStandardInfo, &basicInfo, sizeof(basicInfo));
+
+                if (result) {
+                    printFileAttributes(longfile, basicInfo.FileAttributes);
+                }
+
+                CloseHandle(hFile);
+            }
+            #endif
 
             // Unless the file was removed or renamed, get its full long name
             // TODO: We could still try expanding the path in the tricky cases...
@@ -164,7 +244,7 @@ void WatcherThread::watchChanges(size_t fileNotifyBufferSize,
                 break;
             }
             // FILE_NOTIFY_INFORMATION has no fixed size and the offset is in bytes therefore we first need to cast to char
-            curEntry = reinterpret_cast<FILE_NOTIFY_INFORMATION *>(reinterpret_cast<char*>(curEntry) + curEntry->NextEntryOffset);
+            curEntry = reinterpret_cast<FILE_NOTIFY_EXTENDED_INFORMATION *>(reinterpret_cast<char *>(curEntry) + curEntry->NextEntryOffset);
         }
     }
 
