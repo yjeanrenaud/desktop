@@ -663,16 +663,20 @@ namespace internals {
 
 [[nodiscard]] std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
                                                                 EVP_PKEY *publicKey,
+                                                                int pad_mode,
                                                                 const QByteArray& binaryData);
 
-[[nodiscard]] std::optional<QByteArray> encryptStringAsymmetricWithToken(EVP_PKEY *publicKey,
+[[nodiscard]] std::optional<QByteArray> encryptStringAsymmetricWithToken(ENGINE *sslEngine,
+                                                                         EVP_PKEY *publicKey,
                                                                          const QByteArray& binaryData);
 
 [[nodiscard]] std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
                                                                 EVP_PKEY *privateKey,
+                                                                int pad_mode,
                                                                 const QByteArray& binaryData);
 
-[[nodiscard]] std::optional<QByteArray> decryptStringAsymmetricWithToken(PKCS11_KEY *privateKey,
+[[nodiscard]] std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
+                                                                         PKCS11_KEY *privateKey,
                                                                          EVP_PKEY *publicKey,
                                                                          const QByteArray &binaryData);
 
@@ -690,7 +694,8 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
         qCInfo(lcCseEncryption()) << "encryptStringAsymmetric:"
                                   << "data:" << binaryData.toBase64();
 
-        auto encryptedBase64Result = internals::encryptStringAsymmetricWithToken(PKCS11_get_public_key(encryptionEngine.getTokenPublicKey()),
+        auto encryptedBase64Result = internals::encryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
+                                                                                 PKCS11_get_public_key(encryptionEngine.getTokenPublicKey()),
                                                                                  binaryData);
 
         if (!encryptedBase64Result) {
@@ -720,7 +725,7 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
                                   << "private key:" << publicKeyPem.toBase64()
                                   << "data:" << binaryData.toBase64();
 
-        auto encryptedBase64Result = internals::encryptStringAsymmetric(encryptionEngine.sslEngine(), publicKey, binaryData);
+        auto encryptedBase64Result = internals::encryptStringAsymmetric(encryptionEngine.sslEngine(), publicKey, RSA_PKCS1_OAEP_PADDING, binaryData);
 
         if (!encryptedBase64Result) {
             qCWarning(lcCseEncryption()) << "encrypt failed";
@@ -743,7 +748,8 @@ std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &en
         qCInfo(lcCseDecryption()) << "decryptStringAsymmetric:"
                                   << "data:" << base64Data;
 
-        const auto decryptBase64Result = internals::decryptStringAsymmetricWithToken(encryptionEngine.getTokenPrivateKey(),
+        const auto decryptBase64Result = internals::decryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
+                                                                                     encryptionEngine.getTokenPrivateKey(),
                                                                                      PKCS11_get_public_key(encryptionEngine.getTokenPublicKey()),
                                                                                      QByteArray::fromBase64(base64Data));
         if (!decryptBase64Result) {
@@ -772,7 +778,7 @@ std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &en
                                   << "private key:" << privateKeyPem.toBase64()
                                   << "data:" << base64Data;
 
-        const auto decryptBase64Result = internals::decryptStringAsymmetric(encryptionEngine.sslEngine(), key, QByteArray::fromBase64(base64Data));
+        const auto decryptBase64Result = internals::decryptStringAsymmetric(encryptionEngine.sslEngine(), key, RSA_PKCS1_OAEP_PADDING, QByteArray::fromBase64(base64Data));
         if (!decryptBase64Result) {
             qCWarning(lcCse()) << "decrypt failed";
             return {};
@@ -870,7 +876,10 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
 
 namespace internals {
 
-std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *privateKey, const QByteArray& binaryData) {
+std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
+                                                  EVP_PKEY *privateKey,
+                                                  int pad_mode,
+                                                  const QByteArray& binaryData) {
     int err = -1;
 
     qCInfo(lcCseDecryption()) << "Start to work the decryption." << "input to base64" << binaryData.toBase64();
@@ -888,7 +897,7 @@ std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *p
         return {};
     }
 
-    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
+    if (EVP_PKEY_CTX_set_rsa_padding(ctx, pad_mode) <= 0) {
         qCInfo(lcCseDecryption()) << "Error setting the encryption padding.";
         handleErrors();
         return {};
@@ -934,7 +943,10 @@ std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *p
     return out.toBase64();
 }
 
-std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *publicKey, const QByteArray& binaryData) {
+std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
+                                                  EVP_PKEY *publicKey,
+                                                  int pad_mode,
+                                                  const QByteArray& binaryData) {
     int err = -1;
 
     qCInfo(lcCseEncryption()) << "Start to work the encryption." << "input to base64" << binaryData.toBase64();
@@ -949,7 +961,7 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine, EVP_PKEY *p
         return {};
     }
 
-    if (EVP_PKEY_CTX_set_rsa_padding(ctx, RSA_PKCS1_OAEP_PADDING) <= 0) {
+    if (EVP_PKEY_CTX_set_rsa_padding(ctx, pad_mode) <= 0) {
         qCInfo(lcCseEncryption()) << "Error setting the encryption padding.";
         return {};
     }
@@ -1005,77 +1017,23 @@ void debugOpenssl()
 
 namespace internals {
 
-std::optional<QByteArray> encryptStringAsymmetricWithToken(EVP_PKEY *publicKey,
+std::optional<QByteArray> encryptStringAsymmetricWithToken(ENGINE *sslEngine,
+                                                           EVP_PKEY *publicKey,
                                                            const QByteArray& binaryData)
 {
-    const auto initialLength = RSA_size(EVP_PKEY_get0_RSA(publicKey));
-    auto out = QByteArray{static_cast<int>(initialLength), 0};
-
-    const auto rc = RSA_public_encrypt(binaryData.size(),
-                                       reinterpret_cast<const unsigned char*>(binaryData.data()),
-                                       reinterpret_cast<unsigned char*>(out.data()),
-                                       const_cast<RSA*>(EVP_PKEY_get0_RSA(publicKey)),
-                                       RSA_PKCS1_PADDING);
-
-    if (rc != initialLength) {
-        qCInfo(lcCseEncryption()) << "data to encrypt:" << binaryData.toBase64()
-                                  << "size:" << binaryData.size()
-                                  << "key size:" << initialLength;
-        qCCritical(lcCseEncryption()) << "RSA_public_encrypt failed"
-                                      << "expected encrypted length" << initialLength
-                                      << "result" << rc << ERR_reason_error_string(ERR_get_error());
-
-        return {};
-    } else {
-        qCInfo(lcCseEncryption()) << "data to encrypt:" << binaryData.toBase64()
-                                  << "size:" << binaryData.size()
-                                  << "key size:" << initialLength;
-        qCInfo(lcCseEncryption()) << "data encrypted:" << out.toBase64()
-                                  << "size:" << out.size()
-                                  << "key size:" << initialLength;
-    }
-
-    return out.toBase64();
+    return encryptStringAsymmetric(sslEngine, publicKey, RSA_PKCS1_PADDING, binaryData);
 }
 
-std::optional<QByteArray> decryptStringAsymmetricWithToken(PKCS11_KEY *privateKey,
+std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
+                                                           PKCS11_KEY *privateKey,
                                                            EVP_PKEY *publicKey,
                                                            const QByteArray &binaryData)
 {
     const auto encryptedData = binaryData;
     const auto initialLength = RSA_size(EVP_PKEY_get0_RSA(publicKey));
     QByteArray decryptedData{initialLength, 0};
-    const auto rc = PKCS11_private_decrypt(initialLength,
-                                           reinterpret_cast<const unsigned char*>(encryptedData.constData()),
-                                           reinterpret_cast<unsigned char*>(decryptedData.data()),
-                                           privateKey,
-                                           RSA_PKCS1_PADDING);
-
-    if (rc < 0) {
-        qCInfo(lcCseDecryption()) << "data to decrypt:" << binaryData.toBase64()
-                                  << "size:" << binaryData.size()
-                                  << "key size:" << initialLength;
-        qCCritical(lcCseDecryption()) << "PKCS11_private_decrypt failed"
-                                      << "expected decrypted length" << initialLength
-                                      << "result" << rc << ERR_reason_error_string(ERR_get_error());
-        qCInfo(lcCseDecryption()) << "key metadata:"
-                                  << "type:" << (privateKey->isPrivate ? "is private" : "is public")
-                                  << "label:" << privateKey->label
-                                  << "need login:" << (privateKey->needLogin ? "true" : "false");
-
-        return {};
-    } else {
-        qCInfo(lcCseDecryption()) << "data to decrypt:" << binaryData.toBase64()
-                                  << "size:" << binaryData.size()
-                                  << "key size:" << initialLength;
-        qCInfo(lcCseDecryption()) << "data decrypted:" << decryptedData.toBase64()
-                                  << "size:" << decryptedData.size()
-                                  << "key size:" << initialLength;
-    }
-
-    qCInfo(lcCseDecryption()) << "result to base64" << decryptedData.toBase64();
-    qCInfo(lcCse()) << decryptedData.toBase64();
-    return decryptedData.toBase64();
+    auto rsaPrivateKey = PKCS11_get_private_key(privateKey);
+    return decryptStringAsymmetric(sslEngine, rsaPrivateKey, RSA_PKCS1_PADDING, binaryData);
 }
 
 }
