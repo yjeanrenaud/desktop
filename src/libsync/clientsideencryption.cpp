@@ -409,14 +409,12 @@ QByteArray encryptPrivateKey(
 
     /* Create and initialise the context */
     if(!ctx) {
-        qCInfo(lcCse()) << "Error creating cipher";
-        handleErrors();
+        qCInfo(lcCse()) << "Error creating cipher" << handleErrors();
     }
 
     /* Initialise the decryption operation. */
     if(!EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr, nullptr, nullptr)) {
-        qCInfo(lcCse()) << "Error initializing context with aes_256";
-        handleErrors();
+        qCInfo(lcCse()) << "Error initializing context with aes_256" << handleErrors();
     }
 
     // No padding
@@ -424,14 +422,12 @@ QByteArray encryptPrivateKey(
 
     /* Set IV length. */
     if(!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr)) {
-        qCInfo(lcCse()) << "Error setting iv length";
-        handleErrors();
+        qCInfo(lcCse()) << "Error setting iv length" << handleErrors();
     }
 
     /* Initialise key and IV */
     if(!EVP_EncryptInit_ex(ctx, nullptr, nullptr, (unsigned char *)key.constData(), (unsigned char *)iv.constData())) {
-        qCInfo(lcCse()) << "Error initialising key and iv";
-        handleErrors();
+        qCInfo(lcCse()) << "Error initialising key and iv" << handleErrors();
     }
 
     // We write the base64 encoded private key
@@ -443,8 +439,7 @@ QByteArray encryptPrivateKey(
     // Do the actual encryption
     int len = 0;
     if(!EVP_EncryptUpdate(ctx, unsignedData(ctext), &len, (unsigned char *)privateKeyB64.constData(), privateKeyB64.size())) {
-        qCInfo(lcCse()) << "Error encrypting";
-        handleErrors();
+        qCInfo(lcCse()) << "Error encrypting" << handleErrors();
     }
 
     int clen = len;
@@ -453,16 +448,14 @@ QByteArray encryptPrivateKey(
      * this stage, but this does not occur in GCM mode
      */
     if(1 != EVP_EncryptFinal_ex(ctx, unsignedData(ctext) + len, &len)) {
-        qCInfo(lcCse()) << "Error finalizing encryption";
-        handleErrors();
+        qCInfo(lcCse()) << "Error finalizing encryption" << handleErrors();
     }
     clen += len;
 
     /* Get the e2EeTag */
     QByteArray e2EeTag(OCC::Constants::e2EeTagSize, '\0');
     if(1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, OCC::Constants::e2EeTagSize, unsignedData(e2EeTag))) {
-        qCInfo(lcCse()) << "Error getting the e2EeTag";
-        handleErrors();
+        qCInfo(lcCse()) << "Error getting the e2EeTag" << handleErrors();
     }
 
     QByteArray cipherTXT;
@@ -799,15 +792,13 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
 
     /* Create and initialise the context */
     if(!ctx) {
-        qCInfo(lcCse()) << "Error creating cipher";
-        handleErrors();
+        qCInfo(lcCse()) << "Error creating cipher" << handleErrors();
         return {};
     }
 
     /* Initialise the decryption operation. */
     if(!EVP_EncryptInit_ex(ctx, EVP_aes_128_gcm(), nullptr, nullptr, nullptr)) {
-        qCInfo(lcCse()) << "Error initializing context with aes_128";
-        handleErrors();
+        qCInfo(lcCse()) << "Error initializing context with aes_128" << handleErrors();
         return {};
     }
 
@@ -816,15 +807,13 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
 
     /* Set IV length. */
     if(!EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr)) {
-        qCInfo(lcCse()) << "Error setting iv length";
-        handleErrors();
+        qCInfo(lcCse()) << "Error setting iv length" << handleErrors();
         return {};
     }
 
     /* Initialise key and IV */
     if(!EVP_EncryptInit_ex(ctx, nullptr, nullptr, (unsigned char *)key.constData(), (unsigned char *)iv.constData())) {
-        qCInfo(lcCse()) << "Error initialising key and iv";
-        handleErrors();
+        qCInfo(lcCse()) << "Error initialising key and iv" << handleErrors();
         return {};
     }
 
@@ -837,8 +826,7 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
     // Do the actual encryption
     int len = 0;
     if(!EVP_EncryptUpdate(ctx, unsignedData(ctext), &len, (unsigned char *)dataB64.constData(), dataB64.size())) {
-        qCInfo(lcCse()) << "Error encrypting";
-        handleErrors();
+        qCInfo(lcCse()) << "Error encrypting" << handleErrors();
         return {};
     }
 
@@ -848,8 +836,7 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
      * this stage, but this does not occur in GCM mode
      */
     if(1 != EVP_EncryptFinal_ex(ctx, unsignedData(ctext) + len, &len)) {
-        qCInfo(lcCse()) << "Error finalizing encryption";
-        handleErrors();
+        qCInfo(lcCse()) << "Error finalizing encryption" << handleErrors();
         return {};
     }
     clen += len;
@@ -857,8 +844,7 @@ QByteArray encryptStringSymmetric(const QByteArray& key, const QByteArray& data)
     /* Get the e2EeTag */
     QByteArray e2EeTag(OCC::Constants::e2EeTagSize, '\0');
     if(1 != EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, OCC::Constants::e2EeTagSize, unsignedData(e2EeTag))) {
-        qCInfo(lcCse()) << "Error getting the e2EeTag";
-        handleErrors();
+        qCInfo(lcCse()) << "Error getting the e2EeTag" << handleErrors();
         return {};
     }
 
@@ -885,41 +871,35 @@ std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
     qCInfo(lcCseDecryption()) << "Start to work the decryption." << "input to base64" << binaryData.toBase64();
     auto ctx = PKeyCtx::forKey(privateKey, sslEngine);
     if (!ctx) {
-        qCInfo(lcCseDecryption()) << "Could not create the PKEY context.";
-        handleErrors();
+        qCInfo(lcCseDecryption()) << "Could not create the PKEY context." << handleErrors();
         return {};
     }
 
     err = EVP_PKEY_decrypt_init(ctx);
     if (err <= 0) {
-        qCInfo(lcCseDecryption()) << "Could not init the decryption of the metadata";
-        handleErrors();
+        qCInfo(lcCseDecryption()) << "Could not init the decryption of the metadata" << handleErrors();
         return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_padding(ctx, pad_mode) <= 0) {
-        qCInfo(lcCseDecryption()) << "Error setting the encryption padding.";
-        handleErrors();
+        qCInfo(lcCseDecryption()) << "Error setting the encryption padding." << handleErrors();
         return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha256()) <= 0) {
-        qCInfo(lcCseDecryption()) << "Error setting OAEP SHA 256";
-        handleErrors();
+        qCInfo(lcCseDecryption()) << "Error setting OAEP SHA 256" << handleErrors();
         return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha256()) <= 0) {
-        qCInfo(lcCseDecryption()) << "Error setting MGF1 padding";
-        handleErrors();
+        qCInfo(lcCseDecryption()) << "Error setting MGF1 padding" << handleErrors();
         return {};
     }
 
     size_t outlen = 0;
     err = EVP_PKEY_decrypt(ctx, nullptr, &outlen,  (unsigned char *)binaryData.constData(), binaryData.size());
     if (err <= 0) {
-        qCInfo(lcCseDecryption()) << "Could not determine the buffer length";
-        handleErrors();
+        qCInfo(lcCseDecryption()) << "Could not determine the buffer length" << handleErrors();
         return {};
     } else {
         qCInfo(lcCseDecryption()) << "Size of output is: " << outlen;
