@@ -886,12 +886,12 @@ std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
         return {};
     }
 
-    if (EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha256()) <= 0) {
+    if (pad_mode != RSA_PKCS1_PADDING && EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha1()) <= 0) {
         qCInfo(lcCseDecryption()) << "Error setting OAEP SHA 256" << handleErrors();
         return {};
     }
 
-    if (EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha256()) <= 0) {
+    if (pad_mode != RSA_PKCS1_PADDING && EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha1()) <= 0) {
         qCInfo(lcCseDecryption()) << "Error setting MGF1 padding" << handleErrors();
         return {};
     }
@@ -946,12 +946,12 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
         return {};
     }
 
-    if (EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha256()) <= 0) {
+    if (pad_mode != RSA_PKCS1_PADDING && EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha1()) <= 0) {
         qCInfo(lcCseEncryption()) << "Error setting OAEP SHA 256";
         return {};
     }
 
-    if (EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha256()) <= 0) {
+    if (pad_mode != RSA_PKCS1_PADDING && EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha1()) <= 0) {
         qCInfo(lcCseEncryption()) << "Error setting MGF1 padding";
         return {};
     }
