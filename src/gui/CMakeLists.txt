@@ -291,13 +291,13 @@ IF( APPLE )
             macOS/fileprovider_mac.mm
             macOS/fileproviderdomainmanager.h
             macOS/fileproviderdomainmanager_mac.mm
+            macOS/fileprovidersettingscontroller.h
+            macOS/fileprovidersettingscontroller_mac.mm
             macOS/fileprovidersocketcontroller.h
             macOS/fileprovidersocketcontroller.cpp
             macOS/fileprovidersocketserver.h
             macOS/fileprovidersocketserver.cpp
-            macOS/fileprovidersocketserver_mac.mm
-            macOS/ui/fileprovidersettingscontroller.h
-            macOS/ui/fileprovidersettingscontroller_mac.mm)
+            macOS/fileprovidersocketserver_mac.mm)
     endif()
 
     if(SPARKLE_FOUND AND BUILD_UPDATER)
