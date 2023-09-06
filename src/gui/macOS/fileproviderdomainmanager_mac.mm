@@ -418,6 +418,10 @@ FileProviderDomainManager::FileProviderDomainManager(QObject * const parent)
             const auto trReason = tr("%1 application has been closed. Reopen to reconnect.").arg(APPLICATION_NAME);
             disconnectFileProviderDomainForAccount(accountState, trReason);
         });
+
+        connect(FileProviderSettingsController::instance(), &FileProviderSettingsController::vfsEnabledAccountsChanged,
+                this, &FileProviderDomainManager::updateFileProviderDomains);
+
     } else {
         qCWarning(lcMacFileProviderDomainManager()) << "Trying to run File Provider on system that does not support it.";
     }
