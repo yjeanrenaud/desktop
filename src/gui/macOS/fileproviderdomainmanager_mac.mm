@@ -19,6 +19,7 @@
 
 #include "config.h"
 #include "fileproviderdomainmanager.h"
+#include "fileprovidersettingscontroller.h"
 #include "pushnotifications.h"
 
 #include "gui/accountmanager.h"
@@ -380,7 +381,8 @@ class API_AVAILABLE(macos(11.0)) FileProviderDomainManager::MacImplementation {
         }
     }
 
-    QStringList configuredDomainIds() const {
+    QStringList configuredDomainIds() const
+    {
         return _registeredDomains.keys();
     }
 
@@ -431,8 +433,19 @@ void FileProviderDomainManager::setupFileProviderDomains()
 
     d->findExistingFileProviderDomains();
 
-    for(auto &accountState : AccountManager::instance()->accounts()) {
+    const auto vfsEnabledAccounts = FileProviderSettingsController::instance()->vfsEnabledAccounts();
+    auto domainsToRemove = d->configuredDomainIds();
+
+    for (const auto &accountUserIdAtHost : vfsEnabledAccounts) {
+        domainsToRemove.removeAll(accountUserIdAtHost);
+
+        const auto accountState = AccountManager::instance()->accountFromUserId(accountUserIdAtHost);
         addFileProviderDomainForAccount(accountState.data());
+    }
+
+    for (const auto &remainingDomainUserId : domainsToRemove) {
+        const auto accountState = AccountManager::instance()->accountFromUserId(remainingDomainUserId);
+        removeFileProviderDomainForAccount(accountState.data());
     }
 }
 
