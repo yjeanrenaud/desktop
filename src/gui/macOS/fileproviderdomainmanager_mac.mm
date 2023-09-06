@@ -432,6 +432,14 @@ void FileProviderDomainManager::setupFileProviderDomains()
     }
 
     d->findExistingFileProviderDomains();
+    updateFileProviderDomains();
+}
+
+void FileProviderDomainManager::updateFileProviderDomains()
+{
+    if (!d) {
+        return;
+    }
 
     const auto vfsEnabledAccounts = FileProviderSettingsController::instance()->vfsEnabledAccounts();
     auto domainsToRemove = d->configuredDomainIds();
