@@ -217,6 +217,8 @@ class API_AVAILABLE(macos(11.0)) FileProviderDomainManager::MacImplementation {
 
                 NSFileProviderDomain * const domain = _registeredDomains.take(domainId);
                 [domain release];
+
+                _registeredDomains.remove(domainId);
             }];
         }
     }
