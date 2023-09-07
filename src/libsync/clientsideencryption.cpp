@@ -1077,10 +1077,6 @@ void ClientSideEncryption::initialize(const AccountPtr &account)
 {
     Q_ASSERT(account);
 
-    if (account->useHardwareTokenEncryption()) {
-        initializeHardwareTokenEncryption(account);
-    }
-
     qCInfo(lcCse()) << "Initializing";
     if (!account->capabilities().clientSideEncryptionAvailable()) {
         qCInfo(lcCse()) << "No Client side encryption available on server.";
@@ -1088,7 +1084,11 @@ void ClientSideEncryption::initialize(const AccountPtr &account)
         return;
     }
 
-    fetchCertificateFromKeyChain(account);
+    if (account->useHardwareTokenEncryption()) {
+        initializeHardwareTokenEncryption(account);
+    } else {
+        fetchCertificateFromKeyChain(account);
+    }
 }
 
 void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &account)
@@ -1098,8 +1098,9 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
     auto rc = PKCS11_CTX_load(ctx, account->encryptionHardwareTokenDriverPath().toLatin1().constData());
     if (rc) {
         qCWarning(lcCse()) << "loading pkcs11 engine failed:" << ERR_reason_error_string(ERR_get_error());
-        rc = 1;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     auto nslots = 0u;
@@ -1108,16 +1109,18 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
     rc = PKCS11_enumerate_slots(ctx, &tokenSlots, &nslots);
     if (rc < 0) {
         qCWarning(lcCse()) << "no slots available" << ERR_reason_error_string(ERR_get_error());
-        rc = 2;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     /* get first slot with a token */
     auto slot = PKCS11_find_token(ctx, tokenSlots, nslots);
     if (slot == NULL || slot->token == NULL) {
         qCWarning(lcCse()) << "no token available" << ERR_reason_error_string(ERR_get_error());
-        rc = 3;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
     qCInfo(lcCse()) << "Slot manufacturer......:" << slot->manufacturer;
     qCInfo(lcCse()) << "Slot description.......:" << slot->description;
@@ -1130,8 +1133,9 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
     rc = PKCS11_is_logged_in(slot, 0, &logged_in);
     if (rc != 0) {
         qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
-        rc = 8;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     /* perform pkcs #11 login */
@@ -1139,21 +1143,24 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
     rc = PKCS11_login(slot, 0, password.data());
     if (rc != 0) {
         qCWarning(lcCse()) << "PKCS11_login failed" << ERR_reason_error_string(ERR_get_error());
-        rc = 10;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     /* check if user is logged in */
     rc = PKCS11_is_logged_in(slot, 0, &logged_in);
     if (rc != 0) {
         qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
-        rc = 11;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
     if (!logged_in) {
         qCWarning(lcCse()) << "PKCS11_is_logged_in says user is not logged in, expected to be logged in";
-        rc = 12;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     auto privateKeysCount = 0u;
@@ -1161,13 +1168,15 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
     rc = PKCS11_enumerate_keys(slot->token, &tokenPrivateKeys, &privateKeysCount);
     if (rc) {
         qCWarning(lcCse()) << "PKCS11_enumerate_keys failed" << ERR_reason_error_string(ERR_get_error());
-        rc = 13;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
     if (privateKeysCount <= 0) {
         qCWarning(lcCse()) << "no keys found";
-        rc = 14;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     qCInfo(lcCse()) << "hardware token has" << privateKeysCount << "private keys";
@@ -1183,13 +1192,15 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
     rc = PKCS11_enumerate_public_keys(slot->token, &tokenPublicKeys, &publicKeysCount);
     if (rc) {
         qCWarning(lcCse()) << "PKCS11_enumerate_keys failed" << ERR_reason_error_string(ERR_get_error());
-        rc = 13;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
     if (publicKeysCount <= 0) {
         qCWarning(lcCse()) << "no keys found";
-        rc = 14;
-        exit(-1);
+
+        failedToInitialize(account);
+        return;
     }
 
     qCInfo(lcCse()) << "hardware token has" << publicKeysCount << "public keys";
@@ -1199,6 +1210,8 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
                     << "type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
                     << "label:" << _tokenPublicKey->label
                     << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
+
+    emit initializationFinished();
 }
 
 void ClientSideEncryption::fetchCertificateFromKeyChain(const AccountPtr &account)
