@@ -1207,6 +1207,13 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
                     << "label:" << _tokenPublicKey->label
                     << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
 
+    if (!checkEncryptionIsWorking(account)) {
+        qCWarning(lcCse()) << "encryption is not properly setup";
+
+        failedToInitialize(account);
+        return;
+    }
+
     emit initializationFinished();
 }
 
@@ -1261,6 +1268,31 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     QByteArray privateKeyPem = account->e2e()->_privateKey;
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = PKey::readPrivateKey(privateKeyBio);
+
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*account->e2e(), *encryptedData);
+    if (!decryptionResult) {
+        qCWarning(lcCse()) << "encryption error";
+        return false;
+    }
+    QByteArray decryptResult = QByteArray::fromBase64(*decryptionResult);
+
+    if (data != decryptResult) {
+        qCInfo(lcCse()) << "invalid private key";
+        return false;
+    }
+
+    return true;
+}
+
+bool ClientSideEncryption::checkEncryptionIsWorking(const AccountPtr &account) const
+{
+    QByteArray data = EncryptionHelper::generateRandom(64);
+
+    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(*account->e2e(), data);
+    if (!encryptedData) {
+        qCWarning(lcCse()) << "encryption error";
+        return false;
+    }
 
     const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*account->e2e(), *encryptedData);
     if (!decryptionResult) {
