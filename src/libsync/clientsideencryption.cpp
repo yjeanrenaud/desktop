@@ -1023,6 +1023,11 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
 
 ClientSideEncryption::ClientSideEncryption() = default;
 
+bool ClientSideEncryption::isInitialized() const
+{
+    return !getMnemonic().isEmpty();
+}
+
 const QSslKey &ClientSideEncryption::getPublicKey() const
 {
     return _publicKey;

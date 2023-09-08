@@ -291,7 +291,7 @@ void AccountSettings::slotE2eEncryptionGenerateKeys()
 void AccountSettings::slotE2eEncryptionInitializationFinished(bool isNewMnemonicGenerated)
 {
     disconnect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
-    if (!_accountState->account()->e2e()->getMnemonic().isEmpty()) {
+    if (_accountState->account()->e2e()->isInitialized()) {
         removeActionFromEncryptionMessage(e2EeUiActionEnableEncryptionId);
         slotE2eEncryptionMnemonicReady();
         if (isNewMnemonicGenerated) {
@@ -366,7 +366,7 @@ bool AccountSettings::canEncryptOrDecrypt(const FolderStatusModel::SubFolderInfo
         return false;
     }
 
-    if (!_accountState->account()->e2e() || _accountState->account()->e2e()->getMnemonic().isEmpty()) {
+    if (!_accountState->account()->e2e() || _accountState->account()->e2e()->isInitialized()) {
         QMessageBox msgBox;
         msgBox.setText(tr("End-to-end encryption is not configured on this device. "
                           "Once it is configured, you will be able to encrypt this folder.\n"
@@ -1435,7 +1435,7 @@ void AccountSettings::slotSelectiveSyncChanged(const QModelIndex &topLeft,
 
 void AccountSettings::slotPossiblyUnblacklistE2EeFoldersAndRestartSync()
 {
-    if (_accountState->account()->e2e()->getMnemonic().isEmpty()) {
+    if (!_accountState->account()->e2e()->isInitialized()) {
         return;
     }
 
@@ -1613,8 +1613,10 @@ void AccountSettings::initializeE2eEncryption()
 {
     connect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotPossiblyUnblacklistE2EeFoldersAndRestartSync);
 
-    if (!_accountState->account()->e2e()->getMnemonic().isEmpty()) {
-        slotE2eEncryptionMnemonicReady();
+    if (_accountState->account()->e2e()->isInitialized()) {
+        if (!_accountState->account()->e2e()->getMnemonic().isEmpty()) {
+            slotE2eEncryptionMnemonicReady();
+        }
     } else {
         initializeE2eEncryptionSettingsMessage();
 
@@ -1643,7 +1645,7 @@ void AccountSettings::resetE2eEncryption()
     checkClientSideEncryptionState();
 
     const auto account = _accountState->account();
-    if (account->e2e()->getMnemonic().isEmpty()) {
+    if (!account->e2e()->isInitialized()) {
         FolderMan::instance()->removeE2eFiles(account);
     }
 }

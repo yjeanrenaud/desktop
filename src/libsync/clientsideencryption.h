@@ -137,6 +137,8 @@ public:
 
     ClientSideEncryption();
 
+    [[nodiscard]] bool isInitialized() const;
+
     [[nodiscard]] const QSslKey& getPublicKey() const;
 
     void setPublicKey(const QSslKey &publicKey);
@@ -246,8 +248,6 @@ private:
 
     PKCS11_KEY* _tokenPublicKey = nullptr;
     PKCS11_KEY* _tokenPrivateKey = nullptr;
-
-    bool isInitialized = false;
 };
 
 /* Generates the Metadata for the folder */
