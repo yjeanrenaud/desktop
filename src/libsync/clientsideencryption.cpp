@@ -925,8 +925,6 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
                                                   EVP_PKEY *publicKey,
                                                   int pad_mode,
                                                   const QByteArray& binaryData) {
-    int err = -1;
-
     qCInfo(lcCseEncryption()) << "Start to work the encryption." << "input to base64" << binaryData.toBase64();
     auto ctx = PKeyCtx::forKey(publicKey, sslEngine);
     if (!ctx) {
@@ -935,36 +933,36 @@ std::optional<QByteArray> encryptStringAsymmetric(ENGINE *sslEngine,
     }
 
     if (EVP_PKEY_encrypt_init(ctx) != 1) {
-        qCInfo(lcCseEncryption()) << "Error initilaizing the encryption.";
+        qCInfo(lcCseEncryption()) << "Error initilaizing the encryption." << handleErrors();
         return {};
     }
 
     if (EVP_PKEY_CTX_set_rsa_padding(ctx, pad_mode) <= 0) {
-        qCInfo(lcCseEncryption()) << "Error setting the encryption padding.";
+        qCInfo(lcCseEncryption()) << "Error setting the encryption padding." << handleErrors();
         return {};
     }
 
     if (pad_mode != RSA_PKCS1_PADDING && EVP_PKEY_CTX_set_rsa_oaep_md(ctx, EVP_sha1()) <= 0) {
-        qCInfo(lcCseEncryption()) << "Error setting OAEP SHA 256";
+        qCInfo(lcCseEncryption()) << "Error setting OAEP SHA 256" << handleErrors();
         return {};
     }
 
     if (pad_mode != RSA_PKCS1_PADDING && EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, EVP_sha1()) <= 0) {
-        qCInfo(lcCseEncryption()) << "Error setting MGF1 padding";
+        qCInfo(lcCseEncryption()) << "Error setting MGF1 padding" << handleErrors();
         return {};
     }
 
     size_t outLen = 0;
     if (EVP_PKEY_encrypt(ctx, nullptr, &outLen, (unsigned char *)binaryData.constData(), binaryData.size()) != 1) {
-        qCInfo(lcCseEncryption()) << "Error retrieving the size of the encrypted data";
+        qCInfo(lcCseEncryption()) << "Error retrieving the size of the encrypted data" << handleErrors();
         return {};
     } else {
-        qCInfo(lcCseEncryption()) << "Encryption Length:" << outLen;
+        qCInfo(lcCseEncryption()) << "Encryption Length:" << outLen << "input data length" << binaryData.size();
     }
 
     QByteArray out(static_cast<int>(outLen), '\0');
     if (EVP_PKEY_encrypt(ctx, unsignedData(out), &outLen, (unsigned char *)binaryData.constData(), binaryData.size()) != 1) {
-        qCInfo(lcCseEncryption()) << "Could not encrypt key." << err;
+        qCInfo(lcCseEncryption()) << "Could not encrypt key." << handleErrors();
         return {};
     } else {
         qCInfo(lcCseEncryption()) << "data encrypted successfully";
