@@ -405,10 +405,12 @@ bool LsColJob::finished()
         QString expectedPath = reply()->request().url().path(); // something like "/owncloud/remote.php/dav/folder"
         if (!parser.parse(reply()->readAll(), &_folderInfos, expectedPath)) {
             // XML parse error
+            qCWarning(lcLsColJob()) << "xml parser error for" << path() << expectedPath;
             emit finishedWithError(reply());
         }
     } else {
         // wrong content type, wrong HTTP code or any other network error
+        qCWarning(lcLsColJob()) << "error with the network request for" << path() << httpCode << contentType;
         emit finishedWithError(reply());
     }
 
