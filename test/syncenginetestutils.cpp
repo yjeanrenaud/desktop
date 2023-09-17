@@ -1343,7 +1343,7 @@ FakeFileLockReply::FakeFileLockReply(FileInfo &remoteRootFileInfo,
                                      QObject *parent)
     : FakePropfindReply(remoteRootFileInfo, op, request, parent)
 {
-    const auto verb = request.attribute(QNetworkRequest::CustomVerbAttribute);
+    const auto verb = request.attribute(QNetworkRequest::CustomVerbAttribute).toString();
 
     setRequest(request);
     setUrl(request.url());
