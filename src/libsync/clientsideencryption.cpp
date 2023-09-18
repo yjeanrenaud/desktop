@@ -17,7 +17,7 @@
 #include "common/constants.h"
 #include "wordlist.h"
 
-#include <qt5keychain/keychain.h>
+#include <qt6keychain/keychain.h>
 
 #include <QDebug>
 #include <QLoggingCategory>
@@ -33,12 +33,6 @@
 #include <QScopeGuard>
 #include <QRandomGenerator>
 #include <QCryptographicHash>
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-#include <qt6keychain/keychain.h>
-#else
-#include <qt5keychain/keychain.h>
-#endif
 
 #include <map>
 #include <string>
