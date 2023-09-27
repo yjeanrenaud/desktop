@@ -674,7 +674,67 @@ private slots:
         QCOMPARE(fakeFolder.currentRemoteState().find("A/a0")->size, size + 1);
     }
 
+    void testFileUploadWithExceededQuota()
+    {
+        FakeFolder fakeFolder{{}};
 
+        // Disable parallel uploads
+        SyncOptions syncOptions;
+        syncOptions._parallelNetworkJobs = 0;
+        fakeFolder.syncEngine().setSyncOptions(syncOptions);
+
+        fakeFolder.syncEngine().account()->setCapabilities({ { "dav", QVariantMap{ {"chunking", "1.0"} } } });
+        setChunkSize(fakeFolder.syncEngine(), 1 * 1024 * 1024);
+        constexpr auto size = 10 * 1024 * 1024; // 10 MB
+
+        // Produce an error based on upload size
+        int remoteQuota = 25 * 1024 * 1024;
+        auto n507 = 0;
+        QObject parent;
+        fakeFolder.setServerOverride([&remoteQuota, &parent, &n507](QNetworkAccessManager::Operation op, const QNetworkRequest &request, QIODevice *outgoingData) -> QNetworkReply * {
+            Q_UNUSED(outgoingData)
+
+            if (op == QNetworkAccessManager::PutOperation) {
+                if (!request.hasRawHeader("OC-Chunk-Offset") && request.rawHeader("OC-Total-Length").toInt() <= remoteQuota) {
+                    remoteQuota -= request.rawHeader("OC-Total-Length").toInt();
+                } else if (!request.hasRawHeader("OC-Chunk-Offset")) {
+                    ++n507;
+                    return new FakeErrorReply(op, request, &parent, 507);
+                }
+            } else if (op == QNetworkAccessManager::CustomOperation && request.attribute(QNetworkRequest::CustomVerbAttribute).toString() == QStringLiteral("MOVE")) {
+                if (request.rawHeader("OC-Total-Length").toInt() <= remoteQuota) {
+                    remoteQuota -= request.rawHeader("OC-Total-Length").toInt();
+                } else {
+                    ++n507;
+                    return new FakeErrorReply(op, request, &parent, 507);
+                }
+            } else if (op == QNetworkAccessManager::CustomOperation && request.attribute(QNetworkRequest::CustomVerbAttribute).toString() == QStringLiteral("MKCOL")) {
+                qDebug() << "MOVE";
+            }
+
+            return nullptr;
+        });
+
+        fakeFolder.localModifier().mkdir(QStringLiteral("A"));
+        fakeFolder.syncOnce();
+        fakeFolder.localModifier().insert("A/small0");
+        fakeFolder.localModifier().insert("A/a0", size);
+        fakeFolder.localModifier().insert("A/small1");
+        fakeFolder.localModifier().insert("A/a1", size);
+        fakeFolder.localModifier().insert("A/small2");
+        fakeFolder.localModifier().insert("A/a2", size);
+        fakeFolder.localModifier().insert("A/small3");
+        fakeFolder.localModifier().insert("A/a3", size);
+        fakeFolder.localModifier().insert("A/small4");
+        fakeFolder.localModifier().insert("A/a4", size);
+        fakeFolder.localModifier().insert("A/small5");
+        fakeFolder.syncOnce();
+        QCOMPARE(n507, 1);
+
+        n507 = 0;
+        fakeFolder.syncOnce();
+        QCOMPARE(n507, 0);
+    }
 };
 
 QTEST_GUILESS_MAIN(TestChunkingNG)
