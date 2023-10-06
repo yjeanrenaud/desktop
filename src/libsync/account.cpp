@@ -1035,6 +1035,40 @@ QString Account::encryptionHardwareTokenDriverPath() const
     return {};
 }
 
+QString Account::encryptionCertificateSerialNumber() const
+{
+    return _encryptionCertificateSerialNumber;
+}
+
+void Account::setEncryptionCertificateSerialNumber(const QString &serialNumber)
+{
+    if (_encryptionCertificateSerialNumber == serialNumber) {
+        return;
+    }
+
+    _encryptionCertificateSerialNumber = serialNumber;
+    _e2e.usbTokenInformation()->setSerialNumber(serialNumber);
+    Q_EMIT encryptionCertificateSerialNumberChanged();
+    Q_EMIT wantsAccountSaved(this);
+}
+
+QString Account::encryptionCertificateIssuer() const
+{
+    return _encryptionCertificateIssuer;
+}
+
+void Account::setEncryptionCertificateIssuer(const QString &issuer)
+{
+    if (_encryptionCertificateIssuer == issuer) {
+        return;
+    }
+
+    _encryptionCertificateIssuer = issuer;
+    _e2e.usbTokenInformation()->setIssuer(issuer);
+    Q_EMIT encryptionCertificateIssuerChanged();
+    Q_EMIT wantsAccountSaved(this);
+}
+
 void Account::setAskUserForMnemonic(const bool ask)
 {
     _e2eAskUserForMnemonic = ask;

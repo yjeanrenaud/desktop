@@ -12,6 +12,7 @@
  * for more details.
  */
 
+#include <openssl/pem.h>
 #define OPENSSL_SUPPRESS_DEPRECATED
 
 #include "clientsidetokenselector.h"
@@ -21,6 +22,50 @@
 #include <QLoggingCategory>
 
 #include <libp11.h>
+
+namespace {
+
+class Bio {
+public:
+    Bio()
+        : _bio(BIO_new(BIO_s_mem()))
+    {
+    }
+
+    ~Bio()
+    {
+        BIO_free_all(_bio);
+    }
+
+    operator const BIO*() const
+    {
+        return _bio;
+    }
+
+    operator BIO*()
+    {
+        return _bio;
+    }
+
+private:
+    Q_DISABLE_COPY(Bio)
+
+    BIO* _bio;
+};
+
+static unsigned char* unsignedData(QByteArray& array)
+{
+    return (unsigned char*)array.data();
+}
+
+static QByteArray BIO2ByteArray(Bio &b) {
+    auto pending = static_cast<int>(BIO_ctrl_pending(b));
+    QByteArray res(pending, '\0');
+    BIO_read(b, unsignedData(res), pending);
+    return res;
+}
+
+}
 
 namespace OCC
 {
@@ -35,45 +80,25 @@ ClientSideTokenSelector::ClientSideTokenSelector(QObject *parent)
 
 bool ClientSideTokenSelector::isSetup() const
 {
-    return false;
+    return !_issuer.isEmpty() && !_serialNumber.isEmpty();
 }
 
-QVariantList ClientSideTokenSelector::discoveredTokens() const
+QVariantList ClientSideTokenSelector::discoveredCertificates() const
 {
-    return _discoveredTokens;
+    return _discoveredCertificates;
 }
 
-QVariantList ClientSideTokenSelector::discoveredKeys() const
+QString ClientSideTokenSelector::serialNumber() const
 {
-    return _discoveredPrivateKeys;
+    return _serialNumber;
 }
 
-QString ClientSideTokenSelector::slotManufacturer() const
+QString ClientSideTokenSelector::issuer() const
 {
-    return _slotManufacturer;
+    return _issuer;
 }
 
-QString ClientSideTokenSelector::tokenManufacturer() const
-{
-    return _tokenManufacturer;
-}
-
-QString ClientSideTokenSelector::tokenModel() const
-{
-    return _tokenModel;
-}
-
-QString ClientSideTokenSelector::tokenSerialNumber() const
-{
-    return _tokenSerialNumber;
-}
-
-int ClientSideTokenSelector::keyIndex() const
-{
-    return _keyIndex;
-}
-
-void ClientSideTokenSelector::searchForToken(const AccountPtr &account)
+void ClientSideTokenSelector::searchForCertificates(const AccountPtr &account)
 {
     auto ctx = PKCS11_CTX_new();
 
@@ -95,8 +120,7 @@ void ClientSideTokenSelector::searchForToken(const AccountPtr &account)
         return;
     }
 
-    _discoveredTokens.clear();
-    _discoveredPrivateKeys.clear();
+    _discoveredCertificates.clear();
     auto currentSlot = static_cast<PKCS11_SLOT*>(nullptr);
     for(auto i = 0u; i < tokensCount; ++i) {
         currentSlot = PKCS11_find_next_token(ctx, tokenSlots, tokensCount, currentSlot);
@@ -104,96 +128,118 @@ void ClientSideTokenSelector::searchForToken(const AccountPtr &account)
             break;
         }
 
-        qCInfo(lcCseSelector()) << "Slot manufacturer......:" << currentSlot->manufacturer;
-        qCInfo(lcCseSelector()) << "Slot description.......:" << currentSlot->description;
-        qCInfo(lcCseSelector()) << "Slot token label.......:" << currentSlot->token->label;
-        qCInfo(lcCseSelector()) << "Slot token manufacturer:" << currentSlot->token->manufacturer;
-        qCInfo(lcCseSelector()) << "Slot token model.......:" << currentSlot->token->model;
-        qCInfo(lcCseSelector()) << "Slot token serialnr....:" << currentSlot->token->serialnr;
-
-        _discoveredTokens.push_back(QVariantMap{
-                                                {QStringLiteral("slotManufacturer"), QString::fromLatin1(currentSlot->manufacturer)},
-                                                {QStringLiteral("slotDescription"), QString::fromLatin1(currentSlot->description)},
-                                                {QStringLiteral("tokenLabel"), QString::fromLatin1(currentSlot->token->label)},
-                                                {QStringLiteral("tokenManufacturer"), QString::fromLatin1(currentSlot->token->manufacturer)},
-                                                {QStringLiteral("tokenModel"), QString::fromLatin1(currentSlot->token->model)},
-                                                {QStringLiteral("tokenSerialNumber"), QString::fromLatin1(currentSlot->token->serialnr)},
-                                                });
+        qCDebug(lcCseSelector()) << "Slot manufacturer......:" << currentSlot->manufacturer;
+        qCDebug(lcCseSelector()) << "Slot description.......:" << currentSlot->description;
+        qCDebug(lcCseSelector()) << "Slot token label.......:" << currentSlot->token->label;
+        qCDebug(lcCseSelector()) << "Slot token manufacturer:" << currentSlot->token->manufacturer;
+        qCDebug(lcCseSelector()) << "Slot token model.......:" << currentSlot->token->model;
+        qCDebug(lcCseSelector()) << "Slot token serialnr....:" << currentSlot->token->serialnr;
 
         auto keysCount = 0u;
-        auto tokenKeys = static_cast<PKCS11_KEY*>(nullptr);
-        if (PKCS11_enumerate_public_keys(currentSlot->token, &tokenKeys, &keysCount)) {
-            qCWarning(lcCseSelector()) << "PKCS11_enumerate_public_keys failed" << ERR_reason_error_string(ERR_get_error());
+        auto certificatesFromToken = static_cast<PKCS11_CERT*>(nullptr);
+        if (PKCS11_enumerate_certs(currentSlot->token, &certificatesFromToken, &keysCount)) {
+            qCWarning(lcCseSelector()) << "PKCS11_enumerate_certs failed" << ERR_reason_error_string(ERR_get_error());
 
             Q_EMIT failedToInitialize(account);
             return;
         }
 
-        for (auto keyIndex = 0u; keyIndex < keysCount; ++keyIndex) {
-            auto currentPrivateKey = &tokenKeys[0];
-            qCInfo(lcCseSelector()) << "key metadata:"
-                            << "type:" << (currentPrivateKey->isPrivate ? "is private" : "is public")
-                            << "label:" << currentPrivateKey->label
-                            << "need login:" << (currentPrivateKey->needLogin ? "true" : "false");
+        for (auto certificateIndex = 0u; certificateIndex < keysCount; ++certificateIndex) {
+            const auto currentCertificate = &certificatesFromToken[certificateIndex];
+            qCInfo(lcCseSelector()) << "certificate metadata:"
+                                    << "label:" << currentCertificate->label;
 
-            _discoveredPrivateKeys.push_back(QVariantMap{
-                                                         {QStringLiteral("label"), QString::fromLatin1(currentPrivateKey->label)},
-                                                         {QStringLiteral("needLogin"), QVariant::fromValue(currentPrivateKey->needLogin)},
-                                                         });
+            const auto certificateId = QByteArray{reinterpret_cast<char*>(currentCertificate->id), static_cast<int>(currentCertificate->id_len)};
+            qCInfo(lcCseSelector()) << "new certificate ID:" << certificateId.toBase64();
+
+            const auto certificateSubjectName = X509_get_subject_name(currentCertificate->x509);
+            if (!certificateSubjectName) {
+                qCWarning(lcCseSelector()) << "X509_get_subject_name failed" << ERR_reason_error_string(ERR_get_error());
+
+                Q_EMIT failedToInitialize(account);
+                return;
+            }
+
+            Bio out;
+            const auto ret = PEM_write_bio_X509(out, currentCertificate->x509);
+            if (ret <= 0){
+                qCWarning(lcCseSelector()) << "PEM_write_bio_X509 failed" << ERR_reason_error_string(ERR_get_error());
+
+                Q_EMIT failedToInitialize(account);
+                return;
+            }
+
+            const auto result = BIO2ByteArray(out);
+            const auto sslCertificate = QSslCertificate{result, QSsl::Pem};
+
+            qCInfo(lcCseSelector()) << "newly found certificate"
+                                    << "subject:" << sslCertificate.subjectDisplayName()
+                                    << "issuer:" << sslCertificate.issuerDisplayName()
+                                    << "valid since:" << sslCertificate.effectiveDate()
+                                    << "valid until:" << sslCertificate.expiryDate()
+                                    << "serial number:" << sslCertificate.serialNumber();
+
+            if (sslCertificate.isSelfSigned()) {
+                qCInfo(lcCseSelector()) << "newly found certificate is self signed: goint to ignore it";
+                continue;
+            }
+
+            _discoveredCertificates.push_back(QVariantMap{
+                                                          {QStringLiteral("label"), QString::fromLatin1(currentCertificate->label)},
+                                                          {QStringLiteral("subject"), sslCertificate.subjectDisplayName()},
+                                                          {QStringLiteral("issuer"), sslCertificate.issuerDisplayName()},
+                                                          {QStringLiteral("serialNumber"), sslCertificate.serialNumber()},
+                                                          {QStringLiteral("validSince"), sslCertificate.effectiveDate()},
+                                                          {QStringLiteral("validUntil"), sslCertificate.expiryDate()},
+                                                          {QStringLiteral("certificate"), QVariant::fromValue(sslCertificate)},
+                                                          });
         }
     }
-    Q_EMIT discoveredTokensChanged();
-    Q_EMIT discoveredKeysChanged();
+
+    Q_EMIT discoveredCertificatesChanged();
+    processDiscoveredCertificates();
 }
 
-void ClientSideTokenSelector::setSlotManufacturer(const QString &slotManufacturer)
+void ClientSideTokenSelector::setSerialNumber(const QString &serialNumber)
 {
-    if (_slotManufacturer == slotManufacturer) {
+    if (_serialNumber == serialNumber) {
         return;
     }
 
-    _slotManufacturer = slotManufacturer;
-    Q_EMIT slotManufacturerChanged();
+    _serialNumber = serialNumber;
+    Q_EMIT serialNumberChanged();
 }
 
-void ClientSideTokenSelector::setTokenManufacturer(const QString &tokenManufacturer)
+void ClientSideTokenSelector::setIssuer(const QString &issuer)
 {
-    if (_tokenManufacturer == tokenManufacturer) {
+    if (_issuer == issuer) {
         return;
     }
 
-    _tokenManufacturer = tokenManufacturer;
-    Q_EMIT tokenManufacturerChanged();
+    _issuer = issuer;
+    Q_EMIT issuerChanged();
 }
 
-void ClientSideTokenSelector::setTokenModel(const QString &tokenModel)
+void ClientSideTokenSelector::processDiscoveredCertificates()
 {
-    if (_tokenModel == tokenModel) {
+    for (const auto &oneCertificate : discoveredCertificates()) {
+        const auto certificateData = oneCertificate.toMap();
+        const auto sslCertificate = certificateData[QStringLiteral("certificate")].value<QSslCertificate>();
+        if (sslCertificate.isNull()) {
+            qCDebug(lcCseSelector()) << "null certificate";
+            continue;
+        }
+        const auto sslErrors = QSslCertificate::verify({sslCertificate});
+        for (const auto &oneError : sslErrors) {
+            qCInfo(lcCseSelector()) << oneError;
+        }
+        qCInfo(lcCseSelector()) << "certificate is valid" << certificateData[QStringLiteral("serialNumber")] << certificateData[QStringLiteral("issuer")];
+
+        setIssuer(certificateData[QStringLiteral("issuer")].toString());
+        setSerialNumber(certificateData[QStringLiteral("serialNumber")].toString());
+        Q_EMIT isSetupChanged();
         return;
     }
-
-    _tokenModel = tokenModel;
-    Q_EMIT tokenModelChanged();
-}
-
-void ClientSideTokenSelector::setTokenSerialNumber(const QString &tokenSerialNumber)
-{
-    if (_tokenSerialNumber == tokenSerialNumber) {
-        return;
-    }
-
-    _tokenSerialNumber = tokenSerialNumber;
-    Q_EMIT tokenSerialNumberChanged();
-}
-
-void ClientSideTokenSelector::setKeyIndex(int keyIndex)
-{
-    if (_keyIndex == keyIndex) {
-        return;
-    }
-
-    _keyIndex = keyIndex;
-    Q_EMIT keyIndexChanged();
 }
 
 }

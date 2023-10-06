@@ -37,6 +37,8 @@
 #include <QXmlStreamNamespaceDeclaration>
 #include <QStack>
 #include <QInputDialog>
+#include <QMessageBox>
+#include <QWidget>
 #include <QLineEdit>
 #include <QIODevice>
 #include <QUuid>
@@ -1014,23 +1016,13 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
 
 ClientSideEncryption::ClientSideEncryption()
 {
-    connect(&_usbTokenInformation, &ClientSideTokenSelector::discoveredTokensChanged,
-            this, &ClientSideEncryption::displayTokenInitDialog);
+    connect(&_usbTokenInformation, &ClientSideTokenSelector::discoveredCertificatesChanged,
+            this, &ClientSideEncryption::completeHardwareTokenInitialization);
 }
 
 bool ClientSideEncryption::isInitialized() const
 {
-    return !getMnemonic().isEmpty();
-}
-
-QVariantList ClientSideEncryption::discoveredTokens() const
-{
-    return _usbTokenInformation.discoveredTokens();
-}
-
-QVariantList ClientSideEncryption::discoveredKeys() const
-{
-    return _usbTokenInformation.discoveredKeys();
+    return useTokenBasedEncryption() || !getMnemonic().isEmpty();
 }
 
 const QSslKey &ClientSideEncryption::getPublicKey() const
@@ -1083,7 +1075,13 @@ ENGINE* ClientSideEncryption::sslEngine() const
     return ENGINE_get_default_RSA();
 }
 
-void ClientSideEncryption::initialize(const AccountPtr &account)
+ClientSideTokenSelector *ClientSideEncryption::usbTokenInformation()
+{
+    return &_usbTokenInformation;
+}
+
+void ClientSideEncryption::initialize(QWidget *settingsDialog,
+                                      const AccountPtr &account)
 {
     Q_ASSERT(account);
 
@@ -1096,11 +1094,11 @@ void ClientSideEncryption::initialize(const AccountPtr &account)
 
     if (account->enforceUseHardwareTokenEncryption()) {
         if (_usbTokenInformation.isSetup()) {
-            initializeHardwareTokenEncryption(account);
+            initializeHardwareTokenEncryption(settingsDialog, account);
         } else if (account->e2eEncryptionKeysGenerationAllowed() && account->askUserForMnemonic()) {
-            _usbTokenInformation.searchForToken(account);
+            _usbTokenInformation.searchForCertificates(account);
             if (_usbTokenInformation.isSetup()) {
-                initializeHardwareTokenEncryption(account);
+                initializeHardwareTokenEncryption(settingsDialog, account);
             } else {
                 emit initializationFinished();
             }
@@ -1112,7 +1110,8 @@ void ClientSideEncryption::initialize(const AccountPtr &account)
     }
 }
 
-void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &account)
+void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDialog,
+                                                             const AccountPtr &account)
 {
     auto ctx = PKCS11_CTX_new();
 
@@ -1156,27 +1155,60 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
         return;
     }
 
-    /* perform pkcs #11 login */
-    QByteArray password = "0000";
-    if (PKCS11_login(slot, 0, password.data()) != 0) {
-        qCWarning(lcCse()) << "PKCS11_login failed" << ERR_reason_error_string(ERR_get_error());
+    while (true) {
+        auto pinHasToBeCached = false;
+        auto newPin = _cachedPin;
 
-        failedToInitialize(account);
-        return;
-    }
+        if (newPin.isEmpty()) {
+            /* perform pkcs #11 login */
+            bool ok;
+            newPin = QInputDialog::getText(settingsDialog,
+                                           tr("PIN needed to login to token"),
+                                           tr("Enter Certificate USB Token PIN:"),
+                                           QLineEdit::Password,
+                                           {},
+                                           &ok);
+            if (!ok || newPin.isEmpty()) {
+                qCWarning(lcCse()) << "an USER pin is required";
 
-    /* check if user is logged in */
-    if (PKCS11_is_logged_in(slot, 0, &logged_in) != 0) {
-        qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
+                failedToInitialize(account);
+                return;
+            }
 
-        failedToInitialize(account);
-        return;
-    }
-    if (!logged_in) {
-        qCWarning(lcCse()) << "PKCS11_is_logged_in says user is not logged in, expected to be logged in";
+            pinHasToBeCached = true;
+        }
 
-        failedToInitialize(account);
-        return;
+        const auto newPinData = newPin.toLatin1();
+        if (PKCS11_login(slot, 0, newPinData.data()) != 0) {
+            QMessageBox::warning(settingsDialog,
+                                 tr("Invalid PIN. Login failed"),
+                                 tr("Login to the token failed after providing the user PIN. It may be invalid or wrong. Please try again !"),
+                                 QMessageBox::Ok);
+            _cachedPin.clear();
+            continue;
+        }
+
+        /* check if user is logged in */
+        if (PKCS11_is_logged_in(slot, 0, &logged_in) != 0) {
+            qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
+
+            _cachedPin.clear();
+            failedToInitialize(account);
+            return;
+        }
+        if (!logged_in) {
+            qCWarning(lcCse()) << "PKCS11_is_logged_in says user is not logged in, expected to be logged in";
+
+            _cachedPin.clear();
+            failedToInitialize(account);
+            return;
+        }
+
+        if (pinHasToBeCached) {
+            cacheTokenPin(newPin);
+        }
+
+        break;
     }
 
     auto privateKeysCount = 0u;
@@ -1231,6 +1263,8 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(const AccountPtr &a
         failedToInitialize(account);
         return;
     }
+
+    saveCertificateIdentification(account);
 
     emit initializationFinished();
 }
@@ -1518,6 +1552,23 @@ void ClientSideEncryption::writeCertificate(const AccountPtr &account)
     job->start();
 }
 
+void ClientSideEncryption::completeHardwareTokenInitialization()
+{
+    for (const auto &oneCertificate : _usbTokenInformation.discoveredCertificates()) {
+        const auto certificateData = oneCertificate.toMap();
+        const auto sslCertificate = certificateData[QStringLiteral("certificate")].value<QSslCertificate>();
+        if (sslCertificate.isNull()) {
+            qCDebug(lcCse()) << "null certificate";
+            continue;
+        }
+        const auto sslErrors = QSslCertificate::verify({sslCertificate});
+        for (const auto &oneError : sslErrors) {
+            qCInfo(lcCse()) << oneError;
+        }
+        qCInfo(lcCse()) << "certificate is valid" << certificateData[QStringLiteral("serialNumber")] << certificateData[QStringLiteral("issuer")];
+    }
+}
+
 void ClientSideEncryption::generateMnemonic()
 {
     const auto list = WordList::getRandomWords(12);
@@ -1574,6 +1625,12 @@ void ClientSideEncryption::forgetSensitiveData(const AccountPtr &account)
     deletePrivateKeyJob->start();
     deleteCertJob->start();
     deleteMnemonicJob->start();
+    _usbTokenInformation.setSerialNumber({});
+    _usbTokenInformation.setIssuer({});
+    account->setEncryptionCertificateSerialNumber({});
+    account->setEncryptionCertificateIssuer({});
+    _tokenPublicKey = nullptr;
+    _tokenPrivateKey = nullptr;
 }
 
 void ClientSideEncryption::handlePrivateKeyDeleted(const QKeychain::Job* const incoming)
@@ -1633,13 +1690,27 @@ void ClientSideEncryption::handlePublicKeyDeleted(const QKeychain::Job * const i
 
 bool ClientSideEncryption::sensitiveDataRemaining() const
 {
-    return !_privateKey.isEmpty() || !_certificate.isNull() || !_mnemonic.isEmpty();
+    return !_privateKey.isEmpty() || !_certificate.isNull() || !_mnemonic.isEmpty() || !_usbTokenInformation.serialNumber().isEmpty() || !_usbTokenInformation.issuer().isEmpty() || _tokenPublicKey || _tokenPrivateKey;
 }
 
 void ClientSideEncryption::failedToInitialize(const AccountPtr &account)
 {
     forgetSensitiveData(account);
     Q_EMIT initializationFinished();
+}
+
+void ClientSideEncryption::saveCertificateIdentification(const AccountPtr &account) const
+{
+    account->setEncryptionCertificateIssuer(_usbTokenInformation.issuer());
+    account->setEncryptionCertificateSerialNumber(_usbTokenInformation.serialNumber());
+}
+
+void ClientSideEncryption::cacheTokenPin(const QString pin)
+{
+    _cachedPin = pin;
+    QTimer::singleShot(86400000, [this] () {
+        _cachedPin.clear();
+    });
 }
 
 void ClientSideEncryption::checkAllSensitiveDataDeleted()

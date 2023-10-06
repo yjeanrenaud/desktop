@@ -46,6 +46,8 @@ constexpr auto serverVersionC = "serverVersion";
 constexpr auto serverColorC = "serverColor";
 constexpr auto serverTextColorC = "serverTextColor";
 constexpr auto skipE2eeMetadataChecksumValidationC = "skipE2eeMetadataChecksumValidation";
+constexpr auto encryptionCertificateSerialNumberC = "encryptionCertificateSerialNumber";
+constexpr auto encryptionCertificateIssuerC = "encryptionCertificateIssuer";
 constexpr auto generalC = "General";
 
 constexpr auto dummyAuthTypeC = "dummy";
@@ -316,6 +318,8 @@ void AccountManager::saveAccountHelper(Account *acc, QSettings &settings, bool s
     settings.setValue(QLatin1String(serverVersionC), acc->_serverVersion);
     settings.setValue(QLatin1String(serverColorC), acc->_serverColor);
     settings.setValue(QLatin1String(serverTextColorC), acc->_serverTextColor);
+    settings.setValue(QLatin1String(encryptionCertificateSerialNumberC), acc->encryptionCertificateSerialNumber());
+    settings.setValue(QLatin1String(encryptionCertificateIssuerC), acc->encryptionCertificateIssuer());
     if (!acc->_skipE2eeMetadataChecksumValidation) {
         settings.remove(QLatin1String(skipE2eeMetadataChecksumValidationC));
     } else {
@@ -441,6 +445,9 @@ AccountPtr AccountManager::loadAccountHelper(QSettings &settings)
     }
 
     acc->setCredentials(CredentialsFactory::create(authType));
+
+    acc->setEncryptionCertificateSerialNumber(settings.value(QLatin1String(encryptionCertificateSerialNumberC)).toString());
+    acc->setEncryptionCertificateIssuer(settings.value(QLatin1String(encryptionCertificateIssuerC)).toString());
 
     // now the server cert, it is in the general group
     settings.beginGroup(QLatin1String(generalC));

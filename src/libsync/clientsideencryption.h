@@ -36,6 +36,8 @@
 
 #include <optional>
 
+class QWidget;
+
 namespace QKeychain {
 class Job;
 class WritePasswordJob;
@@ -143,10 +145,6 @@ public:
 
     [[nodiscard]] bool tokenIsSetup() const;
 
-    [[nodiscard]] QVariantList discoveredTokens() const;
-
-    [[nodiscard]] QVariantList discoveredKeys() const;
-
     [[nodiscard]] const QSslKey& getPublicKey() const;
 
     void setPublicKey(const QSslKey &publicKey);
@@ -165,7 +163,9 @@ public:
 
     void setCertificate(const QSslCertificate &certificate);
 
-    ENGINE* sslEngine() const;
+    [[nodiscard]] ENGINE* sslEngine() const;
+
+    [[nodiscard]] ClientSideTokenSelector* usbTokenInformation();
 
 signals:
     void initializationFinished(bool isNewMnemonicGenerated = false);
@@ -174,11 +174,12 @@ signals:
     void certificateDeleted();
     void mnemonicDeleted();
     void publicKeyDeleted();
-    void displayTokenInitDialog();
 
 public slots:
-    void initialize(const OCC::AccountPtr &account);
-    void initializeHardwareTokenEncryption(const AccountPtr &account);
+    void initialize(QWidget *settingsDialog,
+                    const OCC::AccountPtr &account);
+    void initializeHardwareTokenEncryption(QWidget* settingsDialog,
+                                           const OCC::AccountPtr &account);
     void forgetSensitiveData(const OCC::AccountPtr &account);
 
 private slots:
@@ -205,6 +206,8 @@ private slots:
     void fetchPublicKeyFromKeyChain(const OCC::AccountPtr &account);
     void writePrivateKey(const OCC::AccountPtr &account);
     void writeCertificate(const OCC::AccountPtr &account);
+
+    void completeHardwareTokenInitialization();
 
 private:
     void generateMnemonic();
@@ -251,11 +254,16 @@ private:
 
     void failedToInitialize(const AccountPtr &account);
 
+    void saveCertificateIdentification(const AccountPtr &account) const;
+    void cacheTokenPin(const QString pin);
+
     QByteArray _privateKey;
     QSslKey _publicKey;
     QSslCertificate _certificate;
     QString _mnemonic;
     bool _newMnemonicGenerated = false;
+
+    QString _cachedPin;
 
     ClientSideTokenSelector _usbTokenInformation;
 

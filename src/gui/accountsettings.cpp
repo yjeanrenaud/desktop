@@ -269,10 +269,12 @@ void AccountSettings::slotE2eEncryptionMnemonicReady()
         disableEncryptionForAccount(_accountState->account());
     });
 
-    const auto actionDisplayMnemonic = addActionToEncryptionMessage(tr("Display mnemonic"), e2EeUiActionDisplayMnemonicId);
-    connect(actionDisplayMnemonic, &QAction::triggered, this, [this]() {
-        displayMnemonic(_accountState->account()->e2e()->getMnemonic());
-    });
+    if (!_accountState->account()->e2e()->getMnemonic().isEmpty()) {
+        const auto actionDisplayMnemonic = addActionToEncryptionMessage(tr("Display mnemonic"), e2EeUiActionDisplayMnemonicId);
+        connect(actionDisplayMnemonic, &QAction::triggered, this, [this]() {
+            displayMnemonic(_accountState->account()->e2e()->getMnemonic());
+        });
+    }
 
     _ui->encryptionMessage->setMessageType(KMessageWidget::Positive);
     _ui->encryptionMessage->setText(tr("End-to-end encryption has been enabled for this account"));
@@ -283,16 +285,14 @@ void AccountSettings::slotE2eEncryptionMnemonicReady()
 void AccountSettings::slotE2eEncryptionGenerateKeys()
 {
     connect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
-    connect(_accountState->account()->e2e(), &ClientSideEncryption::displayTokenInitDialog, this, &AccountSettings::slotDisplayTokenInitDialog);
     _accountState->account()->setE2eEncryptionKeysGenerationAllowed(true);
     _accountState->account()->setAskUserForMnemonic(true);
-    _accountState->account()->e2e()->initialize(_accountState->account());
+    _accountState->account()->e2e()->initialize(this, _accountState->account());
 }
 
 void AccountSettings::slotE2eEncryptionInitializationFinished(bool isNewMnemonicGenerated)
 {
     disconnect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
-    disconnect(_accountState->account()->e2e(), &ClientSideEncryption::displayTokenInitDialog, this, &AccountSettings::slotDisplayTokenInitDialog);
     if (_accountState->account()->e2e()->isInitialized()) {
         removeActionFromEncryptionMessage(e2EeUiActionEnableEncryptionId);
         slotE2eEncryptionMnemonicReady();
@@ -301,14 +301,6 @@ void AccountSettings::slotE2eEncryptionInitializationFinished(bool isNewMnemonic
         }
     }
     _accountState->account()->setAskUserForMnemonic(false);
-}
-
-void AccountSettings::slotDisplayTokenInitDialog()
-{
-    disconnect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotE2eEncryptionInitializationFinished);
-    disconnect(_accountState->account()->e2e(), &ClientSideEncryption::displayTokenInitDialog, this, &AccountSettings::slotDisplayTokenInitDialog);
-    Systray::instance()->createTokenInitDialog(_accountState->account()->e2e()->discoveredTokens(),
-                                               _accountState->account()->e2e()->discoveredKeys());
 }
 
 void AccountSettings::slotEncryptFolderFinished(int status)
@@ -376,7 +368,7 @@ bool AccountSettings::canEncryptOrDecrypt(const FolderStatusModel::SubFolderInfo
         return false;
     }
 
-    if (!_accountState->account()->e2e() || _accountState->account()->e2e()->isInitialized()) {
+    if (!_accountState->account()->e2e() || !_accountState->account()->e2e()->isInitialized()) {
         QMessageBox msgBox;
         msgBox.setText(tr("End-to-end encryption is not configured on this device. "
                           "Once it is configured, you will be able to encrypt this folder.\n"
@@ -1624,9 +1616,7 @@ void AccountSettings::initializeE2eEncryption()
     connect(_accountState->account()->e2e(), &ClientSideEncryption::initializationFinished, this, &AccountSettings::slotPossiblyUnblacklistE2EeFoldersAndRestartSync);
 
     if (_accountState->account()->e2e()->isInitialized()) {
-        if (!_accountState->account()->e2e()->getMnemonic().isEmpty()) {
-            slotE2eEncryptionMnemonicReady();
-        }
+        slotE2eEncryptionMnemonicReady();
     } else {
         initializeE2eEncryptionSettingsMessage();
 
@@ -1640,7 +1630,7 @@ void AccountSettings::initializeE2eEncryption()
             }
         });
         _accountState->account()->setE2eEncryptionKeysGenerationAllowed(false);
-        _accountState->account()->e2e()->initialize(_accountState->account());
+        _accountState->account()->e2e()->initialize(this, _accountState->account());
     }
 }
 

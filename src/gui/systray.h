@@ -31,6 +31,8 @@ class QGuiApplication;
 
 namespace OCC {
 
+class ClientSideTokenSelector;
+
 class AccessManagerFactory : public QQmlNetworkAccessManagerFactory
 {
 public:
@@ -147,8 +149,6 @@ public slots:
 
     void createShareDialog(const QString &localPath);
     void createFileActivityDialog(const QString &localPath);
-    void createTokenInitDialog(const QVariantList &tokensInfo,
-                               const QVariantList &keysInfo);
 
     void presentShareViewInTray(const QString &localPath);
 

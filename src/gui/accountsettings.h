@@ -106,7 +106,6 @@ protected slots:
     void slotE2eEncryptionMnemonicReady();
     void slotE2eEncryptionGenerateKeys();
     void slotE2eEncryptionInitializationFinished(bool isNewMnemonicGenerated);
-    void slotDisplayTokenInitDialog();
     void slotEncryptFolderFinished(int status);
 
     void slotSelectiveSyncChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight,

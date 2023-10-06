@@ -25,8 +25,9 @@ import "./tray"
 ApplicationWindow {
     id: encryptionKeyChooserDialog
 
-    required property var tokensInfo
-    required property var keysInfo
+    required property var certificatesInfo
+    required property ClientSideTokenSelector certificateSelector
+    property string selectedSerialNumber: ''
 
     flags: Qt.Window | Qt.Dialog
     visible: true
@@ -94,18 +95,19 @@ ApplicationWindow {
                 currentIndex: -1
 
                 model: DelegateModel {
-                    model: keysInfo
+                    model: certificatesInfo
 
                     delegate: ItemDelegate {
                         width: tokensListView.contentItem.width
 
-                        text: modelData.label
+                        text: modelData.subject
 
                         highlighted: tokensListView.currentIndex === index
 
                         onClicked: function()
                         {
                             tokensListView.currentIndex = index
+                            selectedSerialNumber = modelData.serialNumber
                         }
                     }
                 }
@@ -126,10 +128,12 @@ ApplicationWindow {
 
             onAccepted: function() {
                 Systray.destroyDialog(encryptionKeyChooserDialog)
+                certificateSelector.serialNumber = selectedSerialNumber
             }
 
             onRejected: function() {
                 Systray.destroyDialog(encryptionKeyChooserDialog)
+                certificateSelector.serialNumber = ''
             }
         }
     }

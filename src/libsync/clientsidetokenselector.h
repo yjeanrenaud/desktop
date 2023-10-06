@@ -16,100 +16,65 @@
 #define CLIENTSIDETOKENSELECTOR_H
 
 #include "accountfwd.h"
+#include "owncloudlib.h"
 
 #include <QObject>
 
 namespace OCC
 {
 
-class ClientSideTokenSelector : public QObject
+class OWNCLOUDSYNC_EXPORT ClientSideTokenSelector : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(bool isSetup READ isSetup NOTIFY isSetupChanged)
 
-    Q_PROPERTY(QVariantList discoveredTokens READ discoveredTokens NOTIFY discoveredTokensChanged)
+    Q_PROPERTY(QVariantList discoveredCertificates READ discoveredCertificates NOTIFY discoveredCertificatesChanged)
 
-    Q_PROPERTY(QVariantList discoveredKeys READ discoveredKeys NOTIFY discoveredKeysChanged)
+    Q_PROPERTY(QString serialNumber READ serialNumber WRITE setSerialNumber NOTIFY serialNumberChanged)
 
-    Q_PROPERTY(QString slotManufacturer READ slotManufacturer WRITE setSlotManufacturer NOTIFY slotManufacturerChanged)
-
-    Q_PROPERTY(QString tokenManufacturer READ tokenManufacturer WRITE setTokenManufacturer NOTIFY tokenManufacturerChanged)
-
-    Q_PROPERTY(QString tokenModel READ tokenModel WRITE setTokenModel NOTIFY tokenModelChanged)
-
-    Q_PROPERTY(QString tokenSerialNumber READ tokenSerialNumber WRITE setTokenSerialNumber NOTIFY tokenSerialNumberChanged)
-
-    Q_PROPERTY(int keyIndex READ keyIndex WRITE setKeyIndex NOTIFY keyIndexChanged)
+    Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
 
 public:
     explicit ClientSideTokenSelector(QObject *parent = nullptr);
 
     [[nodiscard]] bool isSetup() const;
 
-    [[nodiscard]] QVariantList discoveredTokens() const;
+    [[nodiscard]] QVariantList discoveredCertificates() const;
 
-    [[nodiscard]] QVariantList discoveredKeys() const;
+    [[nodiscard]] QString serialNumber() const;
 
-    [[nodiscard]] QString slotManufacturer() const;
-
-    [[nodiscard]] QString tokenManufacturer() const;
-
-    [[nodiscard]] QString tokenModel() const;
-
-    [[nodiscard]] QString tokenSerialNumber() const;
-
-    [[nodiscard]] int keyIndex() const;
+    [[nodiscard]] QString issuer() const;
 
 public slots:
+    void searchForCertificates(const OCC::AccountPtr &account);
 
-    void searchForToken(const OCC::AccountPtr &account);
+    void setSerialNumber(const QString &serialNumber);
 
-    void setSlotManufacturer(const QString &slotManufacturer);
-
-    void setTokenManufacturer(const QString &tokenManufacturer);
-
-    void setTokenModel(const QString &tokenModel);
-
-    void setTokenSerialNumber(const QString &tokenSerialNumber);
-
-    void setKeyIndex(int keyIndex);
+    void setIssuer(const QString &issuer);
 
 signals:
 
     void isSetupChanged();
 
-    void discoveredTokensChanged();
+    void discoveredCertificatesChanged();
 
-    void discoveredKeysChanged();
+    void certificateIndexChanged();
 
-    void slotManufacturerChanged();
+    void serialNumberChanged();
 
-    void tokenManufacturerChanged();
-
-    void tokenModelChanged();
-
-    void tokenSerialNumberChanged();
-
-    void keyIndexChanged();
+    void issuerChanged();
 
     void failedToInitialize(const OCC::AccountPtr &account);
 
 private:
+    void processDiscoveredCertificates();
 
-    QVariantList _discoveredTokens;
+    QVariantList _discoveredCertificates;
 
-    QVariantList _discoveredPrivateKeys;
+    QString _serialNumber;
 
-    QString _slotManufacturer;
-
-    QString _tokenManufacturer;
-
-    QString _tokenModel;
-
-    QString _tokenSerialNumber;
-
-    int _keyIndex = -1;
+    QString _issuer;
 };
 
 }
