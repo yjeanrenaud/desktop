@@ -305,7 +305,9 @@ IF( APPLE )
             macOS/fileprovidersocketserver.cpp
             macOS/fileprovidersocketserver_mac.mm
             macOS/fileproviderstorageuseenumerationobserver.h
-            macOS/fileproviderstorageuseenumerationobserver.m)
+            macOS/fileproviderstorageuseenumerationobserver.m
+            macOS/fileproviderutils.h
+            macOS/fileproviderutils_mac.mm)
     endif()
 
     if(SPARKLE_FOUND AND BUILD_UPDATER)
