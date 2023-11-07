@@ -670,6 +670,7 @@ private:
     void resetDelayedUploadTasks();
 
     static void adjustDeletedFoldersWithNewChildren(SyncFileItemVector &items);
+    static void cleanupLocallyMovedFoldersFromNestedItems(SyncFileItemVector &items);
 
     AccountPtr _account;
     QScopedPointer<PropagateRootDirectory> _rootJob;
