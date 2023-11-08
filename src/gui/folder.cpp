@@ -768,13 +768,17 @@ void Folder::implicitlyHydrateFile(const QString &relativepath)
 void Folder::setVirtualFilesEnabled(bool enabled)
 {
     Vfs::Mode newMode = _definition.virtualFilesMode;
+    qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] Setting virtual files enabled to" << enabled << "newMode is" << newMode;
     if (enabled && _definition.virtualFilesMode == Vfs::Off) {
         newMode = bestAvailableVfsMode();
+        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] if(enabled && _definition.virtualFilesMode == Vfs::Off) enabled" << enabled << "newMode is" << newMode;
     } else if (!enabled && _definition.virtualFilesMode != Vfs::Off) {
         newMode = Vfs::Off;
+        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] else if enabled" << enabled << "newMode is" << newMode;
     }
 
     if (newMode != _definition.virtualFilesMode) {
+        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] newMode != _definition.virtualFilesMode" << enabled << "newMode is" << newMode;
         // TODO: Must wait for current sync to finish!
         SyncEngine::wipeVirtualFiles(path(), _journal, *_vfs);
 
@@ -790,6 +794,7 @@ void Folder::setVirtualFilesEnabled(bool enabled)
         startVfs();
         if (newMode != Vfs::Off) {
             _saveInFoldersWithPlaceholders = true;
+            qCWarning(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] if (newMode != Vfs::Off) newMode" << newMode;
             switchToVirtualFiles();
         }
         saveToSettings();
@@ -1076,13 +1081,14 @@ void Folder::startSync(const QStringList &pathList)
 
 void Folder::correctPlaceholderFiles()
 {
+    qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] correctPlaceholderFiles";
     if (_definition.virtualFilesMode == Vfs::Off) {
         return;
     }
     static const auto placeholdersCorrectedKey = QStringLiteral("placeholders_corrected");
     const auto placeholdersCorrected = _journal.keyValueStoreGetInt(placeholdersCorrectedKey, 0);
     if (!placeholdersCorrected) {
-        qCDebug(lcFolder) << "Make sure all virtual files are placeholder files";
+        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] Make sure all virtual files are placeholder files";
         switchToVirtualFiles();
         _journal.keyValueStoreSet(placeholdersCorrectedKey, true);
     }

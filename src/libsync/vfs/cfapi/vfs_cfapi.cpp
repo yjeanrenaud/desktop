@@ -161,13 +161,15 @@ void VfsCfApi::stop()
 
 void VfsCfApi::unregisterFolder()
 {
+    qCInfo(lcCfApi) << "[DEBUG_VFS_STALE_ISSUE] VfsCfApi::unregisterFolder";
     const auto localPath = QDir::toNativeSeparators(params().filesystemPath);
     const auto result = cfapi::unregisterSyncRoot(localPath, params().providerName, params().account->displayName());
     if (!result) {
-        qCCritical(lcCfApi) << "Unregistration failed for" << localPath << ":" << result.error();
+        qCCritical(lcCfApi) << "[DEBUG_VFS_STALE_ISSUE] Unregistration failed for" << localPath << ":" << result.error();
     }
 
     if (!cfapi::isAnySyncRoot(params().providerName, params().account->displayName())) {
+        qCInfo(lcCfApi) << "[DEBUG_VFS_STALE_ISSUE] VfsCfApi::unregisterFolder !cfapi::isAnySyncRoot(params().providerName, params().account->displayName())";
         cfapi::unregisterShellExtensions();
     }
 }

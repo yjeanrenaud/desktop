@@ -417,6 +417,9 @@ QString retrieveWindowsSid()
 
 bool createSyncRootRegistryKeys(const QString &providerName, const QString &folderAlias, const QString &navigationPaneClsid, const QString &displayName, const QString &accountDisplayName, const QString &syncRootPath)
 {
+    qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Trying to create Registry keys for shell integration at syncRootPath:" << syncRootPath
+                           << "providerName:" << providerName << "accountDisplayName" << accountDisplayName << "with displayName" << displayName
+                           << "with folderAlias" << folderAlias << "with navigationPaneClsid" << navigationPaneClsid;
     // We must set specific Registry keys to make the progress bar refresh correctly and also add status icons into Windows Explorer
     // More about this here: https://docs.microsoft.com/en-us/windows/win32/shell/integrate-cloud-storage
     const auto windowsSid = retrieveWindowsSid();
@@ -461,18 +464,20 @@ bool createSyncRootRegistryKeys(const QString &providerName, const QString &fold
         }
     }
 
-    qCInfo(lcCfApiWrapper) << "Successfully set Registry keys for shell integration at:" << providerSyncRootIdRegistryKey << ". Progress bar will work.";
+    qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Successfully set Registry keys for shell integration at:" << providerSyncRootIdRegistryKey << ". Progress bar will work.";
 
     return true;
 }
 
 bool deleteSyncRootRegistryKey(const QString &syncRootPath, const QString &providerName, const QString &accountDisplayName)
 {
+    qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Trying to delete Registry keys for shell integration at syncRootPath:" << syncRootPath << "providerName:" << providerName
+                           << "accountDisplayName" << accountDisplayName << "with syncRootManagerRegKey" << syncRootManagerRegKey;
     if (OCC::Utility::registryKeyExists(HKEY_LOCAL_MACHINE, syncRootManagerRegKey)) {
         const auto windowsSid = retrieveWindowsSid();
         Q_ASSERT(!windowsSid.isEmpty());
         if (windowsSid.isEmpty()) {
-            qCWarning(lcCfApiWrapper) << "Failed to delete Registry key for shell integration on path" << syncRootPath << ". Because windowsSid is empty.";
+            qCWarning(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Failed to delete Registry key for shell integration on path" << syncRootPath << ". Because windowsSid is empty.";
             return false;
         }
 
@@ -483,18 +488,30 @@ bool deleteSyncRootRegistryKey(const QString &syncRootPath, const QString &provi
         // walk through each registered syncRootId
         OCC::Utility::registryWalkSubKeys(HKEY_LOCAL_MACHINE, syncRootManagerRegKey, [&](HKEY, const QString &syncRootId) {
             // make sure we have matching syncRootId(providerName!windowsSid!accountDisplayName)
+            qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Walking subkeys in syncRootManagerRegKey" << syncRootManagerRegKey << "with syncRootId"
+                                   << syncRootId << "and currentUserSyncRootIdPattern" << currentUserSyncRootIdPattern;
             if (syncRootId.startsWith(currentUserSyncRootIdPattern)) {
                 const QString syncRootIdUserSyncRootsRegistryKey = syncRootManagerRegKey + QStringLiteral("\\") + syncRootId + QStringLiteral(R"(\UserSyncRoots\)");
                 // check if there is a 'windowsSid' Registry value under \UserSyncRoots and it matches the sync folder path we are removing
+                qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] if(syncRootId.startsWith(currentUserSyncRootIdPattern)) syncRootIdUserSyncRootsRegistryKey"
+                                       << syncRootIdUserSyncRootsRegistryKey << "trying to get value for windowsSid" << windowsSid;
                 if (OCC::Utility::registryGetKeyValue(HKEY_LOCAL_MACHINE, syncRootIdUserSyncRootsRegistryKey, windowsSid).toString() == syncRootPath) {
                     const QString syncRootIdToDelete = syncRootManagerRegKey + QStringLiteral("\\") + syncRootId;
                     result = OCC::Utility::registryDeleteKeyTree(HKEY_LOCAL_MACHINE, syncRootIdToDelete);
+                    qCInfo(lcCfApiWrapper)
+                        << "[DEBUG_VFS_STALE_ISSUE] OCC::Utility::registryDeleteKeyTree(HKEY_LOCAL_MACHINE, syncRootIdToDelete) syncRootIdToDelete"
+                        << syncRootIdToDelete << "result" << result;
                 }
             }
         });
+        qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Deleting Registry keys for shell integration at syncRootPath:" << syncRootPath << "providerName:" << providerName
+                               << "accountDisplayName" << accountDisplayName << "finished with result" << result;
         return result;
+    } else {
+        qCWarning(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Failed to delete Registry keys for shell integration at syncRootPath:" << syncRootPath << "providerName:" << providerName
+                                  << "accountDisplayName" << accountDisplayName << "key" << syncRootManagerRegKey << "does not exist";
     }
-    return true;
+    return false;
 }
 
 OCC::Result<void, QString> OCC::CfApiWrapper::registerSyncRoot(const QString &path, const QString &providerName, const QString &providerVersion, const QString &folderAlias, const QString &navigationPaneClsid, const QString &displayName, const QString &accountDisplayName)
@@ -562,18 +579,22 @@ void unregisterSyncRootShellExtensions(const QString &providerName, const QStrin
 
 OCC::Result<void, QString> OCC::CfApiWrapper::unregisterSyncRoot(const QString &path, const QString &providerName, const QString &accountDisplayName)
 {
+    qCInfo(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] OCC::CfApiWrapper::unregisterSyncRoot path:" << path << "providerName:" << providerName
+                           << "accountDisplayName" << accountDisplayName;
     const auto deleteRegistryKeyResult = deleteSyncRootRegistryKey(path, providerName, accountDisplayName);
     Q_ASSERT(deleteRegistryKeyResult);
 
     if (!deleteRegistryKeyResult) {
-        qCWarning(lcCfApiWrapper) << "Failed to delete the registry key for path:" << path;
+        qCWarning(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Failed to delete the registry key for path:" << path;
     }
 
     const auto p = path.toStdWString();
     const qint64 result = CfUnregisterSyncRoot(p.data());
     Q_ASSERT(result == S_OK);
     if (result != S_OK) {
-        return QString::fromWCharArray(_com_error(result).ErrorMessage());
+        const auto message = QString::fromWCharArray(_com_error(result).ErrorMessage());
+        qCWarning(lcCfApiWrapper) << "[DEBUG_VFS_STALE_ISSUE] Failed CfUnregisterSyncRoot with result:" << result << "and message" << message;
+        return message;
     } else {
         return {};
     }

@@ -307,6 +307,7 @@ void FolderMan::setupFoldersHelper(QSettings &settings, AccountStatePtr account,
 
             const auto switchToVfs = isSwitchToVfsNeeded(folderDefinition);
             if (switchToVfs) {
+                qCWarning(lcFolderMan) << "[DEBUG_VFS_STALE_ISSUE] switchToVfs";
                 folderDefinition.virtualFilesMode = bestAvailableVfsMode();
             }
 
@@ -318,6 +319,7 @@ void FolderMan::setupFoldersHelper(QSettings &settings, AccountStatePtr account,
 
             if (const auto folder = addFolderInternal(std::move(folderDefinition), account.data(), std::move(vfs))) {
                 if (switchToVfs) {
+                    qCWarning(lcFolderMan) << "[DEBUG_VFS_STALE_ISSUE] switchToVfs";
                     folder->switchToVirtualFiles();
                 }
                 // Migrate the old "usePlaceholders" setting to the root folder pin state
@@ -943,13 +945,18 @@ bool FolderMan::pushNotificationsFilesReady(Account *account)
 bool FolderMan::isSwitchToVfsNeeded(const FolderDefinition &folderDefinition) const
 {
     auto result = false;
+    if (ENFORCE_VIRTUAL_FILES_SYNC_FOLDER) {
+        qCInfo(lcFolderMan) << "[DEBUG_VFS_STALE_ISSUE] isSwitchToVfsNeeded ENFORCE_VIRTUAL_FILES_SYNC_FOLDER" << true;
+    }
     if (ENFORCE_VIRTUAL_FILES_SYNC_FOLDER &&
             folderDefinition.virtualFilesMode != bestAvailableVfsMode() &&
             folderDefinition.virtualFilesMode == Vfs::Off &&
             OCC::Theme::instance()->showVirtualFilesOption()) {
+        qCInfo(lcFolderMan) << "[DEBUG_VFS_STALE_ISSUE] folderDefinition.virtualFilesMode" << folderDefinition.virtualFilesMode << "bestAvailableVfsMode()"
+                            << bestAvailableVfsMode() << "OCC::Theme::instance()->showVirtualFilesOption()" << OCC::Theme::instance()->showVirtualFilesOption();
         result = true;
     }
-
+    qCInfo(lcFolderMan) << "[DEBUG_VFS_STALE_ISSUE] isSwitchToVfsNeeded" << result;
     return result;
 }
 

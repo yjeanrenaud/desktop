@@ -1181,7 +1181,7 @@ bool SyncEngine::shouldDiscoverLocally(const QString &path) const
 
 void SyncEngine::wipeVirtualFiles(const QString &localPath, SyncJournalDb &journal, Vfs &vfs)
 {
-    qCInfo(lcEngine) << "Wiping virtual files inside" << localPath;
+    qCInfo(lcEngine) << "[DEBUG_VFS_STALE_ISSUE] Wiping virtual files inside" << localPath;
     const auto resGetFilesBelowPath = journal.getFilesBelowPath(QByteArray(), [&](const SyncJournalFileRecord &rec) {
         if (rec._type != ItemTypeVirtualFile && rec._type != ItemTypeVirtualFileDownload)
             return;

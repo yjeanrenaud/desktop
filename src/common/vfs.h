@@ -16,6 +16,7 @@
 #include <QObject>
 #include <QScopedPointer>
 #include <QSharedPointer>
+#include <QLoggingCategory>
 
 #include <memory>
 
@@ -303,7 +304,9 @@ public:
     [[nodiscard]] QString fileSuffix() const override { return QString(); }
 
     void stop() override {}
-    void unregisterFolder() override {}
+    void unregisterFolder() override {
+        qInfo() << "[DEBUG_VFS_STALE_ISSUE] VfsOff::unregisterFolder";
+    }
 
     [[nodiscard]] bool socketApiPinStateActionsShown() const override { return false; }
     [[nodiscard]] bool isHydrating() const override { return false; }
