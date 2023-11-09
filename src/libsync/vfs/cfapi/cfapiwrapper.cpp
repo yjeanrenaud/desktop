@@ -862,3 +862,32 @@ OCC::Result<OCC::Vfs::ConvertToPlaceholderResult, QString> OCC::CfApiWrapper::co
         return stateResult;
     }
 }
+
+OCC::Result<OCC::Vfs::ConvertToPlaceholderResult, QString> OCC::CfApiWrapper::updatePlaceholderMarkInSync(const QString &path, const QByteArray &fileId, const QString &replacesPath)
+{
+    const auto info = replacesPath.isEmpty() ? findPlaceholderInfo(path)
+                                             : findPlaceholderInfo(replacesPath);
+    if (!info) {
+        return { "Can't update non existing placeholder info" };
+    }
+
+    const auto previousPinState = cfPinStateToPinState(info->PinState);
+    const auto fileIdentity = QString::fromUtf8(fileId).toStdWString();
+    const auto fileIdentitySize = (fileIdentity.length() + 1) * sizeof(wchar_t);
+
+    const qint64 result = CfUpdatePlaceholder(handleForPath(path).get(), nullptr,
+                                              fileIdentity.data(), sizeToDWORD(fileIdentitySize),
+                                              nullptr, 0, CF_UPDATE_FLAG_MARK_IN_SYNC, nullptr, nullptr);
+
+    if (result != S_OK) {
+        qCWarning(lcCfApiWrapper) << "Couldn't update placeholder info for" << path << ":" << QString::fromWCharArray(_com_error(result).ErrorMessage()) << replacesPath;
+        return { "Couldn't update placeholder info" };
+    }
+
+           // Pin state tends to be lost on updates, so restore it every time
+    if (!setPinState(path, previousPinState, NoRecurse)) {
+        return { "Couldn't restore pin state" };
+    }
+
+    return OCC::Vfs::ConvertToPlaceholderResult::Ok;
+}
