@@ -17,7 +17,8 @@
 #include <QLocalSocket>
 #include <QLoggingCategory>
 
-#include "fileprovidersocketcontroller.h"
+#include "gui/macOS/fileproviderdomainmanager.h"
+#include "gui/macOS/fileprovidersocketcontroller.h"
 
 namespace OCC {
 
@@ -30,6 +31,23 @@ FileProviderSocketServer::FileProviderSocketServer(QObject *parent)
 {
     _socketPath = fileProviderSocketPath();
     startListening();
+}
+
+FileProviderSocketControllerPtr FileProviderSocketServer::socketControllerForDomain(const QString &domainIdentifier) const
+{
+    const auto controllerIt = std::find_if(_socketControllers.cbegin(),
+                                           _socketControllers.cend(),
+                                           [domainIdentifier](const auto &socketController) {
+                                               const auto socketAccountState = socketController->accountState();
+                                               const auto socketControllerDomainId = FileProviderDomainManager::fileProviderDomainIdentifierFromAccountState(socketAccountState);
+                                               return socketControllerDomainId == domainIdentifier;
+                                           });
+
+    if (controllerIt == _socketControllers.cend()) {
+        return nullptr;
+    }
+
+    return controllerIt.value();
 }
 
 void FileProviderSocketServer::startListening()

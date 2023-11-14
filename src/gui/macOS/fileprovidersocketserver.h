@@ -33,6 +33,8 @@ class FileProviderSocketServer : public QObject
 public:
     explicit FileProviderSocketServer(QObject *parent = nullptr);
 
+    FileProviderSocketControllerPtr socketControllerForDomain(const QString &domainIdentifier) const;
+
 private slots:
     void startListening();
     void slotNewConnection();
