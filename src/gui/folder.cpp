@@ -767,14 +767,13 @@ void Folder::implicitlyHydrateFile(const QString &relativepath)
 
 void Folder::setVirtualFilesEnabled(bool enabled)
 {
-    Vfs::Mode newMode = _definition.virtualFilesMode;
-    qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] Setting virtual files enabled to" << enabled << "newMode is" << newMode;
-    if (enabled && _definition.virtualFilesMode == Vfs::Off) {
-        newMode = bestAvailableVfsMode();
-        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] if(enabled && _definition.virtualFilesMode == Vfs::Off) enabled" << enabled << "newMode is" << newMode;
-    } else if (!enabled && _definition.virtualFilesMode != Vfs::Off) {
+    auto newMode = _definition.virtualFilesMode;
+    if (!enabled) {
         newMode = Vfs::Off;
-        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] else if enabled" << enabled << "newMode is" << newMode;
+        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] if (!enabled)" << enabled << "newMode is" << newMode;
+    } else if (newMode == Vfs::Off) {
+        newMode = bestAvailableVfsMode();
+        qCInfo(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] else if (newMode == Vfs::Off) enabled" << enabled << "newMode is" << newMode;
     }
 
     if (newMode != _definition.virtualFilesMode) {
@@ -792,8 +791,8 @@ void Folder::setVirtualFilesEnabled(bool enabled)
 
         _definition.virtualFilesMode = newMode;
         startVfs();
+        _saveInFoldersWithPlaceholders = newMode != Vfs::Off;
         if (newMode != Vfs::Off) {
-            _saveInFoldersWithPlaceholders = true;
             qCWarning(lcFolder) << "[DEBUG_VFS_STALE_ISSUE] if (newMode != Vfs::Off) newMode" << newMode;
             switchToVirtualFiles();
         }
