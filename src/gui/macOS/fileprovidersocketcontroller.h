@@ -28,11 +28,16 @@ class FileProviderSocketController : public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(AccountStatePtr accountState READ accountState NOTIFY accountStateChanged)
+
 public:
     explicit FileProviderSocketController(QLocalSocket * const socket, QObject * const parent = nullptr);
 
+    AccountStatePtr accountState() const;
+
 signals:
     void socketDestroyed(const QLocalSocket * const socket);
+    void accountStateChanged();
 
 public slots:
     void sendMessage(const QString &message) const;

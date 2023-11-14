@@ -38,6 +38,11 @@ FileProviderSocketController::FileProviderSocketController(QLocalSocket * const 
             this, &FileProviderSocketController::slotSocketDestroyed);
 }
 
+AccountStatePtr FileProviderSocketController::accountState() const
+{
+    return _accountState;
+}
+
 void FileProviderSocketController::slotOnDisconnected()
 {
     qCInfo(lcFileProviderSocketController) << "File provider socket disconnected";
@@ -87,6 +92,7 @@ void FileProviderSocketController::parseReceivedLine(const QString &receivedLine
 
     if (command == QStringLiteral("FILE_PROVIDER_DOMAIN_IDENTIFIER_REQUEST_REPLY")) {
         _accountState = FileProviderDomainManager::accountStateFromFileProviderDomainIdentifier(argument);
+        emit accountStateChanged();
         sendAccountDetails();
         return;
     }
