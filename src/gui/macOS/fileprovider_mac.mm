@@ -12,13 +12,15 @@
  * for more details.
  */
 
-#import <Foundation/Foundation.h>
+
+#include "fileprovider.h"
 
 #include <QLoggingCategory>
 
-#include "configfile.h"
+#include "libsync/configfile.h"
+#include "gui/macOS/fileprovidersocketcontroller.h"
 
-#include "fileprovider.h"
+#import <Foundation/Foundation.h>
 
 namespace OCC {
 
@@ -79,6 +81,17 @@ bool FileProvider::fileProviderAvailable()
     }
 
     return false;
+}
+
+void FileProvider::sendMessageToDomain(const QString &domainIdentifier, const QString &message)
+{
+    const auto domainSocketController = _socketServer->socketControllerForDomain(domainIdentifier);
+    if (!domainSocketController) {
+        qCWarning(lcMacFileProvider) << "Could not find socket controller for domain identifier" << domainIdentifier;
+        return;
+    }
+
+    domainSocketController->sendMessage(message);
 }
 
 } // namespace Mac

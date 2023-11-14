@@ -38,6 +38,9 @@ public:
 
     static bool fileProviderAvailable();
 
+public slots:
+    void sendMessageToDomain(const QString &domainIdentifier, const QString &message);
+
 private:
     std::unique_ptr<FileProviderDomainManager> _domainManager;
     std::unique_ptr<FileProviderSocketServer> _socketServer;
