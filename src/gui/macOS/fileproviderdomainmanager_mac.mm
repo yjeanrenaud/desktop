@@ -661,6 +661,11 @@ AccountStatePtr FileProviderDomainManager::accountStateFromFileProviderDomainIde
     return accountForReceivedDomainIdentifier;
 }
 
+QString FileProviderDomainManager::fileProviderDomainIdentifierFromAccountState(const AccountStatePtr &accountState)
+{
+    return domainIdentifierForAccount(accountState->account());
+}
+
 } // namespace Mac
 
 } // namespace OCC
