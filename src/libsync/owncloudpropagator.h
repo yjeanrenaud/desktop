@@ -604,6 +604,8 @@ public:
     static Result<Vfs::ConvertToPlaceholderResult, QString> staticUpdateMetadata(const SyncFileItem &item, const QString localDir,
                                                                                  Vfs *vfs, SyncJournalDb * const journal);
 
+    static QString staticAdjustRenamedPath(const QMap<QString, QString> &renamedDirectories, const QString &original);
+
     Q_REQUIRED_RESULT bool isDelayedUploadItem(const SyncFileItemPtr &item) const;
 
     Q_REQUIRED_RESULT const std::deque<SyncFileItemPtr>& delayedTasks() const

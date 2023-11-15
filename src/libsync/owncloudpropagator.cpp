@@ -478,17 +478,13 @@ void OwncloudPropagator::adjustDeletedFoldersWithNewChildren(SyncFileItemVector 
         } while (nextFolderInTreeIt != std::end(items) && (*nextFolderInTreeIt)->_file != (*it)->_file);
     }
 }
-
-QString adjustRenamedPathOne(QMap<QString, QString> &renamedDirectoriesIn, const QString &original)
-{
-    return OCC::adjustRenamedPath(renamedDirectoriesIn, original);
-}
-
 void OwncloudPropagator::cleanupLocallyMovedFoldersFromNestedItems(SyncFileItemVector &items)
 {
-
+    // TODO: this methid is not the fastest we could do, but, for now it works, maybe add a flag "_isAnyMultipleRenameUploads" in discovery
+    // so this could be skipped if no moves discovered?
     QMap<QString, QString> renamedDirectories;
     for (const auto &item : items) {
+        // TODO: for now, let's only process uploads (for downloads, we need to also adjust PropagateLocalRename such that correct DB records and pin states are set)
         if (item->isDirectory() && item->_instruction == CSYNC_INSTRUCTION_RENAME && item->_instruction == SyncFileItem::Up) {
             renamedDirectories.insert(item->_file, item->_renameTarget);
         }
@@ -498,11 +494,10 @@ void OwncloudPropagator::cleanupLocallyMovedFoldersFromNestedItems(SyncFileItemV
         return;
     }
 
-    QString enclosingFolderOriginalPath;
-    QString enclosingFolderRenamedTargetPath;
+    // get rid of nested items that are inside already moved folders such that we only run one move job (for parent, and just update children in DB during sync)
     const auto eraseBeginIt = std::remove_if(std::begin(items), std::end(items), [&renamedDirectories](const SyncFileItemPtr &item) {
-      QString origin = adjustRenamedPathOne(renamedDirectories, item->_file);
-      return origin == item->_renameTarget;
+        const auto origin = staticAdjustRenamedPath(renamedDirectories, item->_file);
+        return origin == item->_renameTarget;
     });
     items.erase(eraseBeginIt, std::end(items));
 }
@@ -1055,7 +1050,7 @@ OCC::Optional<QString> OwncloudPropagator::createCaseClashConflict(const SyncFil
 
 QString OwncloudPropagator::adjustRenamedPath(const QString &original) const
 {
-    return OCC::adjustRenamedPath(_renamedDirectories, original);
+    return staticAdjustRenamedPath(_renamedDirectories, original);
 }
 
 Result<Vfs::ConvertToPlaceholderResult, QString> OwncloudPropagator::updateMetadata(const SyncFileItem &item)
@@ -1079,6 +1074,11 @@ Result<Vfs::ConvertToPlaceholderResult, QString> OwncloudPropagator::staticUpdat
         return dBresult.error();
     }
     return Vfs::ConvertToPlaceholderResult::Ok;
+}
+
+QString OwncloudPropagator::staticAdjustRenamedPath(const QMap<QString, QString> &renamedDirectories, const QString &original)
+{
+    return OCC::adjustRenamedPath(renamedDirectories, original);
 }
 
 bool OwncloudPropagator::isDelayedUploadItem(const SyncFileItemPtr &item) const
