@@ -749,7 +749,8 @@ private slots:
         fakeFolder.remoteModifier().rename("C", "AllEmpty/C");
         fakeFolder.remoteModifier().rename("A", "Empty/A");
         expectedState = fakeFolder.currentRemoteState();
-        QVERIFY(fakeFolder.syncOnce());
+        auto syncRes = fakeFolder.syncOnce();
+        QVERIFY(syncRes);
         QCOMPARE(fakeFolder.currentLocalState(), expectedState);
         QCOMPARE(fakeFolder.currentRemoteState(), expectedState);
         QCOMPARE(counter.nDELETE, 0);

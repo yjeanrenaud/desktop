@@ -1061,7 +1061,9 @@ bool SyncJournalDb::updateParentForAllChildren(const QByteArray &oldParentPath, 
     }
     query->bindValue(1, oldParentPath);
     query->bindValue(2, newParentPath);
-    return query->exec();
+    auto res = query->exec();
+    auto numRows = query->numRowsAffected();
+    return res;
 }
 
 void SyncJournalDb::keyValueStoreSet(const QString &key, QVariant value)
