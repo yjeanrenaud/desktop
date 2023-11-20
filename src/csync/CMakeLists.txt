@@ -19,8 +19,6 @@ include(DefineOptions.cmake)
 
 include(DefineInstallationPaths)
 
-find_package(SQLite3 3.8.0 REQUIRED)
-
 include(ConfigureChecks.cmake)
 include(../common/common.cmake)
 
@@ -66,8 +64,8 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/std
 )
 
-target_include_directories(nextcloud_csync PUBLIC ${SQLITE3_INCLUDE_DIR})
-target_link_libraries(nextcloud_csync PUBLIC ${SQLITE3_LIBRARIES})
+# target_include_directories(nextcloud_csync PUBLIC ${SQLITE3_INCLUDE_DIR})
+# target_link_libraries(nextcloud_csync PUBLIC ${SQLITE3_LIBRARIES})
 
 generate_export_header(nextcloud_csync
   EXPORT_MACRO_NAME OCSYNC_EXPORT
@@ -84,6 +82,9 @@ if(ZLIB_FOUND)
   target_link_libraries(nextcloud_csync PUBLIC ZLIB::ZLIB)
 endif(ZLIB_FOUND)
 
+if(SQLite3_FOUND)
+  target_link_libraries(nextcloud_csync PRIVATE SQLite::SQLite3)
+endif(SQLite3_FOUND)
 
 # For src/common/utility_mac.cpp
 if (APPLE)
