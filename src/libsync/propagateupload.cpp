@@ -382,6 +382,9 @@ void PropagateUploadFileCommon::slotStartUpload(const QByteArray &transmissionCh
     const QString fullFilePath = _fileToUpload._path;
     const QString originalFilePath = propagator()->fullLocalPath(_item->_file);
 
+    qCWarning(lcPropagateUpload) << "[DEBUG_PDF_SIGNATURE] Uploading a file:" << fullFilePath << "with checksum:" << _item->_checksumHeader
+                                 << "_item->_size:" << _item->_size;
+
     if (!FileSystem::fileExists(fullFilePath)) {
         return slotOnErrorStartFolderUnlock(SyncFileItem::SoftError, tr("File Removed (start upload) %1").arg(fullFilePath));
     }
@@ -787,6 +790,8 @@ QMap<QByteArray, QByteArray> PropagateUploadFileCommon::headers()
 
 void PropagateUploadFileCommon::finalize()
 {
+    qCWarning(lcPropagateUpload) << "[DEBUG_PDF_SIGNATURE] Finalize uploading a file:" << _item->_file << "with checksum:" << _item->_checksumHeader
+                                 << "_item->_size:" << _item->_size;
     // Update the quota, if known
     auto quotaIt = propagator()->_folderQuota.find(QFileInfo(_item->_file).path());
     if (quotaIt != propagator()->_folderQuota.end())

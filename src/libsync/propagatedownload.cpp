@@ -1111,6 +1111,10 @@ void PropagateDownloadFile::contentChecksumComputed(const QByteArray &checksumTy
     _item->_checksumHeader = makeChecksumHeader(checksumType, checksum);
 
     const auto localFilePath = propagator()->fullLocalPath(_item->_file);
+
+    qCWarning(lcPropagateDownload) << "[DEBUG_PDF_SIGNATURE] Downloading a file:" << localFilePath << "with checksum:" << _item->_checksumHeader
+                                   << "_item->_size:" << _item->_size;
+
     SyncJournalFileRecord record;
     if (_item->_instruction != CSYNC_INSTRUCTION_CONFLICT && FileSystem::fileExists(localFilePath)
         && (propagator()->_journal->getFileRecord(_item->_file, &record) && record.isValid())

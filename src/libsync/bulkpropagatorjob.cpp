@@ -291,6 +291,9 @@ void BulkPropagatorJob::slotStartUpload(SyncFileItemPtr item,
     const auto fullFilePath = fileToUpload._path;
     const auto originalFilePath = propagator()->fullLocalPath(item->_file);
 
+    qCWarning(lcBulkPropagatorJob) << "[DEBUG_PDF_SIGNATURE] Uploading a file:" << fullFilePath << "with checksum:" << item->_checksumHeader
+                                   << "item->_size:" << item->_size;
+
     if (!FileSystem::fileExists(fullFilePath)) {
         _pendingChecksumFiles.remove(item->_file);
         slotOnErrorStartFolderUnlock(item, SyncFileItem::SoftError, tr("File Removed (start upload) %1").arg(fullFilePath), ErrorCategory::GenericError);
@@ -480,6 +483,9 @@ void BulkPropagatorJob::finalizeOneFile(const BulkUploadItem &oneFile)
         done(oneFile._item, SyncFileItem::SoftError, tr("The file %1 is currently in use").arg(oneFile._item->_file), ErrorCategory::GenericError);
         return;
     }
+
+    qCWarning(lcBulkPropagatorJob) << "[DEBUG_PDF_SIGNATURE] Finalize bulk upload for file oneFile._item->_file:" << oneFile._item->_file
+                                   << "oneFile._item->_checksumHeader:" << oneFile._item->_checksumHeader;
 
     // Files that were new on the remote shouldn't have online-only pin state
     // even if their parent folder is online-only.

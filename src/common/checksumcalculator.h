@@ -54,5 +54,6 @@ private:
     bool _isInitialized = false;
     AlgorithmType _algorithmType = AlgorithmType::Undefined;
     QMutex _deviceMutex;
+    QString _filePath;
 };
 }

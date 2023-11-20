@@ -49,6 +49,7 @@ static QCryptographicHash::Algorithm algorithmTypeToQCryptoHashAlgorithm(Checksu
 
 ChecksumCalculator::ChecksumCalculator(const QString &filePath, const QByteArray &checksumTypeName)
     : _device(new QFile(filePath))
+    , _filePath(filePath)
 {
     if (checksumTypeName == checkSumMD5C) {
         _algorithmType = AlgorithmType::MD5;
@@ -80,6 +81,8 @@ QByteArray ChecksumCalculator::calculate()
     if (!_isInitialized) {
         return result;
     }
+
+    qCWarning(lcChecksumCalculator) << "[DEBUG_PDF_SIGNATURE] Checksum Calculation BEGIN for file:" << _filePath << "_algorithmType:" << static_cast<int>(_algorithmType);
 
     Q_ASSERT(!_device->isOpen());
     if (_device->isOpen()) {
@@ -136,6 +139,9 @@ QByteArray ChecksumCalculator::calculate()
             _device->close();
         }
     }
+
+    qCWarning(lcChecksumCalculator) << "[DEBUG_PDF_SIGNATURE] Checksum Calculation DONE for file:" << _filePath
+                                    << "_algorithmType:" << static_cast<int>(_algorithmType) << "result:" << result;
 
     return result;
 }
