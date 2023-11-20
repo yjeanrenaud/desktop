@@ -732,6 +732,7 @@ OCC::Result<void, QString> OCC::CfApiWrapper::createPlaceholderInfo(const QStrin
         cloudEntry.FsMetadata.FileSize.QuadPart = 0;
     }
 
+    qCInfo(lcCfApiWrapper) << "CfCreatePlaceholders" << path << modtime;
     const qint64 result = CfCreatePlaceholders(localBasePath.data(), &cloudEntry, 1, CF_CREATE_FLAG_NONE, nullptr);
     if (result != S_OK) {
         qCWarning(lcCfApiWrapper) << "Couldn't create placeholder info for" << path << ":" << QString::fromWCharArray(_com_error(result).ErrorMessage());
@@ -773,6 +774,7 @@ OCC::Result<OCC::Vfs::ConvertToPlaceholderResult, QString> OCC::CfApiWrapper::up
     OCC::Utility::UnixTimeToLargeIntegerFiletime(modtime, &metadata.BasicInfo.ChangeTime);
     metadata.BasicInfo.FileAttributes = 0;
 
+    qCInfo(lcCfApiWrapper) << "CfUpdatePlaceholder" << path << modtime;
     const qint64 result = CfUpdatePlaceholder(handleForPath(path).get(), &metadata,
                                               fileIdentity.data(), sizeToDWORD(fileIdentitySize),
                                               nullptr, 0, CF_UPDATE_FLAG_MARK_IN_SYNC, nullptr, nullptr);
