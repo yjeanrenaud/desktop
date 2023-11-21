@@ -17,7 +17,7 @@ import OSLog
 import NCDesktopClientSocketKit
 import NextcloudKit
 
-class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NKCommonDelegate {
+@objc class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension, NKCommonDelegate {
     let domain: NSFileProviderDomain
     let ncKit = NextcloudKit()
     lazy var ncKitBackground: NKBackground = {
