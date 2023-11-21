@@ -50,7 +50,7 @@ extension FileProviderExtension {
         }
     }
 
-    func setupDomainAccount(user: String, serverUrl: String, password: String) {
+    @objc func setupDomainAccount(user: String, serverUrl: String, password: String) {
         ncAccount = NextcloudAccount(user: user, serverUrl: serverUrl, password: password)
         ncKit.setup(user: ncAccount!.username,
                     userId: ncAccount!.username,
