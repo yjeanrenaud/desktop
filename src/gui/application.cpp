@@ -340,10 +340,6 @@ Application::Application(int &argc, char **argv)
 
     connect(this, &SharedTools::QtSingleApplication::messageReceived, this, &Application::slotParseMessage);
 
-#if defined(BUILD_FILE_PROVIDER_MODULE)
-    _fileProvider.reset(new Mac::FileProvider);
-#endif
-
     // create accounts and folders from a legacy desktop client or from the current config file
     setupAccountsAndFolders();
 
@@ -411,6 +407,10 @@ Application::Application(int &argc, char **argv)
         AccountSetupCommandLineManager::instance()->setupAccountFromCommandLine();
     }
     AccountSetupCommandLineManager::destroy();
+
+#if defined(BUILD_FILE_PROVIDER_MODULE)
+    _fileProvider.reset(new Mac::FileProvider);
+#endif
 }
 
 Application::~Application()
