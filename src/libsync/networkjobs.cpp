@@ -35,6 +35,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #endif
+#include <QThread>
 
 #include "networkjobs.h"
 #include "account.h"
@@ -220,12 +221,27 @@ static QString readContentsAsString(QXmlStreamReader &reader)
 }
 
 
-LsColXMLParser::LsColXMLParser() = default;
+LsColXMLParser::LsColXMLParser(QNetworkReply *reply, QHash<QString, ExtraFolderInfo> *fileInfos, const QString &expectedPath)
+    : _reply(reply)
+    , _xml(reply->readAll())
+    , _fileInfos(fileInfos)
+    , _expectedPath(expectedPath)
+{}
 
-bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo> *fileInfo, const QString &expectedPath)
+LsColXMLParser::~LsColXMLParser()
 {
+    int a = 5;
+    a = 6;
+}
+
+void LsColXMLParser::parse()
+{
+    _thread.reset(new QThread());
+    moveToThread(_thread.get());
+    _thread->start();
+
     // Parse DAV response
-    QXmlStreamReader reader(xml);
+    QXmlStreamReader reader(_xml);
     reader.addExtraNamespaceDeclaration(QXmlStreamNamespaceDeclaration("d", "DAV:"));
 
     QStringList folders;
@@ -248,9 +264,12 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
                 QString hrefString = QUrl::fromLocalFile(QUrl::fromPercentEncoding(reader.readElementText().toUtf8()))
                         .adjusted(QUrl::NormalizePathSegments)
                         .path();
-                if (!hrefString.startsWith(expectedPath)) {
-                    qCWarning(lcLsColJob) << "Invalid href" << hrefString << "expected starting with" << expectedPath;
-                    return false;
+                if (!hrefString.startsWith(_expectedPath)) {
+                    qCWarning(lcLsColJob) << "Invalid href" << hrefString << "expected starting with" << _expectedPath;
+                    emit finishedWithError(_reply);
+                    emit finished();
+                    _thread->quit();
+                    return;
                 }
                 currentHref = hrefString;
             } else if (name == davXmlKeyResponse) {
@@ -280,11 +299,11 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
             } else if (name == davXmlKeySize) {
                 bool ok = false;
                 auto s = propertyContent.toLongLong(&ok);
-                if (ok && fileInfo) {
-                    (*fileInfo)[currentHref].size = s;
+                if (ok && _fileInfos) {
+                    (*_fileInfos)[currentHref].size = s;
                 }
             } else if (name == davXmlKeyFileId) {
-                (*fileInfo)[currentHref].fileId = propertyContent.toUtf8();
+                (*_fileInfos)[currentHref].fileId = propertyContent.toUtf8();
             }
             currentTmpProperties.insert(reader.name().toString(), propertyContent);
         }
@@ -315,16 +334,22 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
 
     if (reader.hasError()) {
         // XML Parser error? Whatever had been emitted before will come as directoryListingIterated
-        qCWarning(lcLsColJob) << "ERROR" << reader.errorString() << xml;
-        return false;
+        qCWarning(lcLsColJob) << "ERROR" << reader.errorString() << _xml;
+        emit finishedWithError(_reply);
+        emit finished();
+        _thread->quit();
+        return;
     } else if (!insideMultiStatus) {
-        qCWarning(lcLsColJob) << "ERROR no WebDAV response?" << xml;
-        return false;
-    } else {
-        emit directoryListingSubfolders(folders);
-        emit finishedWithoutError();
+        qCWarning(lcLsColJob) << "ERROR no WebDAV response?" << _xml;
+        emit finishedWithError(_reply);
+        emit finished();
+        _thread->quit();
+        return;
     }
-    return true;
+    emit directoryListingSubfolders(folders);
+    emit finishedWithoutError();
+    emit finished();
+    _thread->quit();
 }
 
 /*********************************************************************************************/
@@ -338,6 +363,12 @@ LsColJob::LsColJob(AccountPtr account, const QUrl &url, QObject *parent)
     : AbstractNetworkJob(account, QString(), parent)
     , _url(url)
 {
+}
+
+LsColJob::~LsColJob()
+{
+    int a = 5;
+    a = 6;
 }
 
 void LsColJob::setProperties(QList<QByteArray> properties)
@@ -406,27 +437,29 @@ bool LsColJob::finished()
                                   contentType.contains("text/xml; charset=\"utf-8\"");
 
     if (httpCode == 207 && validContentType) {
-        LsColXMLParser parser;
-        connect(&parser, &LsColXMLParser::directoryListingSubfolders,
-            this, &LsColJob::directoryListingSubfolders);
-        connect(&parser, &LsColXMLParser::directoryListingIterated,
-            this, &LsColJob::directoryListingIterated);
-        connect(&parser, &LsColXMLParser::finishedWithError,
-            this, &LsColJob::finishedWithError);
-        connect(&parser, &LsColXMLParser::finishedWithoutError,
-            this, &LsColJob::finishedWithoutError);
-
         QString expectedPath = reply()->request().url().path(); // something like "/owncloud/remote.php/dav/folder"
-        if (!parser.parse(reply()->readAll(), &_folderInfos, expectedPath)) {
-            // XML parse error
-            emit finishedWithError(reply());
-        }
+        const auto xmlParser = new LsColXMLParser(reply(), &_folderInfos, expectedPath);
+
+        connect(xmlParser, &LsColXMLParser::directoryListingSubfolders, this, &LsColJob::directoryListingSubfolders);
+        connect(xmlParser, &LsColXMLParser::directoryListingIterated, this, &LsColJob::directoryListingIterated);
+        connect(xmlParser, &LsColXMLParser::directoryListingIterated, this, &LsColJob::slotdirectoryListingIterated);
+        connect(xmlParser, &LsColXMLParser::finishedWithError, this, &LsColJob::finishedWithError);
+        connect(xmlParser, &LsColXMLParser::finishedWithoutError, this, &LsColJob::finishedWithoutError);
+        connect(xmlParser, &LsColXMLParser::finished, this, &LsColJob::deleteLater);
+        xmlParser->parse();
     } else {
         // wrong content type, wrong HTTP code or any other network error
         emit finishedWithError(reply());
+        return true;
     }
 
-    return true;
+    return false;
+}
+
+void LsColJob::slotdirectoryListingIterated(const QString &name, const QMap<QString, QString> &properties)
+{
+    int a = 5;
+    a = 6;
 }
 
 /*********************************************************************************************/

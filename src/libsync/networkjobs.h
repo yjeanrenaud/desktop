@@ -17,10 +17,13 @@
 #define NETWORKJOBS_H
 
 #include <QBuffer>
+#include <QThread>
 
 #include "abstractnetworkjob.h"
 
 #include "common/result.h"
+
+#include <memory>
 
 class QUrl;
 class QUrlQuery;
@@ -116,17 +119,25 @@ class OWNCLOUDSYNC_EXPORT LsColXMLParser : public QObject
 {
     Q_OBJECT
 public:
-    explicit LsColXMLParser();
+    explicit LsColXMLParser(QNetworkReply *reply, QHash<QString, ExtraFolderInfo> *fileInfos, const QString &expectedPath);
+    ~LsColXMLParser();
 
-    bool parse(const QByteArray &xml,
-               QHash<QString, ExtraFolderInfo> *sizes,
-               const QString &expectedPath);
+public slots:
+    void parse();
 
 signals:
     void directoryListingSubfolders(const QStringList &items);
     void directoryListingIterated(const QString &name, const QMap<QString, QString> &properties);
     void finishedWithError(QNetworkReply *reply);
     void finishedWithoutError();
+    void finished();
+
+private:
+    QNetworkReply *_reply = nullptr;
+    QByteArray _xml;
+    QHash<QString, ExtraFolderInfo> *_fileInfos = nullptr;
+    QString _expectedPath;
+    std::unique_ptr<QThread> _thread;
 };
 
 class OWNCLOUDSYNC_EXPORT LsColJob : public AbstractNetworkJob
@@ -135,6 +146,7 @@ class OWNCLOUDSYNC_EXPORT LsColJob : public AbstractNetworkJob
 public:
     explicit LsColJob(AccountPtr account, const QString &path, QObject *parent = nullptr);
     explicit LsColJob(AccountPtr account, const QUrl &url, QObject *parent = nullptr);
+    ~LsColJob();
     void start() override;
     QHash<QString, ExtraFolderInfo> _folderInfos;
 
@@ -157,6 +169,7 @@ signals:
 
 private slots:
     bool finished() override;
+    void slotdirectoryListingIterated(const QString &name, const QMap<QString, QString> &properties);
 
 private:
     QList<QByteArray> _properties;
