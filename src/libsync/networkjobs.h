@@ -115,6 +115,10 @@ struct ExtraFolderInfo {
  * @brief The LsColJob class
  * @ingroup libsync
  */
+typedef QMap<QString, QString> QStringMap;
+
+Q_DECLARE_METATYPE(QStringMap)
+
 class OWNCLOUDSYNC_EXPORT LsColXMLParser : public QObject
 {
     Q_OBJECT
@@ -124,10 +128,12 @@ public:
 
 public slots:
     void parse();
+    void slotDirectoryListingIterated(const QString &name, const QStringMap &properties);
+    void cleanup();
 
 signals:
     void directoryListingSubfolders(const QStringList &items);
-    void directoryListingIterated(const QString &name, const QMap<QString, QString> &properties);
+    void directoryListingIterated(const QString &name, const QStringMap &properties);
     void finishedWithError(QNetworkReply *reply);
     void finishedWithoutError();
     void finished();

@@ -226,9 +226,30 @@ LsColXMLParser::LsColXMLParser(QNetworkReply *reply, QHash<QString, ExtraFolderI
     , _xml(reply->readAll())
     , _fileInfos(fileInfos)
     , _expectedPath(expectedPath)
-{}
+{
+    qRegisterMetaType<QStringMap>();
+    qRegisterMetaType<const QStringMap&>();
+    auto threadId = (DWORD)QThread::currentThreadId();
+    _thread.reset(new QThread());
+    moveToThread(_thread.get());
+    _thread->start();
+}
 
 LsColXMLParser::~LsColXMLParser()
+{
+    auto currentThread = thread()->currentThreadId();
+    int a = 5;
+    a = 6;
+    auto threadId = (DWORD)QThread::currentThreadId();
+}
+
+void LsColXMLParser::cleanup()
+{
+    _thread->quit();
+    _thread->wait();
+}
+
+void LsColXMLParser::slotDirectoryListingIterated(const QString &name, const QMap<QString, QString> &properties)
 {
     int a = 5;
     a = 6;
@@ -236,10 +257,7 @@ LsColXMLParser::~LsColXMLParser()
 
 void LsColXMLParser::parse()
 {
-    _thread.reset(new QThread());
-    moveToThread(_thread.get());
-    _thread->start();
-
+    auto threadId = (DWORD)QThread::currentThreadId();
     // Parse DAV response
     QXmlStreamReader reader(_xml);
     reader.addExtraNamespaceDeclaration(QXmlStreamNamespaceDeclaration("d", "DAV:"));
@@ -266,9 +284,8 @@ void LsColXMLParser::parse()
                         .path();
                 if (!hrefString.startsWith(_expectedPath)) {
                     qCWarning(lcLsColJob) << "Invalid href" << hrefString << "expected starting with" << _expectedPath;
-                    emit finishedWithError(_reply);
-                    emit finished();
-                    _thread->quit();
+                    QMetaObject::invokeMethod(this, "finishedWithError", Q_ARG(QNetworkReply *, _reply));
+                    QMetaObject::invokeMethod(this, "finished");
                     return;
                 }
                 currentHref = hrefString;
@@ -315,7 +332,16 @@ void LsColXMLParser::parse()
                     if (currentHref.endsWith('/')) {
                         currentHref.chop(1);
                     }
-                    emit directoryListingIterated(currentHref, currentHttp200Properties);
+
+
+                    QMetaObject::invokeMethod(this,
+                                              "directoryListingIterated",
+                                              Q_ARG(QString, currentHref),
+                                              Q_ARG(QStringMap, currentHttp200Properties));
+                    QMetaObject::invokeMethod(this,
+                                              "slotDirectoryListingIterated",
+                                              Q_ARG(QString, currentHref),
+                                              Q_ARG(QStringMap, currentHttp200Properties));
                     currentHref.clear();
                     currentHttp200Properties.clear();
                 } else if (reader.name() == davXmlKeyPropstat) {
@@ -335,21 +361,21 @@ void LsColXMLParser::parse()
     if (reader.hasError()) {
         // XML Parser error? Whatever had been emitted before will come as directoryListingIterated
         qCWarning(lcLsColJob) << "ERROR" << reader.errorString() << _xml;
-        emit finishedWithError(_reply);
-        emit finished();
-        _thread->quit();
+        QMetaObject::invokeMethod(this,
+                                  "finishedWithError",
+                                  Qt::QueuedConnection,
+                                  Q_ARG(QNetworkReply*, _reply));
+        QMetaObject::invokeMethod(this, "finished");
         return;
     } else if (!insideMultiStatus) {
         qCWarning(lcLsColJob) << "ERROR no WebDAV response?" << _xml;
-        emit finishedWithError(_reply);
-        emit finished();
-        _thread->quit();
+        QMetaObject::invokeMethod(this, "finishedWithError", Q_ARG(QNetworkReply *, _reply));
+        QMetaObject::invokeMethod(this, "finished");
         return;
     }
-    emit directoryListingSubfolders(folders);
-    emit finishedWithoutError();
-    emit finished();
-    _thread->quit();
+    QMetaObject::invokeMethod(this, "directoryListingSubfolders", Q_ARG(QStringList, folders));
+    QMetaObject::invokeMethod(this, "finishedWithoutError");
+    QMetaObject::invokeMethod(this, "finished");
 }
 
 /*********************************************************************************************/
@@ -445,8 +471,12 @@ bool LsColJob::finished()
         connect(xmlParser, &LsColXMLParser::directoryListingIterated, this, &LsColJob::slotdirectoryListingIterated);
         connect(xmlParser, &LsColXMLParser::finishedWithError, this, &LsColJob::finishedWithError);
         connect(xmlParser, &LsColXMLParser::finishedWithoutError, this, &LsColJob::finishedWithoutError);
+        connect(xmlParser, &LsColXMLParser::finished, this, [xmlParser]() {
+            xmlParser->cleanup();
+            delete xmlParser;
+        });
         connect(xmlParser, &LsColXMLParser::finished, this, &LsColJob::deleteLater);
-        xmlParser->parse();
+        QMetaObject::invokeMethod(xmlParser, "parse");
     } else {
         // wrong content type, wrong HTTP code or any other network error
         emit finishedWithError(reply());
