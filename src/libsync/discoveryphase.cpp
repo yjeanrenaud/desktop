@@ -35,6 +35,7 @@
 #include <QTextCodec>
 #include <cstring>
 #include <QDateTime>
+#include <QCoreApplication>
 
 
 namespace OCC {
@@ -413,6 +414,7 @@ void DiscoverySingleDirectoryJob::start()
         this, &DiscoverySingleDirectoryJob::directoryListingIteratedSlot);
     QObject::connect(lsColJob, &LsColJob::finishedWithError, this, &DiscoverySingleDirectoryJob::lsJobFinishedWithErrorSlot);
     QObject::connect(lsColJob, &LsColJob::finishedWithoutError, this, &DiscoverySingleDirectoryJob::lsJobFinishedWithoutErrorSlot);
+
     lsColJob->start();
 
     _lsColJob = lsColJob;
