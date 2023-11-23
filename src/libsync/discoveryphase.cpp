@@ -536,13 +536,13 @@ void DiscoverySingleDirectoryJob::directoryListingIteratedSlot(const QString &fi
     if (!_ignoredFirst) {
         // The first entry is for the folder itself, we should process it differently.
         _ignoredFirst = true;
-        if (map.contains("permissions")) {
-            auto perm = RemotePermissions::fromServerString(map.value("permissions"));
+        if (map.contains(QStringLiteral("permissions"))) {
+            auto perm = RemotePermissions::fromServerString(map.value(QStringLiteral("permissions")));
             emit firstDirectoryPermissions(perm);
             _isExternalStorage = perm.hasPermission(RemotePermissions::IsMounted);
         }
-        if (map.contains("data-fingerprint")) {
-            _dataFingerprint = map.value("data-fingerprint").toUtf8();
+        if (map.contains(QStringLiteral("data-fingerprint"))) {
+            _dataFingerprint = map.value(QStringLiteral("data-fingerprint")).toUtf8();
             if (_dataFingerprint.isEmpty()) {
                 // Placeholder that means that the server supports the feature even if it did not set one.
                 _dataFingerprint = "[empty]";
@@ -551,15 +551,15 @@ void DiscoverySingleDirectoryJob::directoryListingIteratedSlot(const QString &fi
         if (map.contains(QStringLiteral("fileid"))) {
             _localFileId = map.value(QStringLiteral("fileid")).toUtf8();
         }
-        if (map.contains("id")) {
-            _fileId = map.value("id").toUtf8();
+        if (map.contains(QStringLiteral("id"))) {
+            _fileId = map.value(QStringLiteral("id")).toUtf8();
         }
-        if (map.contains("is-encrypted") && map.value("is-encrypted") == QStringLiteral("1")) {
+        if (map.contains(QStringLiteral("is-encrypted")) && map.value(QStringLiteral("is-encrypted")) == QStringLiteral("1")) {
             _isE2eEncrypted = SyncFileItem::EncryptionStatus::Encrypted;
             Q_ASSERT(!_fileId.isEmpty());
         }
-        if (map.contains("size")) {
-            _size = map.value("size").toInt();
+        if (map.contains(QStringLiteral("size"))) {
+            _size = map.value(QStringLiteral("size")).toInt();
         }
     } else {
 
@@ -582,7 +582,7 @@ void DiscoverySingleDirectoryJob::directoryListingIteratedSlot(const QString &fi
     }
 
     //This works in concerto with the RequestEtagJob and the Folder object to check if the remote folder changed.
-    if (map.contains("getetag")) {
+    if (map.contains(QStringLiteral("getetag"))) {
         if (_firstEtag.isEmpty()) {
             _firstEtag = parseEtag(map.value(QStringLiteral("getetag")).toUtf8()); // for directory itself
         }

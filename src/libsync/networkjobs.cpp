@@ -67,6 +67,19 @@ constexpr auto propfindFileTagsContainerElementTagName = "tags";
 constexpr auto propfindSystemFileTagElementTagName = "system-tag";
 constexpr auto propfindSystemFileTagsContainerElementTagName = "system-tags";
 
+constexpr QStringView davXmlKeyProp = u"prop";
+constexpr QStringView davXmlKeyPropstat = u"propstat";
+constexpr QStringView davXmlKeyResponse = u"response";
+constexpr QStringView davXmlKeyMultistatus = u"multistatus";
+constexpr QStringView davXmlKeyResourceType = u"resourcetype";
+constexpr QStringView davXmlKeyStatus = u"status";
+constexpr QStringView davXmlKeyHref = u"href";
+constexpr QStringView davXmlKeyHttpVersion1_1 = u"HTTP/1.1 200";
+constexpr QStringView davXmlKeyDav = u"DAV:";
+constexpr QStringView davXmlKeyFileId = u"fileid";
+constexpr QStringView davXmlKeySize = u"size";
+constexpr QStringView davXmlKeyCollection = u"collection";
+
 RequestEtagJob::RequestEtagJob(AccountPtr account, const QString &path, QObject *parent)
     : AbstractNetworkJob(account, path, parent)
 {
@@ -108,7 +121,7 @@ bool RequestEtagJob::finished()
         QByteArray etag;
         while (!reader.atEnd()) {
             QXmlStreamReader::TokenType type = reader.readNext();
-            if (type == QXmlStreamReader::StartElement && reader.namespaceUri() == QLatin1String("DAV:")) {
+            if (type == QXmlStreamReader::StartElement && reader.namespaceUri() == davXmlKeyDav) {
                 QString name = reader.name().toString();
                 if (name == QLatin1String("getetag")) {
                     auto etagText = reader.readElementText();
@@ -226,10 +239,10 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
 
     while (!reader.atEnd()) {
         QXmlStreamReader::TokenType type = reader.readNext();
-        QString name = reader.name().toString();
+        const auto name = reader.name();
         // Start elements with DAV:
-        if (type == QXmlStreamReader::StartElement && reader.namespaceUri() == QLatin1String("DAV:")) {
-            if (name == QLatin1String("href")) {
+        if (type == QXmlStreamReader::StartElement && reader.namespaceUri() == davXmlKeyDav) {
+            if (name == davXmlKeyHref) {
                 // We don't use URL encoding in our request URL (which is the expected path) (QNAM will do it for us)
                 // but the result will have URL encoding..
                 QString hrefString = QUrl::fromLocalFile(QUrl::fromPercentEncoding(reader.readElementText().toUtf8()))
@@ -240,20 +253,20 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
                     return false;
                 }
                 currentHref = hrefString;
-            } else if (name == QLatin1String("response")) {
-            } else if (name == QLatin1String("propstat")) {
+            } else if (name == davXmlKeyResponse) {
+            } else if (name == davXmlKeyPropstat) {
                 insidePropstat = true;
-            } else if (name == QLatin1String("status") && insidePropstat) {
+            } else if (name == davXmlKeyStatus && insidePropstat) {
                 QString httpStatus = reader.readElementText();
-                if (httpStatus.startsWith("HTTP/1.1 200")) {
+                if (httpStatus.startsWith(davXmlKeyHttpVersion1_1)) {
                     currentPropsHaveHttp200 = true;
                 } else {
                     currentPropsHaveHttp200 = false;
                 }
-            } else if (name == QLatin1String("prop")) {
+            } else if (name == davXmlKeyProp) {
                 insideProp = true;
                 continue;
-            } else if (name == QLatin1String("multistatus")) {
+            } else if (name == davXmlKeyMultistatus) {
                 insideMultiStatus = true;
                 continue;
             }
@@ -261,16 +274,16 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
 
         if (type == QXmlStreamReader::StartElement && insidePropstat && insideProp) {
             // All those elements are properties
-            QString propertyContent = readContentsAsString(reader);
-            if (name == QLatin1String("resourcetype") && propertyContent.contains("collection")) {
+            const auto propertyContent = readContentsAsString(reader);
+            if (name == davXmlKeyResourceType && propertyContent.contains(davXmlKeyCollection)) {
                 folders.append(currentHref);
-            } else if (name == QLatin1String("size")) {
+            } else if (name == davXmlKeySize) {
                 bool ok = false;
                 auto s = propertyContent.toLongLong(&ok);
                 if (ok && fileInfo) {
                     (*fileInfo)[currentHref].size = s;
                 }
-            } else if (name == QLatin1String("fileid")) {
+            } else if (name == davXmlKeyFileId) {
                 (*fileInfo)[currentHref].fileId = propertyContent.toUtf8();
             }
             currentTmpProperties.insert(reader.name().toString(), propertyContent);
@@ -278,22 +291,22 @@ bool LsColXMLParser::parse(const QByteArray &xml, QHash<QString, ExtraFolderInfo
 
         // End elements with DAV:
         if (type == QXmlStreamReader::EndElement) {
-            if (reader.namespaceUri() == QLatin1String("DAV:")) {
-                if (reader.name() == "response") {
+            if (reader.namespaceUri() == davXmlKeyDav) {
+                if (reader.name() == davXmlKeyResponse) {
                     if (currentHref.endsWith('/')) {
                         currentHref.chop(1);
                     }
                     emit directoryListingIterated(currentHref, currentHttp200Properties);
                     currentHref.clear();
                     currentHttp200Properties.clear();
-                } else if (reader.name() == "propstat") {
+                } else if (reader.name() == davXmlKeyPropstat) {
                     insidePropstat = false;
                     if (currentPropsHaveHttp200) {
-                        currentHttp200Properties = QMap<QString, QString>(currentTmpProperties);
+                        currentHttp200Properties = std::move(currentTmpProperties);
                     }
                     currentTmpProperties.clear();
                     currentPropsHaveHttp200 = false;
-                } else if (reader.name() == "prop") {
+                } else if (reader.name() == davXmlKeyProp) {
                     insideProp = false;
                 }
             }
