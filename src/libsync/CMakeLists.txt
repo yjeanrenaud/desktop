@@ -54,6 +54,10 @@ set(libsync_SRCS
     owncloudpropagator.cpp
     nextcloudtheme.h
     nextcloudtheme.cpp
+    ocsjob.h
+    ocsjob.cpp
+    ocsclientstatusreportingjob.h
+    ocsclientstatusreportingjob.cpp
     abstractpropagateremotedeleteencrypted.h
     abstractpropagateremotedeleteencrypted.cpp
     deletejob.h
