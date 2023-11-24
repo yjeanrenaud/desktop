@@ -209,50 +209,55 @@ void ClientStatusReporting::sendReportToServer()
     }
 
     const auto records = getClientStatusReportingRecords();
-    if (!records.isEmpty()) {
-        // send to server ->
-
-        QVariantMap report;
-
-        QVariantMap syncConflicts;
-        QVariantMap problems;
-
-        for (const auto &record : records) {
-            const auto categoryKey = classifyStatus(static_cast<Status>(record._status));
-
-            if (categoryKey.isEmpty()) {
-                qCDebug(lcClientStatusReporting) << "Could not classify status:";
-                continue;
-            }
-
-            if (categoryKey == QStringLiteral("sync_conflicts")) {
-                const auto initialCount = syncConflicts[QStringLiteral("count")].toInt();
-                syncConflicts[QStringLiteral("count")] = initialCount + record._numOccurences;
-                syncConflicts[QStringLiteral("oldest")] = record._lastOccurence;
-                report[categoryKey] = syncConflicts;
-            } else if (categoryKey == QStringLiteral("problems")) {
-                problems[record._name] = QVariantMap {
-                    {QStringLiteral("count"), record._numOccurences},
-                    {QStringLiteral("oldest"), record._lastOccurence}
-                };
-                report[categoryKey] = problems;
-            }
-        }
-
-        if (report.isEmpty()) {
-            qCDebug(lcClientStatusReporting) << "Report is empty.";
-            return;
-        }
-
-        const auto clientStatusReportingJob = new JsonApiJob(_account->sharedFromThis(), QStringLiteral("ocs/v2.php/apps/security_guard/diagnostics"));
-        clientStatusReportingJob->setBody(QJsonDocument::fromVariant(report));
-        clientStatusReportingJob->setVerb(SimpleApiJob::Verb::Put);
-        connect(clientStatusReportingJob, &JsonApiJob::jsonReceived, [this](const QJsonDocument &json) {
-            const QJsonObject data = json.object().value("ocs").toObject().value("data").toObject();
-            slotSendReportToserverFinished();
-        });
-        clientStatusReportingJob->start();
+    if (records.isEmpty()) {
+        return;
     }
+
+    QVariantMap report;
+
+    report[QStringLiteral("sync_conflicts")] = QVariantMap{};
+    report[QStringLiteral("problems")] = QVariantMap{};
+    report[QStringLiteral("virus_detected")] = QVariantMap{};
+    report[QStringLiteral ("e2e_errors")] = QVariantMap{};
+
+    QVariantMap syncConflicts;
+    QVariantMap problems;
+
+    for (const auto &record : records) {
+        const auto categoryKey = classifyStatus(static_cast<Status>(record._status));
+
+        if (categoryKey.isEmpty()) {
+            qCDebug(lcClientStatusReporting) << "Could not classify status:";
+            continue;
+        }
+
+        if (categoryKey == QStringLiteral("sync_conflicts")) {
+            const auto initialCount = syncConflicts[QStringLiteral("count")].toInt();
+            syncConflicts[QStringLiteral("count")] = initialCount + record._numOccurences;
+            syncConflicts[QStringLiteral("oldest")] = record._lastOccurence;
+            report[categoryKey] = syncConflicts;
+        } else if (categoryKey == QStringLiteral("problems")) {
+            problems[record._name] = QVariantMap{{QStringLiteral("count"), record._numOccurences}, {QStringLiteral("oldest"), record._lastOccurence}};
+            report[categoryKey] = problems;
+        }
+    }
+
+    if (report.isEmpty()) {
+        qCDebug(lcClientStatusReporting) << "Failed to generate report. Report is empty.";
+        return;
+    }
+
+    const auto clientStatusReportingJob = new JsonApiJob(_account->sharedFromThis(), QStringLiteral("ocs/v2.php/apps/security_guard/diagnostics"));
+    clientStatusReportingJob->setBody(QJsonDocument::fromVariant(report));
+    clientStatusReportingJob->setVerb(SimpleApiJob::Verb::Put);
+    connect(clientStatusReportingJob, &JsonApiJob::jsonReceived, [this](const QJsonDocument &json, int statusCode) {
+        if (statusCode == 200 || statusCode == 204) {
+            const auto data = json.object().value("ocs").toObject().value("data").toObject();
+            const auto dataMap = data.toVariantMap();
+            slotSendReportToserverFinished();
+        }
+    });
+    clientStatusReportingJob->start();
 }
 
 void ClientStatusReporting::slotSendReportToserverFinished()
