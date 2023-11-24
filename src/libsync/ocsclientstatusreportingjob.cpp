@@ -31,9 +31,12 @@ void OcsClientStatusReportingJob::sendStatusReport(const QVariant &jsonData)
 {
     setVerb("PUT");
 
-    addParam(QStringLiteral("--data"), QJsonDocument::fromVariant(jsonData.toMap()).toJson());
+    addRawHeader("Ocs-APIREQUEST", "true");
+    addRawHeader("Content-Type", "application/json");
 
-    start();
+    const auto url = Utility::concatUrlPath(account()->url(), path());
+    sendRequest(_verb, url, _request, QJsonDocument::fromVariant(jsonData.toMap()).toJson());
+    AbstractNetworkJob::start();
 }
 
 void OcsClientStatusReportingJob::jobDone(QJsonDocument reply)

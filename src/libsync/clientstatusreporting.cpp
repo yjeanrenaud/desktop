@@ -17,7 +17,7 @@
 #include "common/clientstatusreportingrecord.h"
 #include "common/syncjournaldb.h"
 #include <configfile.h>
-#include <ocsclientstatusreportingjob.h>
+#include <networkjobs.h>
 
 namespace
 {
@@ -207,9 +207,14 @@ void ClientStatusReporting::sendReportToServer()
     const auto records = getClientStatusReportingRecords();
     if (!records.isEmpty()) {
         // send to server ->
-        const auto clientStatusReportingJob = new OcsClientStatusReportingJob(_account->sharedFromThis());
-        clientStatusReportingJob->sendStatusReport({});
-        slotSendReportToserverFinished();
+        const auto clientStatusReportingJob = new JsonApiJob(_account->sharedFromThis(), QStringLiteral("ocs/v2.php/apps/security_guard/diagnostics"));
+        clientStatusReportingJob->setBody({});
+        clientStatusReportingJob->setVerb(SimpleApiJob::Verb::Put);
+        connect(clientStatusReportingJob, &JsonApiJob::jsonReceived, [this](const QJsonDocument &json) {
+            const QJsonObject data = json.object().value("ocs").toObject().value("data").toObject();
+            slotSendReportToserverFinished();
+        });
+        clientStatusReportingJob->start();
     }
 }
 
