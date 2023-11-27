@@ -22,8 +22,10 @@
 namespace
 {
 constexpr auto lastSentReportTimestamp = "lastClientStatusReportSentTime";
-constexpr auto repordSendIntervalMs = 24 * 60 * 60 * 1000;
-constexpr int clientStatusReportingSendTimerInterval = 1000 * 60 * 2;
+//constexpr auto repordSendIntervalMs = 24 * 60 * 60 * 1000;
+//constexpr int clientStatusReportingSendTimerInterval = 1000 * 60 * 2;
+constexpr auto repordSendIntervalMs = 2000;
+constexpr int clientStatusReportingSendTimerInterval = 5000;
 }
 
 namespace OCC
@@ -311,10 +313,24 @@ QByteArray ClientStatusReporting::statusStringFromNumber(const Status status)
     }
 
     switch (status) {
-    case DownloadError_ConflictInvalidCharacters:
-        return QByteArrayLiteral("DownloadError.CONFLICT_INVALID_CHARACTERS");
+    case DownloadError_Cannot_Create_File:
+        return QByteArrayLiteral("DownloadError.CANNOT_CREATE_FILE");
+    case DownloadError_Conflict:
+        return QByteArrayLiteral("DownloadError.CONFLICT");
     case DownloadError_ConflictCaseClash:
         return QByteArrayLiteral("DownloadError.CONFLICT_CASECLASH");
+    case DownloadError_ConflictInvalidCharacters:
+        return QByteArrayLiteral("DownloadError.CONFLICT_INVALID_CHARACTERS");
+    case DownloadError_No_Free_Space:
+        return QByteArrayLiteral("DownloadError.NO_FREE_SPACE");
+    case DownloadError_Server_error:
+        return QByteArrayLiteral("DownloadError.SERVER_ERROR");
+    case DownloadError_Virtual_File_Hydration_Failure:
+        return QByteArrayLiteral("DownloadError.VIRTUAL_FILE_HYDRATION_FAILURE ");
+    case UploadError_No_Free_Space:
+        return QByteArrayLiteral("UploadError.NO_FREE_SPACE");
+    case UploadError_No_Write_Permissions:
+        return QByteArrayLiteral("UploadError.NO_WRITE_PERMISSIONS");
     case UploadError_ServerError:
         return QByteArrayLiteral("UploadError.SERVER_ERROR");
     case Count:
@@ -332,10 +348,17 @@ QString ClientStatusReporting::classifyStatus(const Status status)
     }
 
     switch (status) {
+    case DownloadError_Conflict:
+    case DownloadError_ConflictCaseClash:
     case DownloadError_ConflictInvalidCharacters:
         return QStringLiteral("sync_conflicts");
-    case DownloadError_ConflictCaseClash:
-        return QStringLiteral("sync_conflicts");
+
+    case DownloadError_Cannot_Create_File:
+    case DownloadError_No_Free_Space:
+    case DownloadError_Server_error:
+    case DownloadError_Virtual_File_Hydration_Failure:
+    case UploadError_No_Free_Space:
+    case UploadError_No_Write_Permissions:
     case UploadError_ServerError:
         return QByteArrayLiteral("problems");
     case Count:
