@@ -22,6 +22,7 @@
 namespace
 {
 constexpr auto lastSentReportTimestamp = "lastClientStatusReportSentTime";
+constexpr auto statusNamesHash = "statusNamesHash";
 }
 
 namespace OCC
@@ -49,7 +50,7 @@ void ClientStatusReporting::init()
         return;
     }
 
-    for (int i = 0; i < ClientStatusReporting::Count; ++i) {
+    for (int i = 0; i < ClientStatusReporting::Status::Count; ++i) {
         const auto statusString = statusStringFromNumber(static_cast<Status>(i));
         _statusNamesAndHashes[i] = {statusString, SyncJournalDb::getPHash(statusString)};
     }
@@ -81,6 +82,21 @@ void ClientStatusReporting::init()
         qCDebug(lcClientStatusReporting) << "Could not setup client keyvalue table:" << query.lastError().text();
         return;
     }
+
+    // prevent issues in case enum gets changed in future, hash its value and clean the db in case there was a change
+    QByteArray statusNamesContacenated;
+    for (int i = 0; i < ClientStatusReporting::Status::Count; ++i) {
+        statusNamesContacenated += statusStringFromNumber(static_cast<Status>(i));
+    }
+    statusNamesContacenated += QByteArray::number(ClientStatusReporting::Status::Count);
+    const auto statusNamesHashCurrent = QCryptographicHash::hash(statusNamesContacenated, QCryptographicHash::Md5).toHex();
+    const auto statusNamesHashFromDb = getStatusNamesHash();
+
+    if (statusNamesHashCurrent != statusNamesHashFromDb) {
+        deleteClientStatusReportingRecords();
+        setStatusNamesHash(statusNamesHashCurrent);
+    }
+    //
 
     _clientStatusReportingSendTimer.setInterval(clientStatusReportingTrySendTimerInterval);
     connect(&_clientStatusReportingSendTimer, &QTimer::timeout, this, &ClientStatusReporting::sendReportToServer);
@@ -255,6 +271,38 @@ qulonglong ClientStatusReporting::getLastSentReportTimestamp() const
 
     int valueIndex = query.record().indexOf("value");
     return query.value(valueIndex).toULongLong();
+}
+
+void ClientStatusReporting::setStatusNamesHash(const QByteArray &hash)
+{
+    QMutexLocker locker(&_mutex);
+    QSqlQuery query;
+    const auto prepareResult = query.prepare("INSERT OR REPLACE INTO keyvalue (key, value) VALUES(:key, :value);");
+    query.bindValue(":key", statusNamesHash);
+    query.bindValue(":value", hash);
+    if (!prepareResult || !query.exec()) {
+        qCDebug(lcClientStatusReporting) << "Could not set status names hash.";
+        return;
+    }
+}
+
+QByteArray ClientStatusReporting::getStatusNamesHash() const
+{
+    QMutexLocker locker(&_mutex);
+    QSqlQuery query;
+    const auto prepareResult = query.prepare("SELECT value FROM keyvalue WHERE key = (:key)");
+    query.bindValue(":key", statusNamesHash);
+    if (!prepareResult || !query.exec()) {
+        qCDebug(lcClientStatusReporting) << "Could not get status names hash. No such record:" << statusNamesHash;
+        return 0;
+    }
+    if (!query.next()) {
+        qCDebug(lcClientStatusReporting) << "Could not get status names hash:" << query.lastError().text();
+        return 0;
+    }
+
+    int valueIndex = query.record().indexOf("value");
+    return query.value(valueIndex).toByteArray();
 }
 
 QVariantMap ClientStatusReporting::prepareReport() const

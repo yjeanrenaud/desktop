@@ -38,19 +38,19 @@ class OWNCLOUDSYNC_EXPORT ClientStatusReporting : public QObject
     Q_OBJECT
 public:
     enum Status {
-        DownloadError_Cannot_Create_File = 100,
-        DownloadError_Conflict = 101,
-        DownloadError_ConflictCaseClash = 102,
-        DownloadError_ConflictInvalidCharacters = 103,
-        DownloadError_No_Free_Space = 104,
-        DownloadError_ServerError = 105,
-        DownloadError_Virtual_File_Hydration_Failure = 106,
-        UploadError_Conflict = 107,
-        UploadError_ConflictInvalidCharacters = 108,
-        UploadError_No_Free_Space = 109,
-        UploadError_No_Write_Permissions = 110,
-        UploadError_ServerError = 111,
-        Count = UploadError_ServerError + 1,
+        DownloadError_Cannot_Create_File = 0,
+        DownloadError_Conflict,
+        DownloadError_ConflictCaseClash,
+        DownloadError_ConflictInvalidCharacters,
+        DownloadError_No_Free_Space,
+        DownloadError_ServerError,
+        DownloadError_Virtual_File_Hydration_Failure,
+        UploadError_Conflict,
+        UploadError_ConflictInvalidCharacters,
+        UploadError_No_Free_Space,
+        UploadError_No_Write_Permissions,
+        UploadError_ServerError,
+        Count,
     };
 
     explicit ClientStatusReporting(Account *account, QObject *parent = nullptr);
@@ -65,6 +65,8 @@ private:
     [[nodiscard]] bool deleteClientStatusReportingRecords();
     void setLastSentReportTimestamp(const qulonglong timestamp);
     [[nodiscard]] qulonglong getLastSentReportTimestamp() const;
+    void setStatusNamesHash(const QByteArray &hash);
+    [[nodiscard]] QByteArray getStatusNamesHash() const;
     [[nodiscard]] QVariantMap prepareReport() const;
     void reportToServerSentSuccessfully();
     [[nodiscard]] QString makeDbPath() const;
