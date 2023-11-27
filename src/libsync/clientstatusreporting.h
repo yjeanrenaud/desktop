@@ -14,17 +14,17 @@
 #pragma once
 
 #include "owncloudlib.h"
-#include "accountfwd.h"
 #include <common/result.h>
 
-#include <QObject>
-#include <QHash>
+#include <QtGlobal>
 #include <QByteArray>
-#include <qstring.h>
-#include <QTimer>
-#include <QtSql>
+#include <QHash>
+#include <QObject>
 #include <QPair>
 #include <QRecursiveMutex>
+#include <QString>
+#include <QTimer>
+#include <QtSql>
 
 class TestClientStatusReporting;
 
@@ -58,17 +58,22 @@ public:
 
 private:
     void init();
-    void reportClientStatus(const Status status);
+    // reporting must happen via Account
+    void reportClientStatus(const Status status) const;
 
-    [[nodiscard]] Result<void, QString> setClientStatusReportingRecord(const ClientStatusReportingRecord &record);
+    [[nodiscard]] Result<void, QString> setClientStatusReportingRecord(const ClientStatusReportingRecord &record) const;
     [[nodiscard]] QVector<ClientStatusReportingRecord> getClientStatusReportingRecords() const;
-    [[nodiscard]] bool deleteClientStatusReportingRecords();
-    void setLastSentReportTimestamp(const qulonglong timestamp);
-    [[nodiscard]] qulonglong getLastSentReportTimestamp() const;
-    void setStatusNamesHash(const QByteArray &hash);
+    void deleteClientStatusReportingRecords() const;
+
+    void setLastSentReportTimestamp(const quint64 timestamp) const;
+    [[nodiscard]] quint64 getLastSentReportTimestamp() const;
+
+    void setStatusNamesHash(const QByteArray &hash) const;
     [[nodiscard]] QByteArray getStatusNamesHash() const;
+
     [[nodiscard]] QVariantMap prepareReport() const;
     void reportToServerSentSuccessfully();
+
     [[nodiscard]] QString makeDbPath() const;
 
 private slots:
@@ -76,18 +81,25 @@ private slots:
 
 private:
     static QByteArray statusStringFromNumber(const Status status);
-    static QString classifyStatus(const Status status);
+    static QByteArray classifyStatus(const Status status);
 
     static int clientStatusReportingTrySendTimerInterval;
     static int repordSendIntervalMs;
 
+    // this must be set in unit tests on init
     static QString dbPathForTesting;
 
     Account *_account = nullptr;
-    QHash<int, QPair<QByteArray, qint64>> _statusNamesAndHashes;
+
     QSqlDatabase _database;
+
     bool _isInitialized = false;
+
     QTimer _clientStatusReportingSendTimer;
+
+    QHash<int, QPair<QByteArray, quint64>> _statusNamesAndHashes;
+
+    // inspired by SyncJournalDb
     mutable QRecursiveMutex _mutex;
 
     friend class Account;
