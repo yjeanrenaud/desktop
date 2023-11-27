@@ -323,10 +323,16 @@ QByteArray ClientStatusReporting::statusStringFromNumber(const Status status)
         return QByteArrayLiteral("DownloadError.CONFLICT_INVALID_CHARACTERS");
     case DownloadError_No_Free_Space:
         return QByteArrayLiteral("DownloadError.NO_FREE_SPACE");
-    case DownloadError_Server_error:
+    case DownloadError_ServerError:
         return QByteArrayLiteral("DownloadError.SERVER_ERROR");
     case DownloadError_Virtual_File_Hydration_Failure:
         return QByteArrayLiteral("DownloadError.VIRTUAL_FILE_HYDRATION_FAILURE ");
+    case UploadError_Conflict:
+        return QByteArrayLiteral("UploadError.CONFLICT");
+    case UploadError_ConflictCaseClash:
+        return QByteArrayLiteral("UploadError.CONFLICT_CASECLASH");
+    case UploadError_ConflictInvalidCharacters:
+        return QByteArrayLiteral("UploadError.CONFLICT_INVALID_CHARACTERS");
     case UploadError_No_Free_Space:
         return QByteArrayLiteral("UploadError.NO_FREE_SPACE");
     case UploadError_No_Write_Permissions:
@@ -351,11 +357,13 @@ QString ClientStatusReporting::classifyStatus(const Status status)
     case DownloadError_Conflict:
     case DownloadError_ConflictCaseClash:
     case DownloadError_ConflictInvalidCharacters:
+    case UploadError_Conflict:
+    case UploadError_ConflictCaseClash:
+    case UploadError_ConflictInvalidCharacters:
         return QStringLiteral("sync_conflicts");
-
     case DownloadError_Cannot_Create_File:
     case DownloadError_No_Free_Space:
-    case DownloadError_Server_error:
+    case DownloadError_ServerError:
     case DownloadError_Virtual_File_Hydration_Failure:
     case UploadError_No_Free_Space:
     case UploadError_No_Write_Permissions:
