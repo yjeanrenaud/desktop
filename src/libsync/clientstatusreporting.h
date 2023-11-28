@@ -26,8 +26,6 @@
 #include <QTimer>
 #include <QtSql>
 
-class TestClientStatusReporting;
-
 namespace OCC {
 
 class Account;
@@ -56,6 +54,8 @@ public:
     explicit ClientStatusReporting(Account *account, QObject *parent = nullptr);
     ~ClientStatusReporting();
 
+    static QByteArray statusStringFromNumber(const Status status);
+
 private:
     void init();
     // reporting must happen via Account
@@ -80,14 +80,15 @@ private slots:
     void sendReportToServer();
 
 private:
-    static QByteArray statusStringFromNumber(const Status status);
     static QByteArray classifyStatus(const Status status);
 
+public:
     static int clientStatusReportingTrySendTimerInterval;
     static quint64 repordSendIntervalMs;
-
     // this must be set in unit tests on init
     static QString dbPathForTesting;
+
+private:
 
     Account *_account = nullptr;
 
@@ -103,6 +104,5 @@ private:
     mutable QRecursiveMutex _mutex;
 
     friend class Account;
-    friend class TestClientStatusReporting;
 };
 }
