@@ -52,7 +52,7 @@ public:
     };
 
     explicit ClientStatusReporting(Account *account, QObject *parent = nullptr);
-    ~ClientStatusReporting();
+    ~ClientStatusReporting() override;
 
     static QByteArray statusStringFromNumber(const Status status);
 

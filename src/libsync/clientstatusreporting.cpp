@@ -283,11 +283,11 @@ QByteArray ClientStatusReporting::getStatusNamesHash() const
     query.bindValue(QStringLiteral(":key"), statusNamesHash);
     if (!prepareResult || !query.exec()) {
         qCDebug(lcClientStatusReporting) << "Could not get status names hash. No such record:" << statusNamesHash;
-        return 0;
+        return {};
     }
     if (!query.next()) {
         qCDebug(lcClientStatusReporting) << "Could not get status names hash:" << query.lastError().text();
-        return 0;
+        return {};
     }
     return query.value(query.record().indexOf(QStringLiteral("value"))).toByteArray();
 }
