@@ -30,8 +30,8 @@ namespace OCC
 Q_LOGGING_CATEGORY(lcClientStatusReporting, "nextcloud.sync.clientstatusreporting", QtInfoMsg)
 
 ClientStatusReporting::ClientStatusReporting(Account *account, QObject *parent)
-    : _account(account)
-    , QObject(parent)
+    : QObject(parent)
+    , _account(account)
 {
     init();
 }
@@ -410,6 +410,6 @@ QByteArray ClientStatusReporting::classifyStatus(const Status status)
     return {};
 }
 int ClientStatusReporting::clientStatusReportingTrySendTimerInterval = 1000 * 60 * 2; // check if the time has come, every 2 minutes
-int ClientStatusReporting::repordSendIntervalMs = 24 * 60 * 60 * 1000; // once every 24 hours
+quint64 ClientStatusReporting::repordSendIntervalMs = 24 * 60 * 60 * 1000; // once every 24 hours
 QString ClientStatusReporting::dbPathForTesting;
 }

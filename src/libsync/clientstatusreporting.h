@@ -84,7 +84,7 @@ private:
     static QByteArray classifyStatus(const Status status);
 
     static int clientStatusReportingTrySendTimerInterval;
-    static int repordSendIntervalMs;
+    static quint64 repordSendIntervalMs;
 
     // this must be set in unit tests on init
     static QString dbPathForTesting;
