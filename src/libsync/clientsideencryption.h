@@ -175,6 +175,9 @@ signals:
     void mnemonicDeleted();
     void publicKeyDeleted();
 
+    void startingDiscoveryEncryptionUsbToken();
+    void finishedDiscoveryEncryptionUsbToken();
+
 public slots:
     void initialize(QWidget *settingsDialog,
                     const OCC::AccountPtr &account);
@@ -207,7 +210,8 @@ private slots:
     void writePrivateKey(const OCC::AccountPtr &account);
     void writeCertificate(const OCC::AccountPtr &account);
 
-    void completeHardwareTokenInitialization();
+    void completeHardwareTokenInitialization(QWidget *settingsDialog,
+                                             const AccountPtr &account);
 
 private:
     void generateMnemonic();

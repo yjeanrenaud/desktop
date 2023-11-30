@@ -318,6 +318,34 @@ void Systray::createResolveConflictsDialog(const OCC::ActivityList &allConflicts
     dialog.take();
 }
 
+void Systray::createEncryptionTokenDiscoveryDialog()
+{
+    if (_encryptionTokenDiscoveryDialog) {
+        return;
+    }
+
+    qCDebug(lcSystray) << "Opening an encryption token discovery dialog...";
+
+    const auto encryptionTokenDiscoveryDialog = new QQmlComponent(_trayEngine, QStringLiteral("qrc:/qml/src/gui/tray/EncryptionTokenDiscoveryDialog.qml"));
+
+    if (encryptionTokenDiscoveryDialog->isError()) {
+        qCWarning(lcSystray) << encryptionTokenDiscoveryDialog->errorString();
+        return;
+    }
+
+    _encryptionTokenDiscoveryDialog = encryptionTokenDiscoveryDialog->createWithInitialProperties(QVariantMap{});
+}
+
+void Systray::destroyEncryptionTokenDiscoveryDialog()
+{
+    if (!_encryptionTokenDiscoveryDialog) {
+        return;
+    }
+    qCDebug(lcSystray) << "Closing an encryption token discovery dialog...";
+    _encryptionTokenDiscoveryDialog->deleteLater();
+    _encryptionTokenDiscoveryDialog = nullptr;
+}
+
 bool Systray::raiseDialogs()
 {
     return raiseFileDetailDialogs();

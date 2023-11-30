@@ -20,6 +20,7 @@
 #include "account.h"
 
 #include <QLoggingCategory>
+#include <QtConcurrentRun>
 
 #include <libp11.h>
 
@@ -51,6 +52,34 @@ private:
     Q_DISABLE_COPY(Bio)
 
     BIO* _bio;
+};
+
+class Pkcs11Context {
+public:
+    Pkcs11Context()
+        : _pkcsS11Ctx(PKCS11_CTX_new())
+    {
+    }
+
+    ~Pkcs11Context()
+    {
+        PKCS11_CTX_free(_pkcsS11Ctx);
+    }
+
+    operator const PKCS11_CTX*() const
+    {
+        return _pkcsS11Ctx;
+    }
+
+    operator PKCS11_CTX*()
+    {
+        return _pkcsS11Ctx;
+    }
+
+private:
+    Q_DISABLE_COPY(Pkcs11Context)
+
+    PKCS11_CTX* _pkcsS11Ctx = nullptr;
 };
 
 static unsigned char* unsignedData(QByteArray& array)
@@ -98,9 +127,36 @@ QString ClientSideEncryptionTokenSelector::issuer() const
     return _issuer;
 }
 
-void ClientSideEncryptionTokenSelector::searchForCertificates(const AccountPtr &account)
+QFuture<void> ClientSideEncryptionTokenSelector::searchForCertificates(const AccountPtr &account)
 {
-    auto ctx = PKCS11_CTX_new();
+    return QtConcurrent::run([this, account] () -> void {
+        discoverCertificates(account);
+    });
+}
+
+void ClientSideEncryptionTokenSelector::setSerialNumber(const QString &serialNumber)
+{
+    if (_serialNumber == serialNumber) {
+        return;
+    }
+
+    _serialNumber = serialNumber;
+    Q_EMIT serialNumberChanged();
+}
+
+void ClientSideEncryptionTokenSelector::setIssuer(const QString &issuer)
+{
+    if (_issuer == issuer) {
+        return;
+    }
+
+    _issuer = issuer;
+    Q_EMIT issuerChanged();
+}
+
+void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &account)
+{
+    Pkcs11Context ctx;
 
     auto rc = PKCS11_CTX_load(ctx, account->encryptionHardwareTokenDriverPath().toLatin1().constData());
     if (rc) {
@@ -180,7 +236,7 @@ void ClientSideEncryptionTokenSelector::searchForCertificates(const AccountPtr &
                                     << "serial number:" << sslCertificate.serialNumber();
 
             if (sslCertificate.isSelfSigned()) {
-                qCInfo(lcCseSelector()) << "newly found certificate is self signed: goint to ignore it";
+                qCDebug(lcCseSelector()) << "newly found certificate is self signed: goint to ignore it";
                 continue;
             }
 
@@ -198,26 +254,6 @@ void ClientSideEncryptionTokenSelector::searchForCertificates(const AccountPtr &
 
     Q_EMIT discoveredCertificatesChanged();
     processDiscoveredCertificates();
-}
-
-void ClientSideEncryptionTokenSelector::setSerialNumber(const QString &serialNumber)
-{
-    if (_serialNumber == serialNumber) {
-        return;
-    }
-
-    _serialNumber = serialNumber;
-    Q_EMIT serialNumberChanged();
-}
-
-void ClientSideEncryptionTokenSelector::setIssuer(const QString &issuer)
-{
-    if (_issuer == issuer) {
-        return;
-    }
-
-    _issuer = issuer;
-    Q_EMIT issuerChanged();
 }
 
 void ClientSideEncryptionTokenSelector::processDiscoveredCertificates()

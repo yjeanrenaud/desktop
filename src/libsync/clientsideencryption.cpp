@@ -45,6 +45,7 @@
 #include <QScopeGuard>
 #include <QRandomGenerator>
 #include <QCryptographicHash>
+#include <QFutureWatcher>
 
 #include <openssl/rsa.h>
 #include <openssl/evp.h>
@@ -664,7 +665,7 @@ namespace internals {
                                                                 const QByteArray& binaryData);
 
 [[nodiscard]] std::optional<QByteArray> encryptStringAsymmetricWithToken(ENGINE *sslEngine,
-                                                                         EVP_PKEY *publicKey,
+                                                                         PKCS11_KEY *publicKey,
                                                                          const QByteArray& binaryData);
 
 [[nodiscard]] std::optional<QByteArray> decryptStringAsymmetric(ENGINE *sslEngine,
@@ -688,7 +689,7 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
         }
 
         auto encryptedBase64Result = internals::encryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
-                                                                                 PKCS11_get_public_key(encryptionEngine.getTokenPublicKey()),
+                                                                                 encryptionEngine.getTokenPublicKey(),
                                                                                  binaryData);
 
         if (!encryptedBase64Result) {
@@ -733,6 +734,11 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
 std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
                                                   const QByteArray &base64Data)
 {
+    if (!encryptionEngine.isInitialized()) {
+        qCWarning(lcCse()) << "end-to-end encryption is disabled";
+        return {};
+    }
+
     if (encryptionEngine.useTokenBasedEncryption()) {
         const auto decryptBase64Result = internals::decryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
                                                                                      encryptionEngine.getTokenPrivateKey(),
@@ -973,10 +979,10 @@ void debugOpenssl()
 namespace internals {
 
 std::optional<QByteArray> encryptStringAsymmetricWithToken(ENGINE *sslEngine,
-                                                           EVP_PKEY *publicKey,
+                                                           PKCS11_KEY *publicKey,
                                                            const QByteArray& binaryData)
 {
-    return encryptStringAsymmetric(sslEngine, publicKey, RSA_PKCS1_PADDING, binaryData);
+    return encryptStringAsymmetric(sslEngine, PKCS11_get_public_key(publicKey), RSA_PKCS1_PADDING, binaryData);
 }
 
 std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
@@ -993,8 +999,6 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
 
 ClientSideEncryption::ClientSideEncryption()
 {
-    connect(&_usbTokenInformation, &ClientSideEncryptionTokenSelector::discoveredCertificatesChanged,
-            this, &ClientSideEncryption::completeHardwareTokenInitialization);
 }
 
 bool ClientSideEncryption::isInitialized() const
@@ -1073,12 +1077,16 @@ void ClientSideEncryption::initialize(QWidget *settingsDialog,
         if (_usbTokenInformation.isSetup()) {
             initializeHardwareTokenEncryption(settingsDialog, account);
         } else if (account->e2eEncryptionKeysGenerationAllowed() && account->askUserForMnemonic()) {
-            _usbTokenInformation.searchForCertificates(account);
-            if (_usbTokenInformation.isSetup()) {
-                initializeHardwareTokenEncryption(settingsDialog, account);
-            } else {
-                emit initializationFinished();
-            }
+            Q_EMIT startingDiscoveryEncryptionUsbToken();
+            auto futureTokenDiscoveryResult = new QFutureWatcher<void>(this);
+            auto tokenDiscoveryResult = _usbTokenInformation.searchForCertificates(account);
+            futureTokenDiscoveryResult->setFuture(tokenDiscoveryResult);
+            connect(futureTokenDiscoveryResult, &QFutureWatcher<void>::finished,
+                    this, [this, settingsDialog, account, futureTokenDiscoveryResult] () {
+                completeHardwareTokenInitialization(settingsDialog, account);
+                delete futureTokenDiscoveryResult;
+                Q_EMIT finishedDiscoveryEncryptionUsbToken();
+            });
         } else {
             emit initializationFinished();
         }
@@ -1099,151 +1107,163 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
         return;
     }
 
-    auto nslots = 0u;
+    auto tokensCount = 0u;
     PKCS11_SLOT *tokenSlots = nullptr;
     /* get information on all slots */
-    if (PKCS11_enumerate_slots(ctx, &tokenSlots, &nslots) < 0) {
+    if (PKCS11_enumerate_slots(ctx, &tokenSlots, &tokensCount) < 0) {
         qCWarning(lcCse()) << "no slots available" << ERR_reason_error_string(ERR_get_error());
 
         failedToInitialize(account);
         return;
     }
 
-    /* get first slot with a token */
-    auto slot = PKCS11_find_token(ctx, tokenSlots, nslots);
-    if (slot == NULL || slot->token == NULL) {
-        qCWarning(lcCse()) << "no token available" << ERR_reason_error_string(ERR_get_error());
+    auto currentSlot = static_cast<PKCS11_SLOT*>(nullptr);
+    for(auto i = 0u; i < tokensCount; ++i) {
+        currentSlot = PKCS11_find_next_token(ctx, tokenSlots, tokensCount, currentSlot);
+        if (currentSlot == nullptr || currentSlot->token == nullptr) {
+            break;
+        }
 
-        failedToInitialize(account);
-        return;
-    }
-    qCInfo(lcCse()) << "Slot manufacturer......:" << slot->manufacturer;
-    qCInfo(lcCse()) << "Slot description.......:" << slot->description;
-    qCInfo(lcCse()) << "Slot token label.......:" << slot->token->label;
-    qCInfo(lcCse()) << "Slot token manufacturer:" << slot->token->manufacturer;
-    qCInfo(lcCse()) << "Slot token model.......:" << slot->token->model;
-    qCInfo(lcCse()) << "Slot token serialnr....:" << slot->token->serialnr;
+        qCDebug(lcCse()) << "Slot manufacturer......:" << currentSlot->manufacturer;
+        qCDebug(lcCse()) << "Slot description.......:" << currentSlot->description;
+        qCDebug(lcCse()) << "Slot token label.......:" << currentSlot->token->label;
+        qCDebug(lcCse()) << "Slot token manufacturer:" << currentSlot->token->manufacturer;
+        qCDebug(lcCse()) << "Slot token model.......:" << currentSlot->token->model;
+        qCDebug(lcCse()) << "Slot token serialnr....:" << currentSlot->token->serialnr;
 
-    auto logged_in = 0;
-    if (PKCS11_is_logged_in(slot, 0, &logged_in) != 0) {
-        qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
+        auto logged_in = 0;
+        if (PKCS11_is_logged_in(currentSlot, 0, &logged_in) != 0) {
+            qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
 
-        failedToInitialize(account);
-        return;
-    }
+            failedToInitialize(account);
+            return;
+        }
 
-    while (true) {
-        auto pinHasToBeCached = false;
-        auto newPin = _cachedPin;
+        while (true) {
+            auto pinHasToBeCached = false;
+            auto newPin = _cachedPin;
 
-        if (newPin.isEmpty()) {
-            /* perform pkcs #11 login */
-            bool ok;
-            newPin = QInputDialog::getText(settingsDialog,
-                                           tr("PIN needed to login to token"),
-                                           tr("Enter Certificate USB Token PIN:"),
-                                           QLineEdit::Password,
-                                           {},
-                                           &ok);
-            if (!ok || newPin.isEmpty()) {
-                qCWarning(lcCse()) << "an USER pin is required";
+            if (newPin.isEmpty()) {
+                /* perform pkcs #11 login */
+                bool ok;
+                newPin = QInputDialog::getText(settingsDialog,
+                                               tr("PIN needed to login to token"),
+                                               tr("Enter Certificate USB Token PIN:"),
+                                               QLineEdit::Password,
+                                               {},
+                                               &ok);
+                if (!ok || newPin.isEmpty()) {
+                    qCWarning(lcCse()) << "an USER pin is required";
+
+                    Q_EMIT initializationFinished();
+                    return;
+                }
+
+                pinHasToBeCached = true;
+            }
+
+            const auto newPinData = newPin.toLatin1();
+            if (PKCS11_login(currentSlot, 0, newPinData.data()) != 0) {
+                QMessageBox::warning(settingsDialog,
+                                     tr("Invalid PIN. Login failed"),
+                                     tr("Login to the token failed after providing the user PIN. It may be invalid or wrong. Please try again !"),
+                                     QMessageBox::Ok);
+                _cachedPin.clear();
+                continue;
+            }
+
+            /* check if user is logged in */
+            if (PKCS11_is_logged_in(currentSlot, 0, &logged_in) != 0) {
+                qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
+
+                _cachedPin.clear();
+                failedToInitialize(account);
+                return;
+            }
+            if (!logged_in) {
+                qCWarning(lcCse()) << "PKCS11_is_logged_in says user is not logged in, expected to be logged in";
+
+                _cachedPin.clear();
+                failedToInitialize(account);
+                return;
+            }
+
+            if (pinHasToBeCached) {
+                cacheTokenPin(newPin);
+            }
+
+            break;
+        }
+
+        auto keysCount = 0u;
+        auto certificatesFromToken = static_cast<PKCS11_CERT*>(nullptr);
+        if (PKCS11_enumerate_certs(currentSlot->token, &certificatesFromToken, &keysCount)) {
+            qCWarning(lcCse()) << "PKCS11_enumerate_certs failed" << ERR_reason_error_string(ERR_get_error());
+
+            Q_EMIT failedToInitialize(account);
+            return;
+        }
+
+        for (auto certificateIndex = 0u; certificateIndex < keysCount; ++certificateIndex) {
+            const auto currentCertificate = &certificatesFromToken[certificateIndex];
+            qCInfo(lcCse()) << "certificate metadata:"
+                            << "label:" << currentCertificate->label;
+
+            const auto certificateId = QByteArray{reinterpret_cast<char*>(currentCertificate->id), static_cast<int>(currentCertificate->id_len)};
+            qCInfo(lcCse()) << "new certificate ID:" << certificateId.toBase64();
+
+            Bio out;
+            const auto ret = PEM_write_bio_X509(out, currentCertificate->x509);
+            if (ret <= 0){
+                qCWarning(lcCse()) << "PEM_write_bio_X509 failed" << ERR_reason_error_string(ERR_get_error());
+
+                Q_EMIT failedToInitialize(account);
+                return;
+            }
+
+            const auto result = BIO2ByteArray(out);
+            const auto sslCertificate = QSslCertificate{result, QSsl::Pem};
+            if (sslCertificate.issuerDisplayName() != _usbTokenInformation.issuer() ||
+                sslCertificate.serialNumber() != _usbTokenInformation.serialNumber()) {
+                qCInfo(lcCse()) << "skipping certificate from" << sslCertificate.issuerDisplayName() << "with serial number" << sslCertificate.serialNumber();
+                continue;
+            }
+
+            const auto certificateKey = PKCS11_find_key(currentCertificate);
+            if (!certificateKey) {
+                qCWarning(lcCse()) << "PKCS11_find_key failed" << ERR_reason_error_string(ERR_get_error());
+
+                Q_EMIT failedToInitialize(account);
+                return;
+            }
+
+            _tokenPrivateKey = certificateKey;
+            qCInfo(lcCse()) << "key metadata:"
+                            << "type:" << (_tokenPrivateKey->isPrivate ? "is private" : "is public")
+                            << "label:" << _tokenPrivateKey->label
+                            << "need login:" << (_tokenPrivateKey->needLogin ? "true" : "false");
+
+            _tokenPublicKey = certificateKey;
+            qCInfo(lcCse()) << "key metadata:"
+                            << "type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
+                            << "label:" << _tokenPublicKey->label
+                            << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
+
+            if (!checkEncryptionIsWorking(account)) {
+                qCWarning(lcCse()) << "encryption is not properly setup";
 
                 failedToInitialize(account);
                 return;
             }
 
-            pinHasToBeCached = true;
-        }
+            saveCertificateIdentification(account);
 
-        const auto newPinData = newPin.toLatin1();
-        if (PKCS11_login(slot, 0, newPinData.data()) != 0) {
-            QMessageBox::warning(settingsDialog,
-                                 tr("Invalid PIN. Login failed"),
-                                 tr("Login to the token failed after providing the user PIN. It may be invalid or wrong. Please try again !"),
-                                 QMessageBox::Ok);
-            _cachedPin.clear();
-            continue;
-        }
-
-        /* check if user is logged in */
-        if (PKCS11_is_logged_in(slot, 0, &logged_in) != 0) {
-            qCWarning(lcCse()) << "PKCS11_is_logged_in failed" << ERR_reason_error_string(ERR_get_error());
-
-            _cachedPin.clear();
-            failedToInitialize(account);
+            emit initializationFinished();
             return;
         }
-        if (!logged_in) {
-            qCWarning(lcCse()) << "PKCS11_is_logged_in says user is not logged in, expected to be logged in";
-
-            _cachedPin.clear();
-            failedToInitialize(account);
-            return;
-        }
-
-        if (pinHasToBeCached) {
-            cacheTokenPin(newPin);
-        }
-
-        break;
     }
 
-    auto privateKeysCount = 0u;
-    auto tokenPrivateKeys = static_cast<PKCS11_KEY*>(nullptr);
-    if (PKCS11_enumerate_keys(slot->token, &tokenPrivateKeys, &privateKeysCount)) {
-        qCWarning(lcCse()) << "PKCS11_enumerate_keys failed" << ERR_reason_error_string(ERR_get_error());
-
-        failedToInitialize(account);
-        return;
-    }
-    if (privateKeysCount <= 0) {
-        qCWarning(lcCse()) << "no keys found";
-
-        failedToInitialize(account);
-        return;
-    }
-
-    qCInfo(lcCse()) << "hardware token has" << privateKeysCount << "private keys";
-
-    _tokenPrivateKey = &tokenPrivateKeys[0];
-    qCInfo(lcCse()) << "key metadata:"
-                    << "type:" << (_tokenPrivateKey->isPrivate ? "is private" : "is public")
-                    << "label:" << _tokenPrivateKey->label
-                    << "need login:" << (_tokenPrivateKey->needLogin ? "true" : "false");
-
-    auto publicKeysCount = 0u;
-    auto tokenPublicKeys = static_cast<PKCS11_KEY*>(nullptr);
-    if (PKCS11_enumerate_public_keys(slot->token, &tokenPublicKeys, &publicKeysCount)) {
-        qCWarning(lcCse()) << "PKCS11_enumerate_keys failed" << ERR_reason_error_string(ERR_get_error());
-
-        failedToInitialize(account);
-        return;
-    }
-    if (publicKeysCount <= 0) {
-        qCWarning(lcCse()) << "no keys found";
-
-        failedToInitialize(account);
-        return;
-    }
-
-    qCInfo(lcCse()) << "hardware token has" << publicKeysCount << "public keys";
-
-    _tokenPublicKey = &tokenPublicKeys[0];
-    qCInfo(lcCse()) << "key metadata:"
-                    << "type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
-                    << "label:" << _tokenPublicKey->label
-                    << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
-
-    if (!checkEncryptionIsWorking(account)) {
-        qCWarning(lcCse()) << "encryption is not properly setup";
-
-        failedToInitialize(account);
-        return;
-    }
-
-    saveCertificateIdentification(account);
-
-    emit initializationFinished();
+    failedToInitialize(account);
 }
 
 void ClientSideEncryption::fetchCertificateFromKeyChain(const AccountPtr &account)
@@ -1529,20 +1549,13 @@ void ClientSideEncryption::writeCertificate(const AccountPtr &account)
     job->start();
 }
 
-void ClientSideEncryption::completeHardwareTokenInitialization()
+void ClientSideEncryption::completeHardwareTokenInitialization(QWidget *settingsDialog,
+                                                               const AccountPtr &account)
 {
-    for (const auto &oneCertificate : _usbTokenInformation.discoveredCertificates()) {
-        const auto certificateData = oneCertificate.toMap();
-        const auto sslCertificate = certificateData[QStringLiteral("certificate")].value<QSslCertificate>();
-        if (sslCertificate.isNull()) {
-            qCDebug(lcCse()) << "null certificate";
-            continue;
-        }
-        const auto sslErrors = QSslCertificate::verify({sslCertificate});
-        for (const auto &oneError : sslErrors) {
-            qCInfo(lcCse()) << oneError;
-        }
-        qCInfo(lcCse()) << "certificate is valid" << certificateData[QStringLiteral("serialNumber")] << certificateData[QStringLiteral("issuer")];
+    if (_usbTokenInformation.isSetup()) {
+        initializeHardwareTokenEncryption(settingsDialog, account);
+    } else {
+        emit initializationFinished();
     }
 }
 

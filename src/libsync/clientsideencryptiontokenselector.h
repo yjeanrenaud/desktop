@@ -19,6 +19,7 @@
 #include "owncloudlib.h"
 
 #include <QObject>
+#include <QFuture>
 
 namespace OCC
 {
@@ -47,7 +48,7 @@ public:
     [[nodiscard]] QString issuer() const;
 
 public slots:
-    void searchForCertificates(const OCC::AccountPtr &account);
+    QFuture<void> searchForCertificates(const OCC::AccountPtr &account);
 
     void setSerialNumber(const QString &serialNumber);
 
@@ -68,6 +69,8 @@ signals:
     void failedToInitialize(const OCC::AccountPtr &account);
 
 private:
+    void discoverCertificates(const OCC::AccountPtr &account);
+
     void processDiscoveredCertificates();
 
     QVariantList _discoveredCertificates;
