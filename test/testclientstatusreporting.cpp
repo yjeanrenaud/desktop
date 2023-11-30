@@ -104,12 +104,12 @@ private slots:
             // we must have 2 e2ee errors
             const auto virusDetectedErrorsReceived = bodyReceivedAndParsed.value("virus_detected").toMap();
             QVERIFY(!virusDetectedErrorsReceived.isEmpty());
-            QCOMPARE(virusDetectedErrorsReceived.size(), 3);
+            QCOMPARE(virusDetectedErrorsReceived.value("count"), 3);
 
             // we must have 2 e2ee errors
             const auto e2eeErrorsReceived = bodyReceivedAndParsed.value("e2e_errors").toMap();
             QVERIFY(!e2eeErrorsReceived.isEmpty());
-            QCOMPARE(e2eeErrorsReceived.size(), 2);
+            QCOMPARE(e2eeErrorsReceived.value("count"), 2);
 
             // we must have 5 conflicts
             const auto conflictsReceived = bodyReceivedAndParsed.value("sync_conflicts").toMap();
