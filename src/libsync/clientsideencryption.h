@@ -340,6 +340,8 @@ private:
     QJsonObject _fileDrop;
     // used by unit tests, must get assigned simultaneously with _fileDrop and not erased
     QJsonObject _fileDropFromServer;
+    QString _metadataCertificateSerialNumber;
+    QString _metadataCertificateIssuer;
     bool _isMetadataSetup = false;
     bool _encryptedMetadataNeedUpdate = false;
 };

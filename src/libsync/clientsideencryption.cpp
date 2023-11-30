@@ -89,6 +89,8 @@ constexpr char e2e_public[] = "_e2e-public";
 constexpr char e2e_mnemonic[] = "_e2e-mnemonic";
 
 constexpr auto metadataKeyJsonKey = "metadataKey";
+constexpr auto certificateSerialNumberKey = "certificateSerialNumber";
+constexpr auto certificateIssuerKey = "certificateIssuer";
 
 constexpr qint64 blockSize = 1024;
 
@@ -2245,6 +2247,21 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
     const auto files = metaDataDoc.object()["files"].toObject();
     const auto metadataKey = metaDataDoc.object()["metadata"].toObject()["metadataKey"].toString().toUtf8();
     const auto metadataKeyChecksum = metaDataDoc.object()["metadata"].toObject()["checksum"].toString().toUtf8();
+    _metadataCertificateSerialNumber = metadataObj[certificateSerialNumberKey].toString();
+    _metadataCertificateIssuer = metadataObj[certificateIssuerKey].toString();
+
+    if (!_metadataCertificateSerialNumber.isEmpty() && !_metadataCertificateIssuer.isEmpty()) {
+        if (!_account->e2e()->useTokenBasedEncryption()) {
+            qCWarning(lcCseMetadata()) << "e2ee metadata are missing proper information about the certificate used to encrypt them";
+            return;
+        }
+
+        if (_metadataCertificateSerialNumber != _account->e2e()->usbTokenInformation()->serialNumber() ||
+            _metadataCertificateIssuer != _account->e2e()->usbTokenInformation()->issuer()) {
+            qCInfo(lcCseMetadata()) << "migration of the certificate used to encrypt metadata is needed";
+            return;
+        }
+    }
 
     _fileDrop = metaDataDoc.object().value("filedrop").toObject();
     // for unit tests
@@ -2437,6 +2454,8 @@ QByteArray FolderMetadata::encryptedMetadata() const {
     QJsonObject metadata{
         {"version", version},
         {metadataKeyJsonKey, QJsonValue::fromVariant(*encryptedMetadataKey)},
+        {certificateSerialNumberKey, _account->e2e()->usbTokenInformation()->serialNumber()},
+        {certificateIssuerKey, _account->e2e()->usbTokenInformation()->issuer()},
         {"checksum", QJsonValue::fromVariant(computeMetadataKeyChecksum(*encryptedMetadataKey))},
     };
 
