@@ -1018,7 +1018,7 @@ std::optional<QByteArray> decryptStringAsymmetricWithToken(ENGINE *sslEngine,
 
 ClientSideEncryption::ClientSideEncryption()
 {
-    connect(&_usbTokenInformation, &ClientSideTokenSelector::discoveredCertificatesChanged,
+    connect(&_usbTokenInformation, &ClientSideEncryptionTokenSelector::discoveredCertificatesChanged,
             this, &ClientSideEncryption::completeHardwareTokenInitialization);
 }
 
@@ -1077,7 +1077,7 @@ ENGINE* ClientSideEncryption::sslEngine() const
     return ENGINE_get_default_RSA();
 }
 
-ClientSideTokenSelector *ClientSideEncryption::usbTokenInformation()
+ClientSideEncryptionTokenSelector *ClientSideEncryption::usbTokenInformation()
 {
     return &_usbTokenInformation;
 }

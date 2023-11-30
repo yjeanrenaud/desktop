@@ -18,7 +18,7 @@
 #include "accountfwd.h"
 
 #include "networkjobs.h"
-#include "clientsidetokenselector.h"
+#include "clientsideencryptiontokenselector.h"
 
 #include <QString>
 #include <QObject>
@@ -165,7 +165,7 @@ public:
 
     [[nodiscard]] ENGINE* sslEngine() const;
 
-    [[nodiscard]] ClientSideTokenSelector* usbTokenInformation();
+    [[nodiscard]] ClientSideEncryptionTokenSelector* usbTokenInformation();
 
 signals:
     void initializationFinished(bool isNewMnemonicGenerated = false);
@@ -265,7 +265,7 @@ private:
 
     QString _cachedPin;
 
-    ClientSideTokenSelector _usbTokenInformation;
+    ClientSideEncryptionTokenSelector _usbTokenInformation;
 
     PKCS11_KEY* _tokenPublicKey = nullptr;
     PKCS11_KEY* _tokenPrivateKey = nullptr;

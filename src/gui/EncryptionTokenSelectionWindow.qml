@@ -26,7 +26,7 @@ ApplicationWindow {
     id: encryptionKeyChooserDialog
 
     required property var certificatesInfo
-    required property ClientSideTokenSelector certificateSelector
+    required property ClientSideEncryptionTokenSelector certificateSelector
     property string selectedSerialNumber: ''
 
     flags: Qt.Window | Qt.Dialog

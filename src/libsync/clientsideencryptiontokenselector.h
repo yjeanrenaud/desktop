@@ -23,7 +23,7 @@
 namespace OCC
 {
 
-class OWNCLOUDSYNC_EXPORT ClientSideTokenSelector : public QObject
+class OWNCLOUDSYNC_EXPORT ClientSideEncryptionTokenSelector : public QObject
 {
     Q_OBJECT
 
@@ -36,7 +36,7 @@ class OWNCLOUDSYNC_EXPORT ClientSideTokenSelector : public QObject
     Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
 
 public:
-    explicit ClientSideTokenSelector(QObject *parent = nullptr);
+    explicit ClientSideEncryptionTokenSelector(QObject *parent = nullptr);
 
     [[nodiscard]] bool isSetup() const;
 

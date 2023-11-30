@@ -31,7 +31,7 @@ class QGuiApplication;
 
 namespace OCC {
 
-class ClientSideTokenSelector;
+class ClientSideEncryptionTokenSelector;
 
 class AccessManagerFactory : public QQmlNetworkAccessManagerFactory
 {

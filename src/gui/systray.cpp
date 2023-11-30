@@ -24,7 +24,7 @@
 #include "configfile.h"
 #include "accessmanager.h"
 #include "callstatechecker.h"
-#include "clientsidetokenselector.h"
+#include "clientsideencryptiontokenselector.h"
 
 #include <QCursor>
 #include <QGuiApplication>

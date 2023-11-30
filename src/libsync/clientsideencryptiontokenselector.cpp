@@ -15,7 +15,7 @@
 #include <openssl/pem.h>
 #define OPENSSL_SUPPRESS_DEPRECATED
 
-#include "clientsidetokenselector.h"
+#include "clientsideencryptiontokenselector.h"
 
 #include "account.h"
 
@@ -72,33 +72,33 @@ namespace OCC
 
 Q_LOGGING_CATEGORY(lcCseSelector, "nextcloud.sync.clientsideencryption.selector", QtInfoMsg)
 
-ClientSideTokenSelector::ClientSideTokenSelector(QObject *parent)
+ClientSideEncryptionTokenSelector::ClientSideEncryptionTokenSelector(QObject *parent)
     : QObject{parent}
 {
 
 }
 
-bool ClientSideTokenSelector::isSetup() const
+bool ClientSideEncryptionTokenSelector::isSetup() const
 {
     return !_issuer.isEmpty() && !_serialNumber.isEmpty();
 }
 
-QVariantList ClientSideTokenSelector::discoveredCertificates() const
+QVariantList ClientSideEncryptionTokenSelector::discoveredCertificates() const
 {
     return _discoveredCertificates;
 }
 
-QString ClientSideTokenSelector::serialNumber() const
+QString ClientSideEncryptionTokenSelector::serialNumber() const
 {
     return _serialNumber;
 }
 
-QString ClientSideTokenSelector::issuer() const
+QString ClientSideEncryptionTokenSelector::issuer() const
 {
     return _issuer;
 }
 
-void ClientSideTokenSelector::searchForCertificates(const AccountPtr &account)
+void ClientSideEncryptionTokenSelector::searchForCertificates(const AccountPtr &account)
 {
     auto ctx = PKCS11_CTX_new();
 
@@ -200,7 +200,7 @@ void ClientSideTokenSelector::searchForCertificates(const AccountPtr &account)
     processDiscoveredCertificates();
 }
 
-void ClientSideTokenSelector::setSerialNumber(const QString &serialNumber)
+void ClientSideEncryptionTokenSelector::setSerialNumber(const QString &serialNumber)
 {
     if (_serialNumber == serialNumber) {
         return;
@@ -210,7 +210,7 @@ void ClientSideTokenSelector::setSerialNumber(const QString &serialNumber)
     Q_EMIT serialNumberChanged();
 }
 
-void ClientSideTokenSelector::setIssuer(const QString &issuer)
+void ClientSideEncryptionTokenSelector::setIssuer(const QString &issuer)
 {
     if (_issuer == issuer) {
         return;
@@ -220,7 +220,7 @@ void ClientSideTokenSelector::setIssuer(const QString &issuer)
     Q_EMIT issuerChanged();
 }
 
-void ClientSideTokenSelector::processDiscoveredCertificates()
+void ClientSideEncryptionTokenSelector::processDiscoveredCertificates()
 {
     for (const auto &oneCertificate : discoveredCertificates()) {
         const auto certificateData = oneCertificate.toMap();
