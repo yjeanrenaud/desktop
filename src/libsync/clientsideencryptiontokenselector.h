@@ -32,9 +32,7 @@ class OWNCLOUDSYNC_EXPORT ClientSideEncryptionTokenSelector : public QObject
 
     Q_PROPERTY(QVariantList discoveredCertificates READ discoveredCertificates NOTIFY discoveredCertificatesChanged)
 
-    Q_PROPERTY(QString serialNumber READ serialNumber WRITE setSerialNumber NOTIFY serialNumberChanged)
-
-    Q_PROPERTY(QString issuer READ issuer WRITE setIssuer NOTIFY issuerChanged)
+    Q_PROPERTY(QByteArray sha256Fingerprint READ sha256Fingerprint WRITE setSha256Fingerprint NOTIFY sha256FingerprintChanged)
 
 public:
     explicit ClientSideEncryptionTokenSelector(QObject *parent = nullptr);
@@ -43,16 +41,12 @@ public:
 
     [[nodiscard]] QVariantList discoveredCertificates() const;
 
-    [[nodiscard]] QString serialNumber() const;
-
-    [[nodiscard]] QString issuer() const;
+    [[nodiscard]] QByteArray sha256Fingerprint() const;
 
 public slots:
     QFuture<void> searchForCertificates(const OCC::AccountPtr &account);
 
-    void setSerialNumber(const QString &serialNumber);
-
-    void setIssuer(const QString &issuer);
+    void setSha256Fingerprint(const QByteArray &sha256Fingerprint);
 
 signals:
 
@@ -62,9 +56,7 @@ signals:
 
     void certificateIndexChanged();
 
-    void serialNumberChanged();
-
-    void issuerChanged();
+    void sha256FingerprintChanged();
 
     void failedToInitialize(const OCC::AccountPtr &account);
 
@@ -75,9 +67,7 @@ private:
 
     QVariantList _discoveredCertificates;
 
-    QString _serialNumber;
-
-    QString _issuer;
+    QByteArray _sha256Fingerprint;
 };
 
 }

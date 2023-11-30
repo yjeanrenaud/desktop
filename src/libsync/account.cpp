@@ -1035,37 +1035,20 @@ QString Account::encryptionHardwareTokenDriverPath() const
     return {};
 }
 
-QString Account::encryptionCertificateSerialNumber() const
+QByteArray Account::encryptionCertificateFingerprint() const
 {
-    return _encryptionCertificateSerialNumber;
+    return _encryptionCertificateFingerprint;
 }
 
-void Account::setEncryptionCertificateSerialNumber(const QString &serialNumber)
+void Account::setEncryptionCertificateFingerprint(const QByteArray &fingerprint)
 {
-    if (_encryptionCertificateSerialNumber == serialNumber) {
+    if (_encryptionCertificateFingerprint == fingerprint) {
         return;
     }
 
-    _encryptionCertificateSerialNumber = serialNumber;
-    _e2e.usbTokenInformation()->setSerialNumber(serialNumber);
-    Q_EMIT encryptionCertificateSerialNumberChanged();
-    Q_EMIT wantsAccountSaved(this);
-}
-
-QString Account::encryptionCertificateIssuer() const
-{
-    return _encryptionCertificateIssuer;
-}
-
-void Account::setEncryptionCertificateIssuer(const QString &issuer)
-{
-    if (_encryptionCertificateIssuer == issuer) {
-        return;
-    }
-
-    _encryptionCertificateIssuer = issuer;
-    _e2e.usbTokenInformation()->setIssuer(issuer);
-    Q_EMIT encryptionCertificateIssuerChanged();
+    _encryptionCertificateFingerprint = fingerprint;
+    _e2e.usbTokenInformation()->setSha256Fingerprint(fingerprint);
+    Q_EMIT encryptionCertificateFingerprintChanged();
     Q_EMIT wantsAccountSaved(this);
 }
 

@@ -90,8 +90,7 @@ constexpr char e2e_public[] = "_e2e-public";
 constexpr char e2e_mnemonic[] = "_e2e-mnemonic";
 
 constexpr auto metadataKeyJsonKey = "metadataKey";
-constexpr auto certificateSerialNumberKey = "certificateSerialNumber";
-constexpr auto certificateIssuerKey = "certificateIssuer";
+constexpr auto certificateSha256FingerprintKey = "certificateSha256Fingerprint";
 
 constexpr qint64 blockSize = 1024;
 
@@ -1206,11 +1205,6 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
 
         for (auto certificateIndex = 0u; certificateIndex < keysCount; ++certificateIndex) {
             const auto currentCertificate = &certificatesFromToken[certificateIndex];
-            qCInfo(lcCse()) << "certificate metadata:"
-                            << "label:" << currentCertificate->label;
-
-            const auto certificateId = QByteArray{reinterpret_cast<char*>(currentCertificate->id), static_cast<int>(currentCertificate->id_len)};
-            qCInfo(lcCse()) << "new certificate ID:" << certificateId.toBase64();
 
             Bio out;
             const auto ret = PEM_write_bio_X509(out, currentCertificate->x509);
@@ -1223,9 +1217,15 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
 
             const auto result = BIO2ByteArray(out);
             const auto sslCertificate = QSslCertificate{result, QSsl::Pem};
-            if (sslCertificate.issuerDisplayName() != _usbTokenInformation.issuer() ||
-                sslCertificate.serialNumber() != _usbTokenInformation.serialNumber()) {
-                qCInfo(lcCse()) << "skipping certificate from" << sslCertificate.issuerDisplayName() << "with serial number" << sslCertificate.serialNumber();
+
+            if (sslCertificate.isSelfSigned()) {
+                qCDebug(lcCse()) << "newly found certificate is self signed: goint to ignore it";
+                continue;
+            }
+
+            const auto &sha256Fingerprint = sslCertificate.digest(QCryptographicHash::Sha256).toBase64();
+            if (sha256Fingerprint != _usbTokenInformation.sha256Fingerprint()) {
+                qCInfo(lcCse()) << "skipping certificate from" << sslCertificate.subjectDisplayName() << "with fingerprint" << sha256Fingerprint << "different from" << _usbTokenInformation.sha256Fingerprint();
                 continue;
             }
 
@@ -1615,10 +1615,8 @@ void ClientSideEncryption::forgetSensitiveData(const AccountPtr &account)
     deletePrivateKeyJob->start();
     deleteCertJob->start();
     deleteMnemonicJob->start();
-    _usbTokenInformation.setSerialNumber({});
-    _usbTokenInformation.setIssuer({});
-    account->setEncryptionCertificateSerialNumber({});
-    account->setEncryptionCertificateIssuer({});
+    _usbTokenInformation.setSha256Fingerprint({});
+    account->setEncryptionCertificateFingerprint({});
     _tokenPublicKey = nullptr;
     _tokenPrivateKey = nullptr;
 }
@@ -1680,7 +1678,7 @@ void ClientSideEncryption::handlePublicKeyDeleted(const QKeychain::Job * const i
 
 bool ClientSideEncryption::sensitiveDataRemaining() const
 {
-    return !_privateKey.isEmpty() || !_certificate.isNull() || !_mnemonic.isEmpty() || !_usbTokenInformation.serialNumber().isEmpty() || !_usbTokenInformation.issuer().isEmpty() || _tokenPublicKey || _tokenPrivateKey;
+    return !_privateKey.isEmpty() || !_certificate.isNull() || !_mnemonic.isEmpty() || !_usbTokenInformation.sha256Fingerprint().isEmpty() || _tokenPublicKey || _tokenPrivateKey;
 }
 
 void ClientSideEncryption::failedToInitialize(const AccountPtr &account)
@@ -1691,8 +1689,7 @@ void ClientSideEncryption::failedToInitialize(const AccountPtr &account)
 
 void ClientSideEncryption::saveCertificateIdentification(const AccountPtr &account) const
 {
-    account->setEncryptionCertificateIssuer(_usbTokenInformation.issuer());
-    account->setEncryptionCertificateSerialNumber(_usbTokenInformation.serialNumber());
+    account->setEncryptionCertificateFingerprint(_usbTokenInformation.sha256Fingerprint());
 }
 
 void ClientSideEncryption::cacheTokenPin(const QString pin)
@@ -2235,17 +2232,15 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
     const auto files = metaDataDoc.object()["files"].toObject();
     const auto metadataKey = metaDataDoc.object()["metadata"].toObject()["metadataKey"].toString().toUtf8();
     const auto metadataKeyChecksum = metaDataDoc.object()["metadata"].toObject()["checksum"].toString().toUtf8();
-    _metadataCertificateSerialNumber = metadataObj[certificateSerialNumberKey].toString();
-    _metadataCertificateIssuer = metadataObj[certificateIssuerKey].toString();
+    _metadataCertificateSha256Fingerprint = metadataObj[certificateSha256FingerprintKey].toString().toLatin1();
 
-    if (!_metadataCertificateSerialNumber.isEmpty() && !_metadataCertificateIssuer.isEmpty()) {
+    if (!_metadataCertificateSha256Fingerprint.isEmpty()) {
         if (!_account->e2e()->useTokenBasedEncryption()) {
             qCWarning(lcCseMetadata()) << "e2ee metadata are missing proper information about the certificate used to encrypt them";
             return;
         }
 
-        if (_metadataCertificateSerialNumber != _account->e2e()->usbTokenInformation()->serialNumber() ||
-            _metadataCertificateIssuer != _account->e2e()->usbTokenInformation()->issuer()) {
+        if (_metadataCertificateSha256Fingerprint != _account->e2e()->usbTokenInformation()->sha256Fingerprint()) {
             qCInfo(lcCseMetadata()) << "migration of the certificate used to encrypt metadata is needed";
             return;
         }
@@ -2442,8 +2437,7 @@ QByteArray FolderMetadata::encryptedMetadata() const {
     QJsonObject metadata{
         {"version", version},
         {metadataKeyJsonKey, QJsonValue::fromVariant(*encryptedMetadataKey)},
-        {certificateSerialNumberKey, _account->e2e()->usbTokenInformation()->serialNumber()},
-        {certificateIssuerKey, _account->e2e()->usbTokenInformation()->issuer()},
+        {certificateSha256FingerprintKey, QJsonValue::fromVariant(_account->e2e()->usbTokenInformation()->sha256Fingerprint())},
         {"checksum", QJsonValue::fromVariant(computeMetadataKeyChecksum(*encryptedMetadataKey))},
     };
 

@@ -90,8 +90,7 @@ class OWNCLOUDSYNC_EXPORT Account : public QObject
     Q_PROPERTY(bool askUserForMnemonic READ askUserForMnemonic WRITE setAskUserForMnemonic NOTIFY askUserForMnemonicChanged)
     Q_PROPERTY(bool enforceUseHardwareTokenEncryption READ enforceUseHardwareTokenEncryption NOTIFY enforceUseHardwareTokenEncryptionChanged)
     Q_PROPERTY(QString encryptionHardwareTokenDriverPath READ encryptionHardwareTokenDriverPath NOTIFY encryptionHardwareTokenDriverPathChanged)
-    Q_PROPERTY(QString encryptionCertificateSerialNumber READ encryptionCertificateSerialNumber WRITE setEncryptionCertificateSerialNumber NOTIFY encryptionCertificateSerialNumberChanged)
-    Q_PROPERTY(QString encryptionCertificateIssuer READ encryptionCertificateIssuer WRITE setEncryptionCertificateIssuer NOTIFY encryptionCertificateIssuerChanged)
+    Q_PROPERTY(QByteArray encryptionCertificateFingerprint READ encryptionCertificateFingerprint WRITE setEncryptionCertificateFingerprint NOTIFY encryptionCertificateFingerprintChanged)
 
 public:
     static AccountPtr create();
@@ -334,13 +333,9 @@ public:
 
     [[nodiscard]] QString encryptionHardwareTokenDriverPath() const;
 
-    [[nodiscard]] QString encryptionCertificateSerialNumber() const;
+    [[nodiscard]] QByteArray encryptionCertificateFingerprint() const;
 
-    void setEncryptionCertificateSerialNumber(const QString &serialNumber);
-
-    [[nodiscard]] QString encryptionCertificateIssuer() const;
-
-    void setEncryptionCertificateIssuer(const QString &issuer);
+    void setEncryptionCertificateFingerprint(const QByteArray &fingerprint);
 
 public slots:
     /// Used when forgetting credentials
@@ -388,8 +383,7 @@ signals:
     void lockFileSuccess();
     void lockFileError(const QString&);
 
-    void encryptionCertificateSerialNumberChanged();
-    void encryptionCertificateIssuerChanged();
+    void encryptionCertificateFingerprintChanged();
 
 protected Q_SLOTS:
     void slotCredentialsFetched();
@@ -464,9 +458,7 @@ private:
 
     QHash<QString, QVector<SyncFileItem::LockStatus>> _lockStatusChangeInprogress;
 
-    QString _encryptionCertificateSerialNumber;
-
-    QString _encryptionCertificateIssuer;
+    QByteArray _encryptionCertificateFingerprint;
 
     /* IMPORTANT - remove later - FIXME MS@2019-12-07 -->
      * TODO: For "Log out" & "Remove account": Remove client CA certs and KEY!

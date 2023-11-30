@@ -109,7 +109,7 @@ ClientSideEncryptionTokenSelector::ClientSideEncryptionTokenSelector(QObject *pa
 
 bool ClientSideEncryptionTokenSelector::isSetup() const
 {
-    return !_issuer.isEmpty() && !_serialNumber.isEmpty();
+    return !_sha256Fingerprint.isEmpty();
 }
 
 QVariantList ClientSideEncryptionTokenSelector::discoveredCertificates() const
@@ -117,14 +117,9 @@ QVariantList ClientSideEncryptionTokenSelector::discoveredCertificates() const
     return _discoveredCertificates;
 }
 
-QString ClientSideEncryptionTokenSelector::serialNumber() const
+QByteArray ClientSideEncryptionTokenSelector::sha256Fingerprint() const
 {
-    return _serialNumber;
-}
-
-QString ClientSideEncryptionTokenSelector::issuer() const
-{
-    return _issuer;
+    return _sha256Fingerprint;
 }
 
 QFuture<void> ClientSideEncryptionTokenSelector::searchForCertificates(const AccountPtr &account)
@@ -134,24 +129,14 @@ QFuture<void> ClientSideEncryptionTokenSelector::searchForCertificates(const Acc
     });
 }
 
-void ClientSideEncryptionTokenSelector::setSerialNumber(const QString &serialNumber)
+void ClientSideEncryptionTokenSelector::setSha256Fingerprint(const QByteArray &sha256Fingerprint)
 {
-    if (_serialNumber == serialNumber) {
+    if (_sha256Fingerprint == sha256Fingerprint) {
         return;
     }
 
-    _serialNumber = serialNumber;
-    Q_EMIT serialNumberChanged();
-}
-
-void ClientSideEncryptionTokenSelector::setIssuer(const QString &issuer)
-{
-    if (_issuer == issuer) {
-        return;
-    }
-
-    _issuer = issuer;
-    Q_EMIT issuerChanged();
+    _sha256Fingerprint = sha256Fingerprint;
+    Q_EMIT sha256FingerprintChanged();
 }
 
 void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &account)
@@ -233,7 +218,8 @@ void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &a
                                     << "issuer:" << sslCertificate.issuerDisplayName()
                                     << "valid since:" << sslCertificate.effectiveDate()
                                     << "valid until:" << sslCertificate.expiryDate()
-                                    << "serial number:" << sslCertificate.serialNumber();
+                                    << "serial number:" << sslCertificate.serialNumber()
+                                    << "SHA256 fingerprint:" << sslCertificate.digest(QCryptographicHash::Sha256).toBase64();
 
             if (sslCertificate.isSelfSigned()) {
                 qCDebug(lcCseSelector()) << "newly found certificate is self signed: goint to ignore it";
@@ -247,6 +233,7 @@ void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &a
                                                           {QStringLiteral("serialNumber"), sslCertificate.serialNumber()},
                                                           {QStringLiteral("validSince"), sslCertificate.effectiveDate()},
                                                           {QStringLiteral("validUntil"), sslCertificate.expiryDate()},
+                                                          {QStringLiteral("sha256Fingerprint"), sslCertificate.digest(QCryptographicHash::Sha256).toBase64()},
                                                           {QStringLiteral("certificate"), QVariant::fromValue(sslCertificate)},
                                                           });
         }
@@ -269,10 +256,11 @@ void ClientSideEncryptionTokenSelector::processDiscoveredCertificates()
         for (const auto &oneError : sslErrors) {
             qCInfo(lcCseSelector()) << oneError;
         }
-        qCInfo(lcCseSelector()) << "certificate is valid" << certificateData[QStringLiteral("serialNumber")] << certificateData[QStringLiteral("issuer")];
 
-        setIssuer(certificateData[QStringLiteral("issuer")].toString());
-        setSerialNumber(certificateData[QStringLiteral("serialNumber")].toString());
+        const auto &sha256Fingerprint = sslCertificate.digest(QCryptographicHash::Sha256).toBase64();
+        qCInfo(lcCseSelector()) << "certificate is valid" << certificateData[QStringLiteral("subject")] << "from" << certificateData[QStringLiteral("issuer")] << "fingerprint" << sha256Fingerprint;
+
+        setSha256Fingerprint(sha256Fingerprint);
         Q_EMIT isSetupChanged();
         return;
     }
