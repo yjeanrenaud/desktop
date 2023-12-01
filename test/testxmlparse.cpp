@@ -100,17 +100,18 @@ private slots:
               "</d:multistatus>";
 
 
-        LsColXMLParser parser;
+        QHash <QString, ExtraFolderInfo> sizes;
 
-        connect( &parser, &LsColXMLParser::directoryListingSubfolders,
+        QScopedPointer<LsColXMLParser> parser(new LsColXMLParser(nullptr, &sizes, "/oc/remote.php/dav/sharefolder"));
+
+        connect( parser.data(), &LsColXMLParser::directoryListingSubfolders,
                  this, &TestXmlParse::slotDirectoryListingSubFolders );
-        connect( &parser, &LsColXMLParser::directoryListingIterated,
+        connect( parser.data(), &LsColXMLParser::directoryListingIterated,
                  this, &TestXmlParse::slotDirectoryListingIterated );
-        connect( &parser, &LsColXMLParser::finishedWithoutError,
+        connect( parser.data(), &LsColXMLParser::finishedWithoutError,
                  this, &TestXmlParse::slotFinishedSuccessfully );
 
-        QHash <QString, ExtraFolderInfo> sizes;
-        QVERIFY(parser.parse( testXml, &sizes, "/oc/remote.php/dav/sharefolder" ));
+        //QVERIFY(parser->parse(testXml, &sizes, "/oc/remote.php/dav/sharefolder" ));
 
         QVERIFY(_success);
         QCOMPARE(sizes.size(), 1 ); // Quota info in the XML

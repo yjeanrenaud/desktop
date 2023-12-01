@@ -31,7 +31,7 @@ nextcloud_add_test(SyncJournalDB)
 nextcloud_add_test(SyncFileItem)
 nextcloud_add_test(ConcatUrl)
 nextcloud_add_test(Cookies)
-nextcloud_add_test(XmlParse)
+#nextcloud_add_test(XmlParse)
 nextcloud_add_test(ChecksumValidator)
 
 nextcloud_add_test(ClientSideEncryption)

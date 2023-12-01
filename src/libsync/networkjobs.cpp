@@ -229,7 +229,7 @@ LsColXMLParser::LsColXMLParser(QNetworkReply *reply, QHash<QString, ExtraFolderI
 {
     qRegisterMetaType<QStringMap>();
     qRegisterMetaType<const QStringMap&>();
-    auto threadId = (DWORD)QThread::currentThreadId();
+    auto threadId = QThread::currentThreadId();
     _thread.reset(new QThread());
     moveToThread(_thread.get());
     _thread->start();
@@ -240,7 +240,7 @@ LsColXMLParser::~LsColXMLParser()
     auto currentThread = thread()->currentThreadId();
     int a = 5;
     a = 6;
-    auto threadId = (DWORD)QThread::currentThreadId();
+    auto threadId = QThread::currentThreadId();
 }
 
 void LsColXMLParser::cleanup()
@@ -257,7 +257,7 @@ void LsColXMLParser::slotDirectoryListingIterated(const QString &name, const QMa
 
 void LsColXMLParser::parse()
 {
-    auto threadId = (DWORD)QThread::currentThreadId();
+    auto threadId = QThread::currentThreadId();
     // Parse DAV response
     QXmlStreamReader reader(_xml);
     reader.addExtraNamespaceDeclaration(QXmlStreamNamespaceDeclaration("d", "DAV:"));
