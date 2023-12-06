@@ -54,7 +54,9 @@ ClientStatusReportingDatabase::ClientStatusReportingDatabase(const Account *acco
         return;
     }
 
-    updateStatusNamesHash();
+    if (!updateStatusNamesHash()) {
+        return;
+    }
 
     _isInitialized = true;
 }
@@ -89,12 +91,15 @@ QVector<ClientStatusReportingRecord> ClientStatusReportingDatabase::getClientSta
     return records;
 }
 
-void ClientStatusReportingDatabase::deleteClientStatusReportingRecords() const
+Result<void, QString> ClientStatusReportingDatabase::deleteClientStatusReportingRecords() const
 {
     QSqlQuery query;
     if (!query.prepare(QStringLiteral("DELETE FROM clientstatusreporting")) || !query.exec()) {
-        qCDebug(lcClientStatusReportingDatabase) << "Could not delete records from clientstatusreporting:" << query.lastError().text();
+        const auto errorMessage = query.lastError().text();
+        qCDebug(lcClientStatusReportingDatabase) << "Could not delete records from clientstatusreporting:" << errorMessage;
+        return errorMessage;
     }
+    return {};
 }
 
 Result<void, QString> ClientStatusReportingDatabase::setClientStatusReportingRecord(const ClientStatusReportingRecord &record) const
@@ -139,7 +144,7 @@ QString ClientStatusReportingDatabase::makeDbPath(const Account *account) const
     return ConfigFile().configPath() + QStringLiteral(".userdata_%1.db").arg(QString::fromLatin1(databaseIdHash.left(6).toHex()));
 }
 
-void ClientStatusReportingDatabase::updateStatusNamesHash()
+bool ClientStatusReportingDatabase::updateStatusNamesHash() const
 {
     QByteArray statusNamesContatenated;
     for (int i = 0; i < ClientStatusReportingStatus::Count; ++i) {
@@ -150,9 +155,54 @@ void ClientStatusReportingDatabase::updateStatusNamesHash()
     const auto statusNamesHashFromDb = getStatusNamesHash();
 
     if (statusNamesHashCurrent != statusNamesHashFromDb) {
-        deleteClientStatusReportingRecords();
-        setStatusNamesHash(statusNamesHashCurrent);
+        auto result = deleteClientStatusReportingRecords();
+        if (!result.isValid()) {
+            return false;
+        }
+
+        result = setStatusNamesHash(statusNamesHashCurrent);
+        if (!result.isValid()) {
+            return false;
+        }
     }
+    return true;
+}
+
+QVector<QByteArray> ClientStatusReportingDatabase::getTableColumns(const QString &table) const
+{
+    QVector<QByteArray> columns;
+    QSqlQuery query;
+    const auto prepareResult = query.prepare(QStringLiteral("PRAGMA table_info('%1');").arg(table));
+    if (!query.exec()) {
+        return columns;
+    }
+    while (query.next()) {
+        columns.append(query.value(1).toByteArray());
+    }
+    return columns;
+}
+
+bool ClientStatusReportingDatabase::addColumn(const QString &tableName, const QString &columnName, const QString &dataType, const bool withIndex) const
+{
+    const auto columns = getTableColumns(tableName);
+    const auto latin1ColumnName = columnName.toLatin1();
+    if (columns.indexOf(latin1ColumnName) == -1) {
+        QSqlQuery query;
+        const auto prepareResult = query.prepare(QStringLiteral("ALTER TABLE %1 ADD COLUMN %2 %3;").arg(tableName, columnName, dataType));
+        if (!prepareResult || !query.exec()) {
+            qCDebug(lcClientStatusReportingDatabase) << QStringLiteral("Failed to update table %1 structure: add %2 column").arg(tableName, columnName) << query.lastError().text();
+            return false;
+        }
+
+        if (withIndex) {
+            const auto prepareResult = query.prepare(QStringLiteral("CREATE INDEX %1_%2 ON %1(%2);").arg(tableName, columnName));
+            if (!prepareResult || !query.exec()) {
+                qCDebug(lcClientStatusReportingDatabase) << QStringLiteral("Failed to update table %1 structure: create index %2 column").arg(tableName, columnName) << query.lastError().text();
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 quint64 ClientStatusReportingDatabase::getLastSentReportTimestamp() const
@@ -172,7 +222,7 @@ quint64 ClientStatusReportingDatabase::getLastSentReportTimestamp() const
     return query.value(query.record().indexOf(QStringLiteral("value"))).toULongLong();
 }
 
-void ClientStatusReportingDatabase::setStatusNamesHash(const QByteArray &hash) const
+Result<void, QString> ClientStatusReportingDatabase::setStatusNamesHash(const QByteArray &hash) const
 {
     QMutexLocker locker(&_mutex);
     QSqlQuery query;
@@ -180,9 +230,11 @@ void ClientStatusReportingDatabase::setStatusNamesHash(const QByteArray &hash) c
     query.bindValue(QStringLiteral(":key"), statusNamesHash);
     query.bindValue(QStringLiteral(":value"), hash);
     if (!prepareResult || !query.exec()) {
-        qCDebug(lcClientStatusReportingDatabase) << "Could not set status names hash.";
-        return;
+        const auto errorMessage = query.lastError().text();
+        qCDebug(lcClientStatusReportingDatabase) << "Could not set status names hash." << errorMessage;
+        return errorMessage;
     }
+    return {};
 }
 
 QByteArray ClientStatusReportingDatabase::getStatusNamesHash() const

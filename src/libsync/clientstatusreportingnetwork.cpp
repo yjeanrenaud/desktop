@@ -97,7 +97,10 @@ void ClientStatusReportingNetwork::sendReportToServer()
 
 void ClientStatusReportingNetwork::reportToServerSentSuccessfully()
 {
-    _database->deleteClientStatusReportingRecords();
+    qCInfo(lcClientStatusReportingNetwork) << "Report sent successfully";
+    if (!_database->deleteClientStatusReportingRecords()) {
+        qCDebug(lcClientStatusReportingNetwork) << "Could not delete records after sending the report";
+    }
     _database->setLastSentReportTimestamp(QDateTime::currentDateTimeUtc().toMSecsSinceEpoch());
 }
 

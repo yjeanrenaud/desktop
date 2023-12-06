@@ -22,6 +22,7 @@
 #include <QtCore/qbytearray.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qstring.h>
+#include <QtCore/qvector.h>
 #include <QtSql/qsqldatabase.h>
 #include <QtSql/qsqlerror.h>
 #include <QtSql/qsqlrecord.h>
@@ -39,19 +40,21 @@ public:
 
     [[nodiscard]] Result<void, QString> setClientStatusReportingRecord(const ClientStatusReportingRecord &record) const;
     [[nodiscard]] QVector<ClientStatusReportingRecord> getClientStatusReportingRecords() const;
-    void deleteClientStatusReportingRecords() const;
+    [[nodiscard]] Result<void, QString> deleteClientStatusReportingRecords() const;
 
     void setLastSentReportTimestamp(const quint64 timestamp) const;
     [[nodiscard]] quint64 getLastSentReportTimestamp() const;
 
-    void setStatusNamesHash(const QByteArray &hash) const;
+    [[nodiscard]] Result<void, QString> setStatusNamesHash(const QByteArray &hash) const;
     [[nodiscard]] QByteArray getStatusNamesHash() const;
 
     [[nodiscard]] bool isInitialized() const;
 
 private:
     [[nodiscard]] QString makeDbPath(const Account *account) const;
-    void updateStatusNamesHash();
+    [[nodiscard]] bool updateStatusNamesHash() const;
+    [[nodiscard]] QVector<QByteArray> getTableColumns(const QString &table) const;
+    [[nodiscard]]bool addColumn(const QString &tableName, const QString &columnName, const QString &dataType, const bool withIndex = false) const;
 
 public:
     // this must be set in unit tests on init
