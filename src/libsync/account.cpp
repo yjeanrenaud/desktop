@@ -296,7 +296,7 @@ void Account::trySetupClientStatusReporting()
     }
 }
 
-void Account::reportClientStatus(const ClientStatusReporting::Status status) const
+void Account::reportClientStatus(const ClientStatusReportingStatus status) const
 {
     if (_clientStatusReporting) {
         _clientStatusReporting->reportClientStatus(status);

@@ -13,7 +13,9 @@
  */
 #include "account.h"
 #include "accountstate.h"
-#include "clientstatusreporting.h"
+#include "clientstatusreportingcommon.h"
+#include "clientstatusreportingdatabase.h"
+#include "clientstatusreportingnetwork.h"
 #include "syncenginetestutils.h"
 
 #include <QSignalSpy>
@@ -39,8 +41,8 @@ public:
 private slots:
     void initTestCase()
     {
-        OCC::ClientStatusReporting::clientStatusReportingTrySendTimerInterval = 1000;
-        OCC::ClientStatusReporting::repordSendIntervalMs = 2000;
+        OCC::ClientStatusReportingNetwork::clientStatusReportingTrySendTimerInterval = 1000;
+        OCC::ClientStatusReportingNetwork::repordSendIntervalMs = 2000;
 
         fakeQnam.reset(new FakeQNAM({}));
         account = OCC::Account::create().get();
@@ -53,7 +55,7 @@ private slots:
         const auto databaseIdHash = QCryptographicHash::hash(databaseId.toUtf8(), QCryptographicHash::Md5);
         dbFilePath = QDir::tempPath() + QStringLiteral("/.tests_userdata_%1.db").arg(QString::fromLatin1(databaseIdHash.left(6).toHex()));
         QFile(dbFilePath).remove();
-        OCC::ClientStatusReporting::dbPathForTesting = dbFilePath;
+        OCC::ClientStatusReportingDatabase::dbPathForTesting = dbFilePath;
 
         QVariantMap capabilities;
         capabilities[QStringLiteral("security_guard")] = QVariantMap{
@@ -74,30 +76,30 @@ private slots:
     {
         for (int i = 0; i < 2; ++i) {
             // 5 conflicts
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_Conflict);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_ConflictInvalidCharacters);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::DownloadError_Conflict);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::DownloadError_ConflictInvalidCharacters);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::DownloadError_ConflictCaseClash);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_Conflict);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_ConflictInvalidCharacters);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::DownloadError_Conflict);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::DownloadError_ConflictInvalidCharacters);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::DownloadError_ConflictCaseClash);
 
             // 4 problems
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_ServerError);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::DownloadError_ServerError);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::DownloadError_Virtual_File_Hydration_Failure);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_ServerError);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::DownloadError_ServerError);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::DownloadError_Virtual_File_Hydration_Failure);
             // 3 occurances of UploadError_No_Write_Permissions
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_No_Write_Permissions);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_No_Write_Permissions);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_No_Write_Permissions);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_No_Write_Permissions);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_No_Write_Permissions);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_No_Write_Permissions);
 
             // 3 occurances of UploadError_Virus_Detected
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_Virus_Detected);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_Virus_Detected);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::UploadError_Virus_Detected);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_Virus_Detected);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_Virus_Detected);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::UploadError_Virus_Detected);
 
             // 2 occurances of E2EeError_GeneralError
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::E2EeError_GeneralError);
-            account->reportClientStatus(OCC::ClientStatusReporting::Status::E2EeError_GeneralError);
-            QTest::qWait(OCC::ClientStatusReporting::clientStatusReportingTrySendTimerInterval + OCC::ClientStatusReporting::repordSendIntervalMs);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::E2EeError_GeneralError);
+            account->reportClientStatus(OCC::ClientStatusReportingStatus::E2EeError_GeneralError);
+            QTest::qWait(OCC::ClientStatusReportingNetwork::clientStatusReportingTrySendTimerInterval + OCC::ClientStatusReportingNetwork::repordSendIntervalMs);
 
             QVERIFY(!bodyReceivedAndParsed.isEmpty());
 
@@ -120,7 +122,7 @@ private slots:
             const auto problemsReceived = bodyReceivedAndParsed.value("problems").toMap();
             QVERIFY(!problemsReceived.isEmpty());
             QCOMPARE(problemsReceived.size(), 4);
-            const auto problemsNoWritePermissions = problemsReceived.value(OCC::ClientStatusReporting::statusStringFromNumber(OCC::ClientStatusReporting::Status::UploadError_No_Write_Permissions)).toMap();
+            const auto problemsNoWritePermissions = problemsReceived.value(OCC::clientStatusstatusStringFromNumber(OCC::ClientStatusReportingStatus::UploadError_No_Write_Permissions)).toMap();
             // among those, 3 occurances of UploadError_No_Write_Permissions
             QCOMPARE(problemsNoWritePermissions.value("count"), 3);
 
@@ -130,7 +132,7 @@ private slots:
 
     void testNothingReportedAndNothingSent()
     {
-        QTest::qWait(OCC::ClientStatusReporting::clientStatusReportingTrySendTimerInterval + OCC::ClientStatusReporting::repordSendIntervalMs);
+        QTest::qWait(OCC::ClientStatusReportingNetwork::clientStatusReportingTrySendTimerInterval + OCC::ClientStatusReportingNetwork::repordSendIntervalMs);
         QVERIFY(bodyReceivedAndParsed.isEmpty());
     }
 

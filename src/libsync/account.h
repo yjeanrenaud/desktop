@@ -308,7 +308,7 @@ public:
 
     void trySetupClientStatusReporting();
 
-    void reportClientStatus(const ClientStatusReporting::Status status) const;
+    void reportClientStatus(const ClientStatusReportingStatus status) const;
 
     [[nodiscard]] std::shared_ptr<UserStatusConnector> userStatusConnector() const;
 
