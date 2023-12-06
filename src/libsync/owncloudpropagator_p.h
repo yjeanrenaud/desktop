@@ -63,7 +63,7 @@ inline QByteArray getEtagFromReply(QNetworkReply *reply)
     return ret;
 }
 
-inline QPair<QByteArray, QByteArray> getExceptionFromReply(QNetworkReply *reply)
+inline QPair<QByteArray, QByteArray> getExceptionFromReply(QNetworkReply * const reply)
 {
     Q_ASSERT(reply);
     if (!reply) {

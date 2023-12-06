@@ -16,15 +16,18 @@
 #include "owncloudlib.h"
 #include <common/result.h>
 
-#include <QtGlobal>
-#include <QByteArray>
-#include <QHash>
-#include <QObject>
-#include <QPair>
-#include <QRecursiveMutex>
-#include <QString>
-#include <QTimer>
-#include <QtSql>
+#include <QtCore/qglobal.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qhash.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qpair.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qtimer.h>
+#include <QtSql/qsqldatabase.h>
+#include <QtSql/qsqlerror.h>
+#include <QtSql/qsqlrecord.h>
+#include <QtSql/qsqlquery.h>
 
 namespace OCC {
 
@@ -52,6 +55,7 @@ public:
         UploadError_Virus_Detected,
         Count,
     };
+    Q_ENUM(Status);
 
     explicit ClientStatusReporting(Account *account, QObject *parent = nullptr);
     ~ClientStatusReporting() override;
@@ -77,6 +81,8 @@ private:
     void reportToServerSentSuccessfully();
 
     [[nodiscard]] QString makeDbPath() const;
+
+    void updateStatusNamesHash();
 
 private slots:
     void sendReportToServer();

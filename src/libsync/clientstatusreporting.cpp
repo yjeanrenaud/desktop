@@ -52,7 +52,6 @@ void ClientStatusReporting::init()
 {
     Q_ASSERT(!_isInitialized);
     if (_isInitialized) {
-        qCDebug(lcClientStatusReporting) << "Double call to init";
         return;
     }
 
@@ -82,30 +81,12 @@ void ClientStatusReporting::init()
         return;
     }
 
-    if (!query.prepare(QStringLiteral("CREATE INDEX IF NOT EXISTS name ON clientstatusreporting(name);")) || !query.exec()) {
-        qCDebug(lcClientStatusReporting) << "Could not create index on clientstatusreporting table:" << query.lastError().text();
-        return;
-    }
-
     if (!query.prepare(QStringLiteral("CREATE TABLE IF NOT EXISTS keyvalue(key VARCHAR(4096), value VARCHAR(4096), PRIMARY KEY(key))")) || !query.exec()) {
         qCDebug(lcClientStatusReporting) << "Could not setup client keyvalue table:" << query.lastError().text();
         return;
     }
 
-    // prevent issues in case enum gets changed in future, hash its value and clean the db in case there was a change
-    QByteArray statusNamesContatenated;
-    for (int i = 0; i < ClientStatusReporting::Status::Count; ++i) {
-        statusNamesContatenated += statusStringFromNumber(static_cast<Status>(i));
-    }
-    statusNamesContatenated += QByteArray::number(ClientStatusReporting::Status::Count);
-    const auto statusNamesHashCurrent = QCryptographicHash::hash(statusNamesContatenated, QCryptographicHash::Md5).toHex();
-    const auto statusNamesHashFromDb = getStatusNamesHash();
-
-    if (statusNamesHashCurrent != statusNamesHashFromDb) {
-        deleteClientStatusReportingRecords();
-        setStatusNamesHash(statusNamesHashCurrent);
-    }
-    //
+    updateStatusNamesHash();
 
     _clientStatusReportingSendTimer.setInterval(clientStatusReportingTrySendTimerInterval);
     connect(&_clientStatusReportingSendTimer, &QTimer::timeout, this, &ClientStatusReporting::sendReportToServer);
@@ -212,7 +193,6 @@ void ClientStatusReporting::sendReportToServer()
 
     const auto report = prepareReport();
     if (report.isEmpty()) {
-        qCDebug(lcClientStatusReporting) << "Failed to generate report. Report is empty.";
         return;
     }
 
@@ -248,6 +228,22 @@ QString ClientStatusReporting::makeDbPath() const
     const auto databaseIdHash = QCryptographicHash::hash(databaseId.toUtf8(), QCryptographicHash::Md5);
 
     return ConfigFile().configPath() + QStringLiteral(".userdata_%1.db").arg(QString::fromLatin1(databaseIdHash.left(6).toHex()));
+}
+
+void ClientStatusReporting::updateStatusNamesHash()
+{
+    QByteArray statusNamesContatenated;
+    for (int i = 0; i < ClientStatusReporting::Status::Count; ++i) {
+        statusNamesContatenated += statusStringFromNumber(static_cast<Status>(i));
+    }
+    statusNamesContatenated += QByteArray::number(ClientStatusReporting::Status::Count);
+    const auto statusNamesHashCurrent = QCryptographicHash::hash(statusNamesContatenated, QCryptographicHash::Md5).toHex();
+    const auto statusNamesHashFromDb = getStatusNamesHash();
+
+    if (statusNamesHashCurrent != statusNamesHashFromDb) {
+        deleteClientStatusReportingRecords();
+        setStatusNamesHash(statusNamesHashCurrent);
+    }
 }
 
 quint64 ClientStatusReporting::getLastSentReportTimestamp() const

@@ -27,7 +27,6 @@ set(libsync_SRCS
     clientstatusreporting.h
     clientstatusreporting.cpp
     clientstatusreportingrecord.h
-    clientstatusreportingrecord.cpp
     cookiejar.h
     cookiejar.cpp
     discovery.h
