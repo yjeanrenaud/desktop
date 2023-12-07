@@ -269,7 +269,7 @@ private slots:
     void writeCertificate(const OCC::AccountPtr &account);
 
     void completeHardwareTokenInitialization(QWidget *settingsDialog,
-                                             const AccountPtr &account);
+                                             const OCC::AccountPtr &account);
 
     void setMnemonic(const QString &mnemonic);
 

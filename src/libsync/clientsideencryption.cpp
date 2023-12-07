@@ -1567,7 +1567,7 @@ void ClientSideEncryption::writeCertificate(const AccountPtr &account)
 }
 
 void ClientSideEncryption::completeHardwareTokenInitialization(QWidget *settingsDialog,
-                                                               const AccountPtr &account)
+                                                               const OCC::AccountPtr &account)
 {
     if (_usbTokenInformation.isSetup()) {
         initializeHardwareTokenEncryption(settingsDialog, account);
