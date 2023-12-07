@@ -1027,12 +1027,12 @@ void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
 
 PKCS11_KEY* ClientSideEncryption::getTokenPublicKey() const
 {
-    return _tokenPublicKey;
+    return canEncrypt() ? _tokenPublicKey : nullptr;
 }
 
 PKCS11_KEY* ClientSideEncryption::getTokenPrivateKey() const
 {
-    return _tokenPrivateKey;
+    return canDecrypt() ? _tokenPrivateKey : nullptr;
 }
 
 bool ClientSideEncryption::useTokenBasedEncryption() const
@@ -1058,6 +1058,35 @@ ENGINE* ClientSideEncryption::sslEngine() const
 ClientSideEncryptionTokenSelector *ClientSideEncryption::usbTokenInformation()
 {
     return &_usbTokenInformation;
+}
+
+bool ClientSideEncryption::canEncrypt() const
+{
+    if (!isInitialized()) {
+        return false;
+    }
+    if (useTokenBasedEncryption()) {
+        return !_certificateExpired && !_certificateNotYetValid && !_certificateRevoked && !_certificateInvalid;
+    }
+
+    return true;
+}
+
+bool ClientSideEncryption::canDecrypt() const
+{
+    return isInitialized();
+}
+
+bool ClientSideEncryption::userCertificateNeedsMigration() const
+{
+    if (!isInitialized()) {
+        return false;
+    }
+    if (useTokenBasedEncryption()) {
+        return _certificateExpired || _certificateNotYetValid || _certificateRevoked || _certificateInvalid;
+    }
+
+    return false;
 }
 
 void ClientSideEncryption::initialize(QWidget *settingsDialog,
@@ -1237,19 +1266,21 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
                 return;
             }
 
-            _tokenPrivateKey = certificateKey;
+            setTokenCertificate(sslCertificate);
+
+            setTokenPrivateKey(certificateKey);
             qCInfo(lcCse()) << "key metadata:"
                             << "type:" << (_tokenPrivateKey->isPrivate ? "is private" : "is public")
                             << "label:" << _tokenPrivateKey->label
                             << "need login:" << (_tokenPrivateKey->needLogin ? "true" : "false");
 
-            _tokenPublicKey = certificateKey;
+            setTokenPublicKey(certificateKey);
             qCInfo(lcCse()) << "key metadata:"
                             << "type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
                             << "label:" << _tokenPublicKey->label
                             << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
 
-            if (!checkEncryptionIsWorking()) {
+            if (canEncrypt() && !checkEncryptionIsWorking()) {
                 qCWarning(lcCse()) << "encryption is not properly setup";
 
                 failedToInitialize(account);
@@ -1504,7 +1535,7 @@ void ClientSideEncryption::mnemonicKeyFetched(QKeychain::Job *incoming)
         return;
     }
 
-    _mnemonic = readJob->textData();
+    setMnemonic(readJob->textData());
 
     qCInfo(lcCse()) << "Mnemonic key fetched from keychain";
 
@@ -1559,10 +1590,60 @@ void ClientSideEncryption::completeHardwareTokenInitialization(QWidget *settings
     }
 }
 
+void ClientSideEncryption::setMnemonic(const QString &mnemonic)
+{
+    if (_mnemonic == mnemonic) {
+        return;
+    }
+
+    _mnemonic = mnemonic;
+
+    Q_EMIT canEncryptChanged();
+    Q_EMIT canDecryptChanged();
+}
+
+void ClientSideEncryption::setTokenPublicKey(PKCS11_KEY *key)
+{
+    if (_tokenPublicKey == key) {
+        return;
+    }
+
+    _tokenPublicKey = key;
+
+    Q_EMIT canEncryptChanged();
+    Q_EMIT canDecryptChanged();
+}
+
+void ClientSideEncryption::setTokenPrivateKey(PKCS11_KEY *key)
+{
+    if (_tokenPrivateKey == key) {
+        return;
+    }
+
+    _tokenPrivateKey = key;
+
+    Q_EMIT canEncryptChanged();
+    Q_EMIT canDecryptChanged();
+}
+
+void ClientSideEncryption::setTokenCertificate(const QSslCertificate &certificate)
+{
+    if (_tokenCertificate == certificate) {
+        return;
+    }
+
+    _tokenCertificate = certificate;
+    checkEncryptionCertificate(_tokenCertificate);
+
+    Q_EMIT canEncryptChanged();
+    Q_EMIT canDecryptChanged();
+    Q_EMIT userCertificateNeedsMigrationChanged();
+}
+
 void ClientSideEncryption::generateMnemonic()
 {
     const auto list = WordList::getRandomWords(12);
-    _mnemonic = list.join(' ');
+    setMnemonic(list.join(' '));
 }
 
 template <typename L>
@@ -1617,8 +1698,9 @@ void ClientSideEncryption::forgetSensitiveData(const AccountPtr &account)
     deleteMnemonicJob->start();
     _usbTokenInformation.setSha256Fingerprint({});
     account->setEncryptionCertificateFingerprint({});
-    _tokenPublicKey = nullptr;
-    _tokenPrivateKey = nullptr;
+    setTokenPublicKey(nullptr);
+    setTokenPrivateKey(nullptr);
+    setTokenCertificate(QSslCertificate{});
 }
 
 void ClientSideEncryption::handlePrivateKeyDeleted(const QKeychain::Job* const incoming)
@@ -1658,7 +1740,7 @@ void ClientSideEncryption::handleMnemonicDeleted(const QKeychain::Job* const inc
     }
 
     qCDebug(lcCse) << "Mnemonic successfully deleted from keychain. Clearing.";
-    _mnemonic = QString();
+    setMnemonic({});
     Q_EMIT mnemonicDeleted();
     checkAllSensitiveDataDeleted();
 }
@@ -1698,6 +1780,69 @@ void ClientSideEncryption::cacheTokenPin(const QString pin)
     QTimer::singleShot(86400000, [this] () {
         _cachedPin.clear();
     });
+}
+
+void ClientSideEncryption::checkEncryptionCertificate(const QSslCertificate &certificate)
+{
+    _certificateExpired = false;
+    _certificateNotYetValid = false;
+    _certificateRevoked = false;
+    _certificateInvalid = false;
+
+    const auto sslErrors = QSslCertificate::verify({certificate});
+    for (const auto &sslError : sslErrors) {
+        qCDebug(lcCse()) << "certificate validation error" << sslError;
+        switch (sslError.error())
+        {
+        case QSslError::CertificateExpired:
+            _certificateExpired = true;
+            break;
+        case QSslError::CertificateNotYetValid:
+            _certificateNotYetValid = true;
+            break;
+        case QSslError::CertificateRevoked:
+            _certificateRevoked = true;
+            break;
+        case QSslError::UnableToGetIssuerCertificate:
+        case QSslError::UnableToDecryptCertificateSignature:
+        case QSslError::UnableToDecodeIssuerPublicKey:
+        case QSslError::CertificateSignatureFailed:
+        case QSslError::InvalidNotBeforeField:
+        case QSslError::InvalidNotAfterField:
+        case QSslError::SelfSignedCertificate:
+        case QSslError::SelfSignedCertificateInChain:
+        case QSslError::UnableToGetLocalIssuerCertificate:
+        case QSslError::UnableToVerifyFirstCertificate:
+        case QSslError::InvalidCaCertificate:
+        case QSslError::PathLengthExceeded:
+        case QSslError::InvalidPurpose:
+        case QSslError::CertificateUntrusted:
+        case QSslError::CertificateRejected:
+        case QSslError::SubjectIssuerMismatch:
+        case QSslError::AuthorityIssuerSerialNumberMismatch:
+        case QSslError::NoPeerCertificate:
+        case QSslError::HostNameMismatch:
+        case QSslError::NoSslSupport:
+        case QSslError::CertificateBlacklisted:
+        case QSslError::CertificateStatusUnknown:
+        case QSslError::OcspNoResponseFound:
+        case QSslError::OcspMalformedRequest:
+        case QSslError::OcspMalformedResponse:
+        case QSslError::OcspInternalError:
+        case QSslError::OcspTryLater:
+        case QSslError::OcspSigRequred:
+        case QSslError::OcspUnauthorized:
+        case QSslError::OcspResponseCannotBeTrusted:
+        case QSslError::OcspResponseCertIdUnknown:
+        case QSslError::OcspResponseExpired:
+        case QSslError::OcspStatusUnknown:
+        case QSslError::UnspecifiedError:
+            _certificateInvalid = true;
+            break;
+        case QSslError::NoError:
+            break;
+        }
+    }
 }
 
 void ClientSideEncryption::checkAllSensitiveDataDeleted()
@@ -2049,7 +2194,7 @@ void ClientSideEncryption::decryptPrivateKey(const AccountPtr &account, const QB
         if (ok) {
             prev = dialog.textValue();
 
-            _mnemonic = prev;
+            setMnemonic(prev);
             QString mnemonic = prev.split(" ").join(QString()).toLower();
 
             // split off salt

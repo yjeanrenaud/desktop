@@ -136,6 +136,10 @@ private:
 
 class OWNCLOUDSYNC_EXPORT ClientSideEncryption : public QObject {
     Q_OBJECT
+
+    Q_PROPERTY(bool canEncrypt READ canEncrypt NOTIFY canEncryptChanged FINAL)
+    Q_PROPERTY(bool canDecrypt READ canDecrypt NOTIFY canDecryptChanged FINAL)
+    Q_PROPERTY(bool userCertificateNeedsMigration READ userCertificateNeedsMigration NOTIFY userCertificateNeedsMigrationChanged FINAL)
 public:
     class PKey;
 
@@ -167,6 +171,12 @@ public:
 
     [[nodiscard]] ClientSideEncryptionTokenSelector* usbTokenInformation();
 
+    [[nodiscard]] bool canEncrypt() const;
+
+    [[nodiscard]] bool canDecrypt() const;
+
+    [[nodiscard]] bool userCertificateNeedsMigration() const;
+
 signals:
     void initializationFinished(bool isNewMnemonicGenerated = false);
     void sensitiveDataForgotten();
@@ -177,6 +187,12 @@ signals:
 
     void startingDiscoveryEncryptionUsbToken();
     void finishedDiscoveryEncryptionUsbToken();
+
+    void canEncryptChanged() const;
+
+    void canDecryptChanged() const;
+
+    void userCertificateNeedsMigrationChanged() const;
 
 public slots:
     void initialize(QWidget *settingsDialog,
@@ -212,6 +228,14 @@ private slots:
 
     void completeHardwareTokenInitialization(QWidget *settingsDialog,
                                              const AccountPtr &account);
+
+    void setMnemonic(const QString &mnemonic);
+
+    void setTokenPublicKey(PKCS11_KEY *key);
+
+    void setTokenPrivateKey(PKCS11_KEY *key);
+
+    void setTokenCertificate(const QSslCertificate &certificate);
 
 private:
     void generateMnemonic();
@@ -261,6 +285,8 @@ private:
     void saveCertificateIdentification(const AccountPtr &account) const;
     void cacheTokenPin(const QString pin);
 
+    void checkEncryptionCertificate(const QSslCertificate &certificate);
+
     QByteArray _privateKey;
     QSslKey _publicKey;
     QSslCertificate _certificate;
@@ -273,6 +299,11 @@ private:
 
     PKCS11_KEY* _tokenPublicKey = nullptr;
     PKCS11_KEY* _tokenPrivateKey = nullptr;
+    QSslCertificate _tokenCertificate;
+    bool _certificateExpired = false;
+    bool _certificateNotYetValid = false;
+    bool _certificateRevoked = false;
+    bool _certificateInvalid = false;
 };
 
 /* Generates the Metadata for the folder */
