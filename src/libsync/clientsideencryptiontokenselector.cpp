@@ -161,12 +161,19 @@ void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &a
         return;
     }
 
+    if (!tokensCount) {
+        qCWarning(lcCseSelector()) << "no tokens found";
+
+        Q_EMIT failedToInitialize(account);
+        return;
+    }
+
     _discoveredCertificates.clear();
     auto currentSlot = static_cast<PKCS11_SLOT*>(nullptr);
     for(auto i = 0u; i < tokensCount; ++i) {
         currentSlot = PKCS11_find_next_token(ctx, tokenSlots, tokensCount, currentSlot);
         if (currentSlot == nullptr || currentSlot->token == nullptr) {
-            break;
+            continue;
         }
 
         qCDebug(lcCseSelector()) << "Slot manufacturer......:" << currentSlot->manufacturer;
