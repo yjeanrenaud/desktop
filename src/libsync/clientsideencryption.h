@@ -201,9 +201,7 @@ public:
 
     void setPrivateKey(const QByteArray &privateKey);
 
-    [[nodiscard]] PKCS11_KEY* getTokenPublicKey() const;
-
-    [[nodiscard]] PKCS11_KEY* getTokenPrivateKey() const;
+    [[nodiscard]] const CertificateInformation& getTokenCertificate() const;
 
     [[nodiscard]] bool useTokenBasedEncryption() const;
 

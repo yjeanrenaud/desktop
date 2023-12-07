@@ -681,14 +681,8 @@ namespace internals {
 std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine, const QByteArray &binaryData)
 {
     if (encryptionEngine.useTokenBasedEncryption()) {
-        auto publicKey = PKCS11_get_public_key(encryptionEngine.getTokenPublicKey());
-
-        if (!publicKey) {
-            qCWarning(lcCseEncryption()) << "encryptStringAsymmetric" << "hardware public key" << publicKey;
-        }
-
         auto encryptedBase64Result = internals::encryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
-                                                                                 encryptionEngine.getTokenPublicKey(),
+                                                                                 encryptionEngine.getTokenCertificate().getPublicKey(),
                                                                                  binaryData);
 
         if (!encryptedBase64Result) {
@@ -740,7 +734,7 @@ std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &en
 
     if (encryptionEngine.useTokenBasedEncryption()) {
         const auto decryptBase64Result = internals::decryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
-                                                                                     encryptionEngine.getTokenPrivateKey(),
+                                                                                     encryptionEngine.getTokenCertificate().getPrivateKey(),
                                                                                      QByteArray::fromBase64(base64Data));
         if (!decryptBase64Result) {
             qCWarning(lcCse()) << "decrypt failed";
@@ -1025,14 +1019,9 @@ void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
     _privateKey = privateKey;
 }
 
-PKCS11_KEY* ClientSideEncryption::getTokenPublicKey() const
+const CertificateInformation &ClientSideEncryption::getTokenCertificate() const
 {
-    return _encryptionCertificate.getPublicKey();
-}
-
-PKCS11_KEY* ClientSideEncryption::getTokenPrivateKey() const
-{
-    return _encryptionCertificate.getPrivateKey();
+    return _encryptionCertificate;
 }
 
 bool ClientSideEncryption::useTokenBasedEncryption() const
