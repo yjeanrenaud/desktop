@@ -219,6 +219,7 @@ void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &a
 
             const auto result = BIO2ByteArray(out);
             const auto sslCertificate = QSslCertificate{result, QSsl::Pem};
+            const auto certificateDigest = sslCertificate.digest(QCryptographicHash::Sha256).toBase64();
 
             qCInfo(lcCseSelector()) << "newly found certificate"
                                     << "subject:" << sslCertificate.subjectDisplayName()
@@ -226,7 +227,7 @@ void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &a
                                     << "valid since:" << sslCertificate.effectiveDate()
                                     << "valid until:" << sslCertificate.expiryDate()
                                     << "serial number:" << sslCertificate.serialNumber()
-                                    << "SHA256 fingerprint:" << sslCertificate.digest(QCryptographicHash::Sha256).toBase64();
+                                    << "SHA256 fingerprint:" << certificateDigest;
 
             if (sslCertificate.isSelfSigned()) {
                 qCDebug(lcCseSelector()) << "newly found certificate is self signed: goint to ignore it";
@@ -240,7 +241,7 @@ void ClientSideEncryptionTokenSelector::discoverCertificates(const AccountPtr &a
                                                           {QStringLiteral("serialNumber"), sslCertificate.serialNumber()},
                                                           {QStringLiteral("validSince"), sslCertificate.effectiveDate()},
                                                           {QStringLiteral("validUntil"), sslCertificate.expiryDate()},
-                                                          {QStringLiteral("sha256Fingerprint"), sslCertificate.digest(QCryptographicHash::Sha256).toBase64()},
+                                                          {QStringLiteral("sha256Fingerprint"), certificateDigest},
                                                           {QStringLiteral("certificate"), QVariant::fromValue(sslCertificate)},
                                                           });
         }
