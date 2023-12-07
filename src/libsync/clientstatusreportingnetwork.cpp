@@ -91,7 +91,8 @@ void ClientStatusReportingNetwork::sendReportToServer()
         if (isSuccess) {
             const auto metaFromJson = json.object().value(QStringLiteral("ocs")).toObject().value(QStringLiteral("meta")).toObject();
             const auto codeFromJson = metaFromJson.value(QStringLiteral("statuscode")).toInt();
-            if (codeFromJson == 0 || codeFromJson == 200 || codeFromJson == 201 || codeFromJson == 204) {
+            if (codeFromJson == HttpErrorCodeNone || codeFromJson == HttpErrorCodeSuccess || codeFromJson == HttpErrorCodeSuccessCreated
+                || codeFromJson == HttpErrorCodeSuccessNoContent) {
                 reportToServerSentSuccessfully();
                 return;
             }
