@@ -356,9 +356,10 @@ void PropagateItemJob::reportClientStatuses()
         propagator()->account()->reportClientStatus(ClientStatusReportingStatus::UploadError_ConflictInvalidCharacters);
     } else if (_item->_status == SyncFileItem::Status::FileNameInvalid) {
         propagator()->account()->reportClientStatus(ClientStatusReportingStatus::DownloadError_ConflictInvalidCharacters);
-    } else if (_item->_httpErrorCode != 0 && _item->_httpErrorCode != 200 && _item->_httpErrorCode != 201 && _item->_httpErrorCode != 204) {
+    } else if (_item->_httpErrorCode != HttpErrorCodeNone && _item->_httpErrorCode != HttpErrorCodeSuccess && _item->_httpErrorCode != HttpErrorCodeSuccessCreated
+               && _item->_httpErrorCode != HttpErrorCodeSuccessNoContent) {
         if (_item->_direction == SyncFileItem::Up) {
-            const auto isCodeBadReqOrUnsupportedMediaType = (_item->_httpErrorCode == 400 || _item->_httpErrorCode == 415);
+            const auto isCodeBadReqOrUnsupportedMediaType = (_item->_httpErrorCode == HttpErrorCodeBadRequest || _item->_httpErrorCode == HttpErrorCodeUnsupportedMediaType);
             const auto isExceptionInfoPresent = !_item->_errorExceptionName.isEmpty() && !_item->_errorExceptionMessage.isEmpty();
             if (isCodeBadReqOrUnsupportedMediaType && isExceptionInfoPresent
                 && _item->_errorExceptionName.contains(QStringLiteral("UnsupportedMediaType"))

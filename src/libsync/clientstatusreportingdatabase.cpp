@@ -173,7 +173,8 @@ QVector<QByteArray> ClientStatusReportingDatabase::getTableColumns(const QString
     QVector<QByteArray> columns;
     QSqlQuery query;
     const auto prepareResult = query.prepare(QStringLiteral("PRAGMA table_info('%1');").arg(table));
-    if (!query.exec()) {
+    if (!prepareResult || !query.exec()) {
+        qCDebug(lcClientStatusReportingDatabase) << "Could get table columns" << query.lastError().text();
         return columns;
     }
     while (query.next()) {

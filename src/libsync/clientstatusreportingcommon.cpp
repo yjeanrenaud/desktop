@@ -11,7 +11,6 @@
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  */
-#pragma once
 
 #include "clientstatusreportingcommon.h"
 #include <QDebug>

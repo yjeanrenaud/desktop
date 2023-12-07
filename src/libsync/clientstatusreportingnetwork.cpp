@@ -78,11 +78,17 @@ void ClientStatusReportingNetwork::sendReportToServer()
         return;
     }
 
+    if (!_account) {
+        return;
+    }
+
     const auto clientStatusReportingJob = new JsonApiJob(_account->sharedFromThis(), QStringLiteral("ocs/v2.php/apps/security_guard/diagnostics"));
     clientStatusReportingJob->setBody(QJsonDocument::fromVariant(report));
     clientStatusReportingJob->setVerb(SimpleApiJob::Verb::Put);
     connect(clientStatusReportingJob, &JsonApiJob::jsonReceived, [this](const QJsonDocument &json, int statusCode) {
-        if (statusCode == 0 || statusCode == 200 || statusCode == 201 || statusCode == 204) {
+        const auto isSuccess = statusCode == HttpErrorCodeNone || statusCode == HttpErrorCodeSuccess || statusCode == HttpErrorCodeSuccessCreated
+            || statusCode == HttpErrorCodeSuccessNoContent;
+        if (isSuccess) {
             const auto metaFromJson = json.object().value(QStringLiteral("ocs")).toObject().value(QStringLiteral("meta")).toObject();
             const auto codeFromJson = metaFromJson.value(QStringLiteral("statuscode")).toInt();
             if (codeFromJson == 0 || codeFromJson == 200 || codeFromJson == 201 || codeFromJson == 204) {

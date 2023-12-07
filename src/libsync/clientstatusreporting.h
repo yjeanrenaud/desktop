@@ -40,8 +40,6 @@ private:
     // reporting must happen via Account
     void reportClientStatus(const ClientStatusReportingStatus status) const;
 
-    Account *_account = nullptr;
-
     bool _isInitialized = false;
 
     QHash<int, QByteArray> _statusStrings;

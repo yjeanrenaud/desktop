@@ -23,7 +23,6 @@ namespace OCC
 Q_LOGGING_CATEGORY(lcClientStatusReporting, "nextcloud.sync.clientstatusreporting", QtInfoMsg)
 
 ClientStatusReporting::ClientStatusReporting(Account *account)
-    : _account(account)
 {
     for (int i = 0; i < ClientStatusReportingStatus::Count; ++i) {
         const auto statusString = clientStatusstatusStringFromNumber(static_cast<ClientStatusReportingStatus>(i));

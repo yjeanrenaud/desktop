@@ -20,6 +20,7 @@
 #include <QtCore/qglobal.h>
 #include <QtCore/qbytearray.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qsharedpointer.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qtimer.h>
@@ -57,7 +58,7 @@ public:
     static QString dbPathForTesting;
 
 private:
-    Account *_account = nullptr;
+    QPointer<Account> _account = nullptr;
 
     QSharedPointer<ClientStatusReportingDatabase> _database;
 
