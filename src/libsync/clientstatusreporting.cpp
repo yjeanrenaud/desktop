@@ -29,10 +29,21 @@ ClientStatusReporting::ClientStatusReporting(Account *account)
         _statusStrings[i] = statusString;
     }
 
-    _database = QSharedPointer<ClientStatusReportingDatabase>::create(account);
-    _reporter = std::make_unique<ClientStatusReportingNetwork>(account, _database);
+    if (_statusStrings.size() < ClientStatusReportingStatus::Count) {
+        return;
+    }
 
-    _isInitialized = _database->isInitialized() && _reporter->isInitialized();
+    _database = QSharedPointer<ClientStatusReportingDatabase>::create(account);
+    if (!_database->isInitialized()) {
+        return;
+    }
+
+    _reporter = std::make_unique<ClientStatusReportingNetwork>(account, _database);
+    if (!_reporter->isInitialized()) {
+        return;
+    }
+
+    _isInitialized = true;
 }
 
 ClientStatusReporting::~ClientStatusReporting()
