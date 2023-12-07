@@ -1249,7 +1249,7 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
                             << "label:" << _tokenPublicKey->label
                             << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
 
-            if (!checkEncryptionIsWorking(account)) {
+            if (!checkEncryptionIsWorking()) {
                 qCWarning(lcCse()) << "encryption is not properly setup";
 
                 failedToInitialize(account);
@@ -1333,17 +1333,17 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     return true;
 }
 
-bool ClientSideEncryption::checkEncryptionIsWorking(const AccountPtr &account) const
+bool ClientSideEncryption::checkEncryptionIsWorking() const
 {
     QByteArray data = EncryptionHelper::generateRandom(64);
 
-    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(*account->e2e(), data);
+    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(*this, data);
     if (!encryptedData) {
         qCWarning(lcCse()) << "encryption error";
         return false;
     }
 
-    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*account->e2e(), *encryptedData);
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*this, *encryptedData);
     if (!decryptionResult) {
         qCWarning(lcCse()) << "encryption error";
         return false;

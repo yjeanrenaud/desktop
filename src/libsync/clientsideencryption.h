@@ -254,7 +254,7 @@ private:
     [[nodiscard]] bool checkServerPublicKeyValidity(const QByteArray &serverPublicKeyString) const;
     [[nodiscard]] bool sensitiveDataRemaining() const;
 
-    [[nodiscard]] bool checkEncryptionIsWorking(const AccountPtr &account) const;
+    [[nodiscard]] bool checkEncryptionIsWorking() const;
 
     void failedToInitialize(const AccountPtr &account);
 
