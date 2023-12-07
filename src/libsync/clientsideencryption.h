@@ -49,6 +49,50 @@ namespace OCC {
 class ClientSideEncryption;
 QString e2eeBaseUrl();
 
+class CertificateInformation {
+public:
+    CertificateInformation();
+
+    CertificateInformation(PKCS11_KEY *publicKey,
+                           PKCS11_KEY *privateKey,
+                           QSslCertificate certificate);
+
+    [[nodiscard]] bool operator==(const CertificateInformation &other) const;
+
+    void clear();
+
+    [[nodiscard]] PKCS11_KEY* getPublicKey() const;
+
+    [[nodiscard]] PKCS11_KEY* getPrivateKey() const;
+
+    [[nodiscard]] bool canEncrypt() const;
+
+    [[nodiscard]] bool canDecrypt() const;
+
+    [[nodiscard]] bool userCertificateNeedsMigration() const;
+
+    [[nodiscard]] bool sensitiveDataRemaining() const;
+
+    [[nodiscard]] QByteArray sha256Fingerprint() const;
+
+private:
+    void checkEncryptionCertificate();
+
+    PKCS11_KEY* _publicKey = nullptr;
+
+    PKCS11_KEY* _privateKey = nullptr;
+
+    QSslCertificate _certificate;
+
+    bool _certificateExpired = true;
+
+    bool _certificateNotYetValid = true;
+
+    bool _certificateRevoked = true;
+
+    bool _certificateInvalid = true;
+};
+
 namespace EncryptionHelper {
 
 QByteArray generateRandomFilename();
@@ -177,6 +221,8 @@ public:
 
     [[nodiscard]] bool userCertificateNeedsMigration() const;
 
+    [[nodiscard]] QByteArray certificateSha256Fingerprint() const;
+
 signals:
     void initializationFinished(bool isNewMnemonicGenerated = false);
     void sensitiveDataForgotten();
@@ -188,11 +234,9 @@ signals:
     void startingDiscoveryEncryptionUsbToken();
     void finishedDiscoveryEncryptionUsbToken();
 
-    void canEncryptChanged() const;
-
-    void canDecryptChanged() const;
-
-    void userCertificateNeedsMigrationChanged() const;
+    void canEncryptChanged();
+    void canDecryptChanged();
+    void userCertificateNeedsMigrationChanged();
 
 public slots:
     void initialize(QWidget *settingsDialog,
@@ -231,11 +275,7 @@ private slots:
 
     void setMnemonic(const QString &mnemonic);
 
-    void setTokenPublicKey(PKCS11_KEY *key);
-
-    void setTokenPrivateKey(PKCS11_KEY *key);
-
-    void setTokenCertificate(const QSslCertificate &certificate);
+    void setEncryptionCertificate(CertificateInformation certificateInfo);
 
 private:
     void generateMnemonic();
@@ -285,8 +325,6 @@ private:
     void saveCertificateIdentification(const AccountPtr &account) const;
     void cacheTokenPin(const QString pin);
 
-    void checkEncryptionCertificate(const QSslCertificate &certificate);
-
     QByteArray _privateKey;
     QSslKey _publicKey;
     QSslCertificate _certificate;
@@ -297,13 +335,7 @@ private:
 
     ClientSideEncryptionTokenSelector _usbTokenInformation;
 
-    PKCS11_KEY* _tokenPublicKey = nullptr;
-    PKCS11_KEY* _tokenPrivateKey = nullptr;
-    QSslCertificate _tokenCertificate;
-    bool _certificateExpired = false;
-    bool _certificateNotYetValid = false;
-    bool _certificateRevoked = false;
-    bool _certificateInvalid = false;
+    CertificateInformation _encryptionCertificate;
 };
 
 /* Generates the Metadata for the folder */

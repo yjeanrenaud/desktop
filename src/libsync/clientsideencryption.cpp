@@ -1027,17 +1027,17 @@ void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
 
 PKCS11_KEY* ClientSideEncryption::getTokenPublicKey() const
 {
-    return canEncrypt() ? _tokenPublicKey : nullptr;
+    return _encryptionCertificate.getPublicKey();
 }
 
 PKCS11_KEY* ClientSideEncryption::getTokenPrivateKey() const
 {
-    return canDecrypt() ? _tokenPrivateKey : nullptr;
+    return _encryptionCertificate.getPrivateKey();
 }
 
 bool ClientSideEncryption::useTokenBasedEncryption() const
 {
-    return _tokenPublicKey && _tokenPrivateKey;
+    return _encryptionCertificate.getPublicKey() && _encryptionCertificate.getPrivateKey();
 }
 
 const QString &ClientSideEncryption::getMnemonic() const
@@ -1066,7 +1066,7 @@ bool ClientSideEncryption::canEncrypt() const
         return false;
     }
     if (useTokenBasedEncryption()) {
-        return !_certificateExpired && !_certificateNotYetValid && !_certificateRevoked && !_certificateInvalid;
+        return _encryptionCertificate.canEncrypt();
     }
 
     return true;
@@ -1083,10 +1083,19 @@ bool ClientSideEncryption::userCertificateNeedsMigration() const
         return false;
     }
     if (useTokenBasedEncryption()) {
-        return _certificateExpired || _certificateNotYetValid || _certificateRevoked || _certificateInvalid;
+        return _encryptionCertificate.userCertificateNeedsMigration();
     }
 
     return false;
+}
+
+QByteArray ClientSideEncryption::certificateSha256Fingerprint() const
+{
+    if (useTokenBasedEncryption()) {
+        return _encryptionCertificate.sha256Fingerprint();
+    }
+
+    return {};
 }
 
 void ClientSideEncryption::initialize(QWidget *settingsDialog,
@@ -1266,19 +1275,7 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
                 return;
             }
 
-            setTokenCertificate(sslCertificate);
-
-            setTokenPrivateKey(certificateKey);
-            qCInfo(lcCse()) << "key metadata:"
-                            << "type:" << (_tokenPrivateKey->isPrivate ? "is private" : "is public")
-                            << "label:" << _tokenPrivateKey->label
-                            << "need login:" << (_tokenPrivateKey->needLogin ? "true" : "false");
-
-            setTokenPublicKey(certificateKey);
-            qCInfo(lcCse()) << "key metadata:"
-                            << "type:" << (_tokenPublicKey->isPrivate ? "is private" : "is public")
-                            << "label:" << _tokenPublicKey->label
-                            << "need login:" << (_tokenPublicKey->needLogin ? "true" : "false");
+            setEncryptionCertificate({certificateKey, certificateKey, sslCertificate});
 
             if (canEncrypt() && !checkEncryptionIsWorking()) {
                 qCWarning(lcCse()) << "encryption is not properly setup";
@@ -1602,38 +1599,13 @@ void ClientSideEncryption::setMnemonic(const QString &mnemonic)
     Q_EMIT canDecryptChanged();
 }
 
-void ClientSideEncryption::setTokenPublicKey(PKCS11_KEY *key)
+void ClientSideEncryption::setEncryptionCertificate(CertificateInformation certificateInfo)
 {
-    if (_tokenPublicKey == key) {
+    if (_encryptionCertificate == certificateInfo) {
         return;
     }
 
-    _tokenPublicKey = key;
-
-    Q_EMIT canEncryptChanged();
-    Q_EMIT canDecryptChanged();
-}
-
-void ClientSideEncryption::setTokenPrivateKey(PKCS11_KEY *key)
-{
-    if (_tokenPrivateKey == key) {
-        return;
-    }
-
-    _tokenPrivateKey = key;
-
-    Q_EMIT canEncryptChanged();
-    Q_EMIT canDecryptChanged();
-}
-
-void ClientSideEncryption::setTokenCertificate(const QSslCertificate &certificate)
-{
-    if (_tokenCertificate == certificate) {
-        return;
-    }
-
-    _tokenCertificate = certificate;
-    checkEncryptionCertificate(_tokenCertificate);
+    _encryptionCertificate = std::move(certificateInfo);
 
     Q_EMIT canEncryptChanged();
     Q_EMIT canDecryptChanged();
@@ -1698,9 +1670,10 @@ void ClientSideEncryption::forgetSensitiveData(const AccountPtr &account)
     deleteMnemonicJob->start();
     _usbTokenInformation.setSha256Fingerprint({});
     account->setEncryptionCertificateFingerprint({});
-    setTokenPublicKey(nullptr);
-    setTokenPrivateKey(nullptr);
-    setTokenCertificate(QSslCertificate{});
+    _encryptionCertificate.clear();
+    Q_EMIT canDecryptChanged();
+    Q_EMIT canEncryptChanged();
+    Q_EMIT userCertificateNeedsMigrationChanged();
 }
 
 void ClientSideEncryption::handlePrivateKeyDeleted(const QKeychain::Job* const incoming)
@@ -1760,7 +1733,7 @@ void ClientSideEncryption::handlePublicKeyDeleted(const QKeychain::Job * const i
 
 bool ClientSideEncryption::sensitiveDataRemaining() const
 {
-    return !_privateKey.isEmpty() || !_certificate.isNull() || !_mnemonic.isEmpty() || !_usbTokenInformation.sha256Fingerprint().isEmpty() || _tokenPublicKey || _tokenPrivateKey;
+    return !_privateKey.isEmpty() || !_certificate.isNull() || !_mnemonic.isEmpty() || !_usbTokenInformation.sha256Fingerprint().isEmpty() || _encryptionCertificate.sensitiveDataRemaining();
 }
 
 void ClientSideEncryption::failedToInitialize(const AccountPtr &account)
@@ -1780,69 +1753,6 @@ void ClientSideEncryption::cacheTokenPin(const QString pin)
     QTimer::singleShot(86400000, [this] () {
         _cachedPin.clear();
     });
-}
-
-void ClientSideEncryption::checkEncryptionCertificate(const QSslCertificate &certificate)
-{
-    _certificateExpired = false;
-    _certificateNotYetValid = false;
-    _certificateRevoked = false;
-    _certificateInvalid = false;
-
-    const auto sslErrors = QSslCertificate::verify({certificate});
-    for (const auto &sslError : sslErrors) {
-        qCDebug(lcCse()) << "certificate validation error" << sslError;
-        switch (sslError.error())
-        {
-        case QSslError::CertificateExpired:
-            _certificateExpired = true;
-            break;
-        case QSslError::CertificateNotYetValid:
-            _certificateNotYetValid = true;
-            break;
-        case QSslError::CertificateRevoked:
-            _certificateRevoked = true;
-            break;
-        case QSslError::UnableToGetIssuerCertificate:
-        case QSslError::UnableToDecryptCertificateSignature:
-        case QSslError::UnableToDecodeIssuerPublicKey:
-        case QSslError::CertificateSignatureFailed:
-        case QSslError::InvalidNotBeforeField:
-        case QSslError::InvalidNotAfterField:
-        case QSslError::SelfSignedCertificate:
-        case QSslError::SelfSignedCertificateInChain:
-        case QSslError::UnableToGetLocalIssuerCertificate:
-        case QSslError::UnableToVerifyFirstCertificate:
-        case QSslError::InvalidCaCertificate:
-        case QSslError::PathLengthExceeded:
-        case QSslError::InvalidPurpose:
-        case QSslError::CertificateUntrusted:
-        case QSslError::CertificateRejected:
-        case QSslError::SubjectIssuerMismatch:
-        case QSslError::AuthorityIssuerSerialNumberMismatch:
-        case QSslError::NoPeerCertificate:
-        case QSslError::HostNameMismatch:
-        case QSslError::NoSslSupport:
-        case QSslError::CertificateBlacklisted:
-        case QSslError::CertificateStatusUnknown:
-        case QSslError::OcspNoResponseFound:
-        case QSslError::OcspMalformedRequest:
-        case QSslError::OcspMalformedResponse:
-        case QSslError::OcspInternalError:
-        case QSslError::OcspTryLater:
-        case QSslError::OcspSigRequred:
-        case QSslError::OcspUnauthorized:
-        case QSslError::OcspResponseCannotBeTrusted:
-        case QSslError::OcspResponseCertIdUnknown:
-        case QSslError::OcspResponseExpired:
-        case QSslError::OcspStatusUnknown:
-        case QSslError::UnspecifiedError:
-            _certificateInvalid = true;
-            break;
-        case QSslError::NoError:
-            break;
-        }
-    }
 }
 
 void ClientSideEncryption::checkAllSensitiveDataDeleted()
@@ -3053,4 +2963,142 @@ bool EncryptionHelper::StreamingDecryptor::isFinished() const
 {
     return _isFinished;
 }
+
+CertificateInformation::CertificateInformation()
+{
+    checkEncryptionCertificate();
+}
+
+CertificateInformation::CertificateInformation(PKCS11_KEY *publicKey,
+                                               PKCS11_KEY *privateKey,
+                                               QSslCertificate certificate)
+    : _publicKey(publicKey)
+    , _privateKey(privateKey)
+    , _certificate(std::move(certificate))
+{
+    qCInfo(lcCse()) << "key metadata:"
+                    << "type:" << (_privateKey->isPrivate ? "is private" : "is public")
+                    << "label:" << _privateKey->label
+                    << "need login:" << (_privateKey->needLogin ? "true" : "false");
+
+    checkEncryptionCertificate();
+}
+
+bool CertificateInformation::operator==(const CertificateInformation &other) const
+{
+    return _publicKey == other._publicKey && _privateKey == other._privateKey && _certificate == other._certificate;
+}
+
+void CertificateInformation::clear()
+{
+    _publicKey = nullptr;
+    _privateKey = nullptr;
+    _certificate.clear();
+    _certificateExpired = true;
+    _certificateNotYetValid = true;
+    _certificateRevoked = true;
+    _certificateInvalid = true;
+}
+
+PKCS11_KEY *CertificateInformation::getPublicKey() const
+{
+    return _publicKey;
+}
+
+PKCS11_KEY *CertificateInformation::getPrivateKey() const
+{
+    return canDecrypt() ? _privateKey : nullptr;
+}
+
+bool CertificateInformation::canEncrypt() const
+{
+    return _publicKey && !_certificateExpired && !_certificateNotYetValid && !_certificateRevoked && !_certificateInvalid;
+}
+
+bool CertificateInformation::canDecrypt() const
+{
+    return _privateKey;
+}
+
+bool CertificateInformation::userCertificateNeedsMigration() const
+{
+    return _publicKey && _privateKey &&
+        (_certificateExpired || _certificateNotYetValid || _certificateRevoked || _certificateInvalid);
+}
+
+bool CertificateInformation::sensitiveDataRemaining() const
+{
+    return _publicKey && _privateKey && !_certificate.isNull();
+}
+
+QByteArray CertificateInformation::sha256Fingerprint() const
+{
+    return _certificate.digest(QCryptographicHash::Sha256).toBase64();
+}
+
+void CertificateInformation::checkEncryptionCertificate()
+{
+    _certificateExpired = false;
+    _certificateNotYetValid = false;
+    _certificateRevoked = false;
+    _certificateInvalid = false;
+
+    // return;
+
+    const auto sslErrors = QSslCertificate::verify({_certificate});
+    for (const auto &sslError : sslErrors) {
+        qCDebug(lcCse()) << "certificate validation error" << sslError;
+        switch (sslError.error())
+        {
+        case QSslError::CertificateExpired:
+            _certificateExpired = true;
+            break;
+        case QSslError::CertificateNotYetValid:
+            _certificateNotYetValid = true;
+            break;
+        case QSslError::CertificateRevoked:
+            _certificateRevoked = true;
+            break;
+        case QSslError::UnableToGetIssuerCertificate:
+        case QSslError::UnableToDecryptCertificateSignature:
+        case QSslError::UnableToDecodeIssuerPublicKey:
+        case QSslError::CertificateSignatureFailed:
+        case QSslError::InvalidNotBeforeField:
+        case QSslError::InvalidNotAfterField:
+        case QSslError::SelfSignedCertificate:
+        case QSslError::SelfSignedCertificateInChain:
+        case QSslError::UnableToGetLocalIssuerCertificate:
+        case QSslError::UnableToVerifyFirstCertificate:
+        case QSslError::InvalidCaCertificate:
+        case QSslError::PathLengthExceeded:
+        case QSslError::InvalidPurpose:
+        case QSslError::CertificateUntrusted:
+        case QSslError::CertificateRejected:
+        case QSslError::SubjectIssuerMismatch:
+        case QSslError::AuthorityIssuerSerialNumberMismatch:
+        case QSslError::NoPeerCertificate:
+        case QSslError::HostNameMismatch:
+        case QSslError::NoSslSupport:
+        case QSslError::CertificateBlacklisted:
+        case QSslError::CertificateStatusUnknown:
+        case QSslError::OcspNoResponseFound:
+        case QSslError::OcspMalformedRequest:
+        case QSslError::OcspMalformedResponse:
+        case QSslError::OcspInternalError:
+        case QSslError::OcspTryLater:
+        case QSslError::OcspSigRequred:
+        case QSslError::OcspUnauthorized:
+        case QSslError::OcspResponseCannotBeTrusted:
+        case QSslError::OcspResponseCertIdUnknown:
+        case QSslError::OcspResponseExpired:
+        case QSslError::OcspStatusUnknown:
+        case QSslError::UnspecifiedError:
+            _certificateInvalid = true;
+            break;
+        case QSslError::NoError:
+            break;
+        }
+    }
+}
+
 }
