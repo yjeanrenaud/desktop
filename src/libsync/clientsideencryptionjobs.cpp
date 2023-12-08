@@ -253,7 +253,7 @@ void LockEncryptFolderApiJob::start()
 
     if (!folderTokenEncrypted.isEmpty()) {
         qCInfo(lcCseJob()) << "lock folder started for:" << path() << " for fileId: " << _fileId << " but we need to first lift the previous lock";
-        const auto folderToken = EncryptionHelper::decryptStringAsymmetric(_certificateSha256Fingerprint, *_account->e2e(), folderTokenEncrypted);
+        const auto folderToken = EncryptionHelper::decryptStringAsymmetric(_account->e2e()->getTokenCertificate(), *_account->e2e(), folderTokenEncrypted, _certificateSha256Fingerprint);
         if (!folderToken) {
             qCWarning(lcCseJob()) << "decrypt failed";
             return;
@@ -300,7 +300,7 @@ bool LockEncryptFolderApiJob::finished()
     qCInfo(lcCseJob()) << "lock folder finished with code" << retCode << " for:" << path() << " for fileId: " << _fileId << " token:" << token;
 
     if (!_account->e2e()->getPublicKey().isNull()) {
-        const auto folderTokenEncrypted = EncryptionHelper::encryptStringAsymmetric(*_account->e2e(), token);
+        const auto folderTokenEncrypted = EncryptionHelper::encryptStringAsymmetric(_account->e2e()->getTokenCertificate(), *_account->e2e(), token);
         if (!folderTokenEncrypted) {
             qCWarning(lcCseJob()) << "decrypt failed";
             return false;

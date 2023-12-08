@@ -678,11 +678,13 @@ namespace internals {
 
 }
 
-std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine, const QByteArray &binaryData)
+std::optional<QByteArray> encryptStringAsymmetric(const CertificateInformation &selectedCertificate,
+                                                  const ClientSideEncryption &encryptionEngine,
+                                                  const QByteArray &binaryData)
 {
     if (encryptionEngine.useTokenBasedEncryption()) {
         auto encryptedBase64Result = internals::encryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
-                                                                                 encryptionEngine.getTokenCertificate().getPublicKey(),
+                                                                                 selectedCertificate.getPublicKey(),
                                                                                  binaryData);
 
         if (!encryptedBase64Result) {
@@ -724,9 +726,10 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
     }
 }
 
-std::optional<QByteArray> decryptStringAsymmetric(const QByteArray &certificateSha256Fingerprint,
+std::optional<QByteArray> decryptStringAsymmetric(const CertificateInformation &selectedCertificate,
                                                   const ClientSideEncryption &encryptionEngine,
-                                                  const QByteArray &base64Data)
+                                                  const QByteArray &base64Data,
+                                                  const QByteArray &expectedCertificateSha256Fingerprint)
 {
     if (!encryptionEngine.isInitialized()) {
         qCWarning(lcCse()) << "end-to-end encryption is disabled";
@@ -734,13 +737,13 @@ std::optional<QByteArray> decryptStringAsymmetric(const QByteArray &certificateS
     }
 
     if (encryptionEngine.useTokenBasedEncryption()) {
-        if (encryptionEngine.getTokenCertificate().sha256Fingerprint() != certificateSha256Fingerprint) {
-            qCWarning(lcCse()) << "wrong certificate: cannot decrypt what has been encrypted with another certificate:" << certificateSha256Fingerprint << "current certificate" << encryptionEngine.getTokenCertificate().sha256Fingerprint();
+        if (selectedCertificate.sha256Fingerprint() != expectedCertificateSha256Fingerprint) {
+            qCWarning(lcCse()) << "wrong certificate: cannot decrypt what has been encrypted with another certificate:" << expectedCertificateSha256Fingerprint << "current certificate" << selectedCertificate.sha256Fingerprint();
             return {};
         }
 
         const auto decryptBase64Result = internals::decryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
-                                                                                     encryptionEngine.getTokenCertificate().getPrivateKey(),
+                                                                                     selectedCertificate.getPrivateKey(),
                                                                                      QByteArray::fromBase64(base64Data));
         if (!decryptBase64Result) {
             qCWarning(lcCse()) << "decrypt failed";
@@ -1028,6 +1031,26 @@ void ClientSideEncryption::setPrivateKey(const QByteArray &privateKey)
 const CertificateInformation &ClientSideEncryption::getTokenCertificate() const
 {
     return _encryptionCertificate;
+}
+
+CertificateInformation ClientSideEncryption::getTokenCertificateByFingerprint(const QByteArray &expectedFingerprint) const
+{
+    CertificateInformation result;
+
+    if (_encryptionCertificate.sha256Fingerprint() == expectedFingerprint) {
+        result = _encryptionCertificate;
+        return result;
+    }
+
+    const auto itCertificate = std::find_if(_otherCertificates.begin(), _otherCertificates.end(), [expectedFingerprint] (const auto &oneCertificate) {
+        return oneCertificate.sha256Fingerprint() == expectedFingerprint;
+    });
+    if (itCertificate != _otherCertificates.end()) {
+        result = *itCertificate;
+        return result;
+    }
+
+    return result;
 }
 
 bool ClientSideEncryption::useTokenBasedEncryption() const
@@ -1343,7 +1366,7 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(publicKeyBio, publicKeyPem.constData(), publicKeyPem.size());
     auto publicKey = PKey::readPublicKey(publicKeyBio);
 
-    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(*account->e2e(), data.toBase64());
+    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(account->e2e()->getTokenCertificate(), *account->e2e(), data.toBase64());
     if (!encryptedData) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -1354,7 +1377,7 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = PKey::readPrivateKey(privateKeyBio);
 
-    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(account->e2e()->certificateSha256Fingerprint(), *account->e2e(), *encryptedData);
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(account->e2e()->getTokenCertificate(), *account->e2e(), *encryptedData, account->e2e()->certificateSha256Fingerprint());
     if (!decryptionResult) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -1373,13 +1396,13 @@ bool ClientSideEncryption::checkEncryptionIsWorking() const
 {
     QByteArray data = EncryptionHelper::generateRandom(64);
 
-    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(*this, data);
+    auto encryptedData = EncryptionHelper::encryptStringAsymmetric(getTokenCertificate(), *this, data);
     if (!encryptedData) {
         qCWarning(lcCse()) << "encryption error";
         return false;
     }
 
-    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(certificateSha256Fingerprint(), *this, *encryptedData);
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(getTokenCertificate(), *this, *encryptedData, getTokenCertificate().sha256Fingerprint());
     if (!decryptionResult) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -2249,14 +2272,21 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
     // And because inside of the meta-data there's an object called metadata, without '-'
     // make it really different.
 
-    QString metaDataStr = doc.object()["ocs"]
+    const auto &metaDataStr = doc.object()["ocs"]
                               .toObject()["data"]
                               .toObject()["meta-data"]
                               .toString();
 
-    QJsonDocument metaDataDoc = QJsonDocument::fromJson(metaDataStr.toLocal8Bit());
-    QJsonObject metadataObj = metaDataDoc.object()["metadata"].toObject();
-    QJsonObject metadataKeys = metadataObj["metadataKeys"].toObject();
+    const auto &metaDataDoc = QJsonDocument::fromJson(metaDataStr.toLocal8Bit());
+    const auto &metadataObj = metaDataDoc.object()["metadata"].toObject();
+    const auto &metadataKeys = metadataObj["metadataKeys"].toObject();
+
+    _metadataCertificateSha256Fingerprint = metadataObj[certificateSha256FingerprintKey].toString().toLatin1();
+
+    if (_metadataCertificateSha256Fingerprint.isEmpty() && _account->e2e()->useTokenBasedEncryption()) {
+        qCWarning(lcCseMetadata()) << "e2ee metadata are missing proper information about the certificate used to encrypt them";
+        return;
+    }
 
     const auto metadataKeyFromJson = metadataObj[metadataKeyJsonKey].toString().toLocal8Bit();
     if (!metadataKeyFromJson.isEmpty()) {
@@ -2295,19 +2325,6 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
     const auto files = metaDataDoc.object()["files"].toObject();
     const auto metadataKey = metaDataDoc.object()["metadata"].toObject()["metadataKey"].toString().toUtf8();
     const auto metadataKeyChecksum = metaDataDoc.object()["metadata"].toObject()["checksum"].toString().toUtf8();
-    _metadataCertificateSha256Fingerprint = metadataObj[certificateSha256FingerprintKey].toString().toLatin1();
-
-    if (!_metadataCertificateSha256Fingerprint.isEmpty()) {
-        if (!_account->e2e()->useTokenBasedEncryption()) {
-            qCWarning(lcCseMetadata()) << "e2ee metadata are missing proper information about the certificate used to encrypt them";
-            return;
-        }
-
-        if (_metadataCertificateSha256Fingerprint != _account->e2e()->usbTokenInformation()->sha256Fingerprint()) {
-            qCInfo(lcCseMetadata()) << "migration of the certificate used to encrypt metadata is needed";
-            return;
-        }
-    }
 
     _fileDrop = metaDataDoc.object().value("filedrop").toObject();
     // for unit tests
@@ -2391,7 +2408,7 @@ void FolderMetadata::setupExistingMetadata(const QByteArray& metadata)
 // RSA/ECB/OAEPWithSHA-256AndMGF1Padding using private / public key.
 std::optional<QByteArray> FolderMetadata::encryptData(const QByteArray& binaryDatadata) const
 {
-    const auto encryptBase64Result = EncryptionHelper::encryptStringAsymmetric(*_account->e2e(), binaryDatadata);
+    const auto encryptBase64Result = EncryptionHelper::encryptStringAsymmetric(_account->e2e()->getTokenCertificate(), *_account->e2e(), binaryDatadata);
 
     if (!encryptBase64Result || encryptBase64Result->isEmpty())
     {
@@ -2404,7 +2421,7 @@ std::optional<QByteArray> FolderMetadata::encryptData(const QByteArray& binaryDa
 
 std::optional<QByteArray> FolderMetadata::decryptData(const QByteArray &base64Data) const
 {
-    const auto decryptBase64Result = EncryptionHelper::decryptStringAsymmetric(certificateSha256Fingerprint(), *_account->e2e(), base64Data);
+    const auto decryptBase64Result = EncryptionHelper::decryptStringAsymmetric(_account->e2e()->getTokenCertificateByFingerprint(_metadataCertificateSha256Fingerprint), *_account->e2e(), base64Data, _metadataCertificateSha256Fingerprint);
 
     if (!decryptBase64Result || decryptBase64Result->isEmpty())
     {

@@ -121,12 +121,14 @@ OWNCLOUDSYNC_EXPORT QByteArray decryptStringSymmetric(
         const QByteArray& data
 );
 
-[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
+[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(const CertificateInformation &selectedCertificate,
+                                                                                    const ClientSideEncryption &encryptionEngine,
                                                                                     const QByteArray &binaryData);
 
-[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(const QByteArray &certificateSha256Fingerprint,
+[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(const CertificateInformation &selectedCertificate,
                                                                                     const ClientSideEncryption &encryptionEngine,
-                                                                                    const QByteArray &base64Data);
+                                                                                    const QByteArray &base64Data,
+                                                                                    const QByteArray &expectedCertificateSha256Fingerprint);
 
 QByteArray privateKeyToPem(const QByteArray key);
 
@@ -207,6 +209,8 @@ public:
     void setPrivateKey(const QByteArray &privateKey);
 
     [[nodiscard]] const CertificateInformation& getTokenCertificate() const;
+
+    [[nodiscard]] CertificateInformation getTokenCertificateByFingerprint(const QByteArray &expectedFingerprint) const;
 
     [[nodiscard]] bool useTokenBasedEncryption() const;
 
