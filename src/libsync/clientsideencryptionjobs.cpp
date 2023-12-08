@@ -237,10 +237,12 @@ bool DeleteMetadataApiJob::finished()
 
 LockEncryptFolderApiJob::LockEncryptFolderApiJob(const AccountPtr &account,
                                                  const QByteArray &fileId,
+                                                 const QByteArray &certificateSha256Fingerprint,
                                                  SyncJournalDb *journalDb,
                                                  QObject *parent)
     : AbstractNetworkJob(account, e2eeBaseUrl() + QStringLiteral("lock/") + fileId, parent)
     , _fileId(fileId)
+    , _certificateSha256Fingerprint(certificateSha256Fingerprint)
     , _journalDb(journalDb)
 {
 }
@@ -251,7 +253,7 @@ void LockEncryptFolderApiJob::start()
 
     if (!folderTokenEncrypted.isEmpty()) {
         qCInfo(lcCseJob()) << "lock folder started for:" << path() << " for fileId: " << _fileId << " but we need to first lift the previous lock";
-        const auto folderToken = EncryptionHelper::decryptStringAsymmetric(*_account->e2e(), folderTokenEncrypted);
+        const auto folderToken = EncryptionHelper::decryptStringAsymmetric(_certificateSha256Fingerprint, *_account->e2e(), folderTokenEncrypted);
         if (!folderToken) {
             qCWarning(lcCseJob()) << "decrypt failed";
             return;

@@ -87,7 +87,7 @@ void UpdateFileDropMetadataJob::slotFolderEncryptedIdReceived(const QStringList 
 
 void UpdateFileDropMetadataJob::slotTryLock(const QByteArray &fileId)
 {
-    const auto lockJob = new LockEncryptFolderApiJob(propagator()->account(), fileId, propagator()->_journal, this);
+    const auto lockJob = new LockEncryptFolderApiJob(propagator()->account(), fileId, propagator()->account()->e2e()->certificateSha256Fingerprint(), propagator()->_journal, this);
     connect(lockJob, &LockEncryptFolderApiJob::success, this, &UpdateFileDropMetadataJob::slotFolderLockedSuccessfully);
     connect(lockJob, &LockEncryptFolderApiJob::error, this, &UpdateFileDropMetadataJob::slotFolderLockedError);
     lockJob->start();

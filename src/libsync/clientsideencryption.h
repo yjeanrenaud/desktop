@@ -55,11 +55,15 @@ public:
 
     CertificateInformation(PKCS11_KEY *publicKey,
                            PKCS11_KEY *privateKey,
-                           QSslCertificate certificate);
+                           QSslCertificate &&certificate);
 
     [[nodiscard]] bool operator==(const CertificateInformation &other) const;
 
     void clear();
+
+    [[nodiscard]] QList<QSslError> verify() const;
+
+    [[nodiscard]] bool isSelfSigned() const;
 
     [[nodiscard]] PKCS11_KEY* getPublicKey() const;
 
@@ -120,7 +124,8 @@ OWNCLOUDSYNC_EXPORT QByteArray decryptStringSymmetric(
 [[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
                                                                                     const QByteArray &binaryData);
 
-[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
+[[nodiscard]] OWNCLOUDSYNC_EXPORT std::optional<QByteArray> decryptStringAsymmetric(const QByteArray &certificateSha256Fingerprint,
+                                                                                    const ClientSideEncryption &encryptionEngine,
                                                                                     const QByteArray &base64Data);
 
 QByteArray privateKeyToPem(const QByteArray key);
@@ -334,6 +339,7 @@ private:
     ClientSideEncryptionTokenSelector _usbTokenInformation;
 
     CertificateInformation _encryptionCertificate;
+    std::vector<CertificateInformation> _otherCertificates;
 };
 
 /* Generates the Metadata for the folder */
@@ -374,6 +380,8 @@ public:
     [[nodiscard]] bool moveFromFileDropToFiles();
 
     [[nodiscard]] QJsonObject fileDrop() const;
+
+    [[nodiscard]] QByteArray certificateSha256Fingerprint() const;
 
 private:
     /* Use std::string and std::vector internally on this class

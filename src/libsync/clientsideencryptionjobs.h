@@ -144,7 +144,11 @@ class OWNCLOUDSYNC_EXPORT LockEncryptFolderApiJob : public AbstractNetworkJob
 {
     Q_OBJECT
 public:
-    explicit LockEncryptFolderApiJob(const AccountPtr &account, const QByteArray &fileId, SyncJournalDb *journalDb, QObject *parent = nullptr);
+    explicit LockEncryptFolderApiJob(const AccountPtr &account,
+                                     const QByteArray &fileId,
+                                     const QByteArray &certificateSha256Fingerprint,
+                                     SyncJournalDb *journalDb,
+                                     QObject *parent = nullptr);
 
 public slots:
     void start() override;
@@ -160,6 +164,7 @@ signals:
 
 private:
     QByteArray _fileId;
+    QByteArray _certificateSha256Fingerprint;
     QPointer<SyncJournalDb> _journalDb;
 };
 

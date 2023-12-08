@@ -724,7 +724,8 @@ std::optional<QByteArray> encryptStringAsymmetric(const ClientSideEncryption &en
     }
 }
 
-std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &encryptionEngine,
+std::optional<QByteArray> decryptStringAsymmetric(const QByteArray &certificateSha256Fingerprint,
+                                                  const ClientSideEncryption &encryptionEngine,
                                                   const QByteArray &base64Data)
 {
     if (!encryptionEngine.isInitialized()) {
@@ -733,6 +734,11 @@ std::optional<QByteArray> decryptStringAsymmetric(const ClientSideEncryption &en
     }
 
     if (encryptionEngine.useTokenBasedEncryption()) {
+        if (encryptionEngine.getTokenCertificate().sha256Fingerprint() != certificateSha256Fingerprint) {
+            qCWarning(lcCse()) << "wrong certificate: cannot decrypt what has been encrypted with another certificate:" << certificateSha256Fingerprint << "current certificate" << encryptionEngine.getTokenCertificate().sha256Fingerprint();
+            return {};
+        }
+
         const auto decryptBase64Result = internals::decryptStringAsymmetricWithToken(encryptionEngine.sslEngine(),
                                                                                      encryptionEngine.getTokenCertificate().getPrivateKey(),
                                                                                      QByteArray::fromBase64(base64Data));
@@ -1243,16 +1249,10 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
             }
 
             const auto result = BIO2ByteArray(out);
-            const auto sslCertificate = QSslCertificate{result, QSsl::Pem};
+            auto sslCertificate = QSslCertificate{result, QSsl::Pem};
 
             if (sslCertificate.isSelfSigned()) {
                 qCDebug(lcCse()) << "newly found certificate is self signed: goint to ignore it";
-                continue;
-            }
-
-            const auto &sha256Fingerprint = sslCertificate.digest(QCryptographicHash::Sha256).toBase64();
-            if (sha256Fingerprint != _usbTokenInformation.sha256Fingerprint()) {
-                qCInfo(lcCse()) << "skipping certificate from" << sslCertificate.subjectDisplayName() << "with fingerprint" << sha256Fingerprint << "different from" << _usbTokenInformation.sha256Fingerprint();
                 continue;
             }
 
@@ -1264,20 +1264,39 @@ void ClientSideEncryption::initializeHardwareTokenEncryption(QWidget *settingsDi
                 return;
             }
 
-            setEncryptionCertificate({certificateKey, certificateKey, sslCertificate});
+            _otherCertificates.emplace_back(certificateKey, certificateKey, std::move(sslCertificate));
+        }
+    }
 
-            if (canEncrypt() && !checkEncryptionIsWorking()) {
-                qCWarning(lcCse()) << "encryption is not properly setup";
+    for (const auto &oneCertificateInformation : _otherCertificates) {
+        if (oneCertificateInformation.isSelfSigned()) {
+            qCDebug(lcCse()) << "newly found certificate is self signed: goint to ignore it";
+            continue;
+        }
 
-                failedToInitialize(account);
-                return;
-            }
+        if (oneCertificateInformation.sha256Fingerprint() != _usbTokenInformation.sha256Fingerprint()) {
+            qCInfo(lcCse()) << "skipping certificate from" << "with fingerprint" << oneCertificateInformation.sha256Fingerprint() << "different from" << _usbTokenInformation.sha256Fingerprint();
+            continue;
+        }
 
-            saveCertificateIdentification(account);
+        const auto &sslErrors = oneCertificateInformation.verify();
+        for (const auto &sslError : sslErrors) {
+            qCInfo(lcCse()) << "certificate validation error" << sslError;
+        }
 
-            emit initializationFinished();
+        setEncryptionCertificate(oneCertificateInformation);
+
+        if (canEncrypt() && !checkEncryptionIsWorking()) {
+            qCWarning(lcCse()) << "encryption is not properly setup";
+
+            failedToInitialize(account);
             return;
         }
+
+        saveCertificateIdentification(account);
+
+        emit initializationFinished();
+        return;
     }
 
     failedToInitialize(account);
@@ -1335,7 +1354,7 @@ bool ClientSideEncryption::checkPublicKeyValidity(const AccountPtr &account) con
     BIO_write(privateKeyBio, privateKeyPem.constData(), privateKeyPem.size());
     auto key = PKey::readPrivateKey(privateKeyBio);
 
-    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*account->e2e(), *encryptedData);
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(account->e2e()->certificateSha256Fingerprint(), *account->e2e(), *encryptedData);
     if (!decryptionResult) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -1360,7 +1379,7 @@ bool ClientSideEncryption::checkEncryptionIsWorking() const
         return false;
     }
 
-    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(*this, *encryptedData);
+    const auto decryptionResult = EncryptionHelper::decryptStringAsymmetric(certificateSha256Fingerprint(), *this, *encryptedData);
     if (!decryptionResult) {
         qCWarning(lcCse()) << "encryption error";
         return false;
@@ -2385,7 +2404,7 @@ std::optional<QByteArray> FolderMetadata::encryptData(const QByteArray& binaryDa
 
 std::optional<QByteArray> FolderMetadata::decryptData(const QByteArray &base64Data) const
 {
-    const auto decryptBase64Result = EncryptionHelper::decryptStringAsymmetric(*_account->e2e(), base64Data);
+    const auto decryptBase64Result = EncryptionHelper::decryptStringAsymmetric(certificateSha256Fingerprint(), *_account->e2e(), base64Data);
 
     if (!decryptBase64Result || decryptBase64Result->isEmpty())
     {
@@ -2617,6 +2636,11 @@ bool FolderMetadata::moveFromFileDropToFiles()
 QJsonObject FolderMetadata::fileDrop() const
 {
     return _fileDropFromServer;
+}
+
+QByteArray FolderMetadata::certificateSha256Fingerprint() const
+{
+    return _metadataCertificateSha256Fingerprint;
 }
 
 bool EncryptionHelper::fileEncryption(const QByteArray &key, const QByteArray &iv, QFile *input, QFile *output, QByteArray& returnTag)
@@ -2960,7 +2984,7 @@ CertificateInformation::CertificateInformation()
 
 CertificateInformation::CertificateInformation(PKCS11_KEY *publicKey,
                                                PKCS11_KEY *privateKey,
-                                               QSslCertificate certificate)
+                                               QSslCertificate &&certificate)
     : _publicKey(publicKey)
     , _privateKey(privateKey)
     , _certificate(std::move(certificate))
@@ -2987,6 +3011,16 @@ void CertificateInformation::clear()
     _certificateNotYetValid = true;
     _certificateRevoked = true;
     _certificateInvalid = true;
+}
+
+QList<QSslError> CertificateInformation::verify() const
+{
+    return QSslCertificate::verify({_certificate});
+}
+
+bool CertificateInformation::isSelfSigned() const
+{
+    return _certificate.isSelfSigned();
 }
 
 PKCS11_KEY *CertificateInformation::getPublicKey() const
